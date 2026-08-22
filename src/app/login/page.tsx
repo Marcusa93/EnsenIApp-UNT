@@ -16,7 +16,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   oauth: "Google no completó el ingreso. Probá de nuevo o usá tu email institucional.",
 };
 
-export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const nextParam = typeof params.next === "string" ? params.next : undefined;
   const errorParam = typeof params.error === "string" ? params.error : undefined;

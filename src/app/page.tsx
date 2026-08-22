@@ -12,7 +12,8 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/types/database";
 import type { Tables } from "@/lib/types/helpers";
 import { Brand, BrandMark } from "@/components/shell/brand";
 import { Reveal, RevealGroup, RevealItem } from "@/components/shell/reveal";
@@ -97,7 +98,13 @@ type Faculty = Tables<"faculty">;
 
 async function loadData(): Promise<{ description: string; faculty: Faculty[] }> {
   try {
-    const supabase = await createClient();
+    // Cliente anónimo sin cookies: la portada es pública y se prerenderiza (ISR).
+    // faculty tiene RLS de lectura pública; subjects no (anon no la ve → fallback al texto oficial).
+    const supabase = createSupabaseClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    );
     const [subjectRes, facultyRes] = await Promise.all([
       supabase.from("subjects").select("description").eq("name", SUBJECT_NAME).maybeSingle(),
       supabase.from("faculty").select("*").order("rank", { ascending: true }).order("full_name", { ascending: true }),
@@ -196,7 +203,7 @@ export default async function Home() {
             </Reveal>
             <Reveal inView={false} delay={0.24}>
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" rightIcon={<ArrowRight />}>
+                <Button asChild size="lg">
                   <Link href="/login">
                     Entrar al campus
                     <ArrowRight className="size-4" aria-hidden />

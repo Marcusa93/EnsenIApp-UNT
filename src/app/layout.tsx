@@ -25,17 +25,13 @@ export const metadata: Metadata = {
   description:
     "Campus digital de Derecho de las Nuevas Tecnologías y Bioderecho (Facultad de Derecho, UNT). Clases grabadas procesadas con IA: resúmenes, placas interactivas, lenguaje simple y feedback personalizado.",
   applicationName: "EnsenIA UNT",
-  icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }],
-    apple: "/apple-icon.png",
-  },
+  // Íconos y OG: convenciones de archivo (src/app/icon.svg, apple-icon.tsx, opengraph-image.tsx).
   openGraph: {
     type: "website",
     locale: "es_AR",
     siteName: "EnsenIA UNT",
     title: "EnsenIA UNT — Campus IA",
     description: "Derecho de las Nuevas Tecnologías y Bioderecho en el Siglo XXI. Un campus que procesa las clases con IA.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "EnsenIA UNT" }],
   },
   robots: { index: true, follow: true },
 };
