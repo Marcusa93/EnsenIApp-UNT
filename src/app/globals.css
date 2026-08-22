@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f6fa;
+  --surface: #ffffff;
+  --surface-2: #eef0f7;
+  --foreground: #0b0e1a;
+  --muted: #5b6178;
+  --border: #dfe2ee;
+  --accent: #5b5bf6;
+  --accent-2: #17c3b2;
+  --accent-3: #ff5d8f;
+  --ring: #5b5bf6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #06070d;
+    --surface: #0d0f1c;
+    --surface-2: #12142450;
+    --foreground: #eef0f8;
+    --muted: #8b90ab;
+    --border: #22243a;
+    --accent: #7c7cff;
+    --accent-2: #2ee6c7;
+    --accent-3: #ff6f9c;
+    --ring: #7c7cff;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.campus-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 60%, transparent) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+.glow {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 0 40px -10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
