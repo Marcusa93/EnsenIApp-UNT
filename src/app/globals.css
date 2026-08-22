@@ -1,16 +1,40 @@
 @import "tailwindcss";
 
+/*
+  EnsenIA UNT — tokens de diseño
+  ------------------------------------------------------------------
+  Dark-first. La paleta conserva los nombres originales (--background,
+  --surface, --surface-2, --foreground, --muted, --border, --accent,
+  --accent-2, --accent-3, --ring) y agrega semánticos (--success,
+  --warning, --danger) + tintas de superficie para vidrio.
+
+  Ajustes respecto del prototipo (documentados):
+  - Fondo oscuro un poco más profundo y azulado (#070812) para que los
+    glows violeta/cian "levanten" sin lavar el contraste.
+  - --muted subido a #9aa0bf en dark (ratio ~7.5:1 sobre #070812) y
+    bajado a #545a73 en light (ratio ~7:1 sobre blanco) → AA en texto chico.
+  - --accent-2 en light pasa a #0b8f80 (antes #17c3b2, 2.6:1 sobre blanco
+    → fallaba AA como texto). En dark se mantiene cian brillante.
+  - --surface-2 en dark deja de ser semitransparente para evitar
+    apilamientos raros; la transparencia se logra con .glass.
+*/
+
 :root {
-  --background: #f5f6fa;
+  color-scheme: light;
+  --background: #f4f5fb;
   --surface: #ffffff;
-  --surface-2: #eef0f7;
+  --surface-2: #eceef8;
   --foreground: #0b0e1a;
-  --muted: #5b6178;
-  --border: #dfe2ee;
-  --accent: #5b5bf6;
-  --accent-2: #17c3b2;
-  --accent-3: #ff5d8f;
-  --ring: #5b5bf6;
+  --muted: #545a73;
+  --border: #dcdfec;
+  --accent: #5552f0;
+  --accent-2: #0b8f80;
+  --accent-3: #e0407a;
+  --success: #178a4c;
+  --warning: #b26a00;
+  --danger: #d2334d;
+  --ring: #5552f0;
+  --glass: rgba(255, 255, 255, 0.72);
 }
 
 @theme inline {
@@ -23,48 +47,262 @@
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
   --color-accent-3: var(--accent-3);
-  --font-sans: var(--font-space-grotesk);
-  --font-mono: var(--font-jetbrains-mono);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --radius-2xl: 1rem;
+  --animate-fade-up: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-pulse-ring: pulse-ring 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-spin-slow: spin 6s linear infinite;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #06070d;
-    --surface: #0d0f1c;
-    --surface-2: #12142450;
-    --foreground: #eef0f8;
-    --muted: #8b90ab;
-    --border: #22243a;
-    --accent: #7c7cff;
-    --accent-2: #2ee6c7;
-    --accent-3: #ff6f9c;
-    --ring: #7c7cff;
+    color-scheme: dark;
+    --background: #070812;
+    --surface: #0e1020;
+    --surface-2: #151830;
+    --foreground: #eceef8;
+    --muted: #9aa0bf;
+    --border: #23263d;
+    --accent: #7d7bff;
+    --accent-2: #2de2c4;
+    --accent-3: #ff6b9d;
+    --success: #3ddc84;
+    --warning: #ffb347;
+    --danger: #ff5c72;
+    --ring: #7d7bff;
+    --glass: rgba(14, 16, 32, 0.66);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* Scrollbars sutiles */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--muted) 35%, transparent);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
-.font-mono {
-  font-family: var(--font-mono), ui-monospace, monospace;
+@layer utilities {
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Etiqueta mono: la firma tipográfica del campus */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Grilla sutil de fondo, con máscara radial para que se desvanezca */
+  .campus-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
+    background-size: 42px 42px;
+  }
+  .campus-grid-fade {
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  /* Grano: textura fina que saca el look "plano de IA" */
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .glow {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 0 44px -10px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  .glow-2 {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent-2) 40%, transparent),
+      0 0 44px -10px color-mix(in srgb, var(--accent-2) 55%, transparent);
+  }
+
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  }
+
+  .text-gradient {
+    background-image: linear-gradient(92deg, var(--accent) 0%, var(--accent-2) 55%, var(--accent-3) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Borde con gradiente (para tarjetas destacadas) */
+  .border-gradient {
+    position: relative;
+    background-clip: padding-box;
+  }
+  .border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), color-mix(in srgb, var(--accent-2) 40%, transparent) 60%, transparent);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--surface-2) 0%,
+      color-mix(in srgb, var(--surface-2) 60%, var(--border)) 50%,
+      var(--surface-2) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s linear infinite;
+  }
+
+  .stagger > * {
+    animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 60ms; }
+  .stagger > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger > *:nth-child(4) { animation-delay: 180ms; }
+  .stagger > *:nth-child(5) { animation-delay: 240ms; }
+  .stagger > *:nth-child(6) { animation-delay: 300ms; }
+  .stagger > *:nth-child(7) { animation-delay: 360ms; }
+  .stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
-.campus-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--border) 60%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--border) 60%, transparent) 1px, transparent 1px);
-  background-size: 42px 42px;
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.glow {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
-    0 0 40px -10px color-mix(in srgb, var(--accent) 55%, transparent);
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-::selection {
-  background: var(--accent);
-  color: white;
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-2) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Diálogo nativo: fondo y animación de entrada */
+dialog::backdrop {
+  background: rgba(4, 5, 12, 0.6);
+  backdrop-filter: blur(4px);
+}
+dialog[open] {
+  animation: fade-up 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
