@@ -19,3 +19,22 @@ insert into classes (course_id, class_date, topic, summary, sort_order) values (
   'La asistencia a clase no es un trámite: es la llave del régimen especial de promoción de esta materia. Sostener la asistencia a lo largo del semestre habilita a promocionar sin rendir examen final.',
   1
 );
+
+-- Cuerpo docente
+insert into faculty (subject_id, full_name, position, rank) values
+  ('00000000-0000-0000-0000-000000000001', 'Dr. Mario Rodolfo Leal', 'Profesor Titular', 1),
+  ('00000000-0000-0000-0000-000000000001', 'Luis Alejandro Ontiveros', 'Profesor Asociado', 2),
+  ('00000000-0000-0000-0000-000000000001', 'Luis Alfredo López', 'Profesor Asociado', 2),
+  ('00000000-0000-0000-0000-000000000001', 'Cayetano Fernando Gabriel Alberti', 'Profesor Adjunto', 3),
+  ('00000000-0000-0000-0000-000000000001', 'Ignacio Chasco Olazabal', 'Profesor Adjunto', 3),
+  ('00000000-0000-0000-0000-000000000001', 'Víctor Carlos', 'Profesor Adjunto', 3),
+  ('00000000-0000-0000-0000-000000000001', 'María Falú', 'Profesora Adjunta', 3),
+  ('00000000-0000-0000-0000-000000000001', 'Solana Esther Casella', 'Jefa de Trabajos Prácticos', 4),
+  ('00000000-0000-0000-0000-000000000001', 'Franco Javier Orellana', 'Docente Auxiliar', 5),
+  ('00000000-0000-0000-0000-000000000001', 'Marco Rossi', 'Docente Auxiliar', 5),
+  ('00000000-0000-0000-0000-000000000001', 'Carlos Enrique Arias', 'Aspirante Graduado', 6),
+  ('00000000-0000-0000-0000-000000000001', 'Luciana Eleas', 'Aspirante Graduada', 6),
+  ('00000000-0000-0000-0000-000000000001', 'Enzo Pautasi', 'Aspirante Graduado', 6),
+  ('00000000-0000-0000-0000-000000000001', 'Gimena Santiago Buffo', 'Aspirante Graduada', 6),
+  ('00000000-0000-0000-0000-000000000001', 'Juan Pablo Flores', 'Aspirante Graduado', 6),
+  ('00000000-0000-0000-0000-000000000001', 'Isaías Lisandro Nadal Saifán', 'Aspirante Estudiante', 7);
