@@ -59,6 +59,11 @@ export interface DashboardData {
 
 export const USAGE_DAYS = 14;
 
+type RecordingStatusRow = Pick<
+  Views<"v_recording_status">,
+  "id" | "title" | "status" | "progress" | "current_step" | "class_id" | "published"
+>;
+
 const dayKeyFmt = new Intl.DateTimeFormat("en-CA", {
   timeZone: TIME_ZONE,
   year: "numeric",
@@ -112,14 +117,14 @@ export async function getDashboardData(supabase: DbClient, courseId: string): Pr
     supabase.from("v_course_engagement").select("*").eq("course_id", courseId).maybeSingle(),
     supabase
       .from("teacher_alerts")
-      .select("*, student:profiles(full_name)")
+      .select("*, student:profiles!teacher_alerts_student_id_fkey(full_name)")
       .eq("course_id", courseId)
       .eq("resolved", false)
       .order("created_at", { ascending: false })
       .limit(30),
     supabase
       .from("student_questions")
-      .select("id, question, created_at, is_anonymous, student:profiles(full_name)")
+      .select("id, question, created_at, is_anonymous, student:profiles!student_questions_student_id_fkey(full_name)")
       .eq("course_id", courseId)
       .eq("status", "abierta")
       .order("created_at", { ascending: false })
@@ -130,7 +135,7 @@ export async function getDashboardData(supabase: DbClient, courseId: string): Pr
           .select("id, title, status, progress, current_step, class_id, published")
           .in("class_id", classIds)
           .order("created_at", { ascending: false })
-      : Promise.resolve({ data: [] as Views<"v_recording_status">[], error: null }),
+      : Promise.resolve({ data: [] as RecordingStatusRow[], error: null }),
     studentIds.length
       ? fetchAll<{ created_at: string; student_id: string }>((from, to) =>
           supabase
@@ -162,7 +167,7 @@ export async function getDashboardData(supabase: DbClient, courseId: string): Pr
   const classById = new Map(classes.map((c) => [c.id, c]));
 
   // Última grabación por clase (la vista viene ordenada por created_at desc).
-  const latestRecordingByClass = new Map<string, Views<"v_recording_status">>();
+  const latestRecordingByClass = new Map<string, RecordingStatusRow>();
   const recordingsInProgress: RecordingInProgress[] = [];
   for (const r of recordingsRes.data ?? []) {
     if (!r.class_id || !r.id || !r.status) continue;

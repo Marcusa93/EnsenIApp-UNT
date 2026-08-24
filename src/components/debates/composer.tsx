@@ -44,11 +44,15 @@ export function Composer({
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const id = React.useId();
 
+  // Al responder, la postura se alinea con la del argumento respondido (ajuste durante el render).
+  const [prevReplyTo, setPrevReplyTo] = React.useState(replyTo);
+  if (prevReplyTo !== replyTo) {
+    setPrevReplyTo(replyTo);
+    if (replyTo) setStance(replyTo.stance);
+  }
+
   React.useEffect(() => {
-    if (replyTo) {
-      setStance(replyTo.stance);
-      textareaRef.current?.focus();
-    }
+    if (replyTo) textareaRef.current?.focus();
   }, [replyTo]);
 
   const trimmed = content.trim();

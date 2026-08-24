@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bell, Megaphone } from "lucide-react";
 import { Badge, Card, CardTitle, EmptyState } from "@/components/ui";
 import { formatRelative } from "@/lib/format";
+import { isRecent } from "./student-data";
 
 export interface AnnouncementItem {
   id: string;
@@ -10,8 +11,6 @@ export interface AnnouncementItem {
   created_at: string;
   class_id: string | null;
 }
-
-const RECENT_MS = 72 * 3600 * 1000;
 
 export function AnnouncementsList({ items }: { items: AnnouncementItem[] }) {
   return (
@@ -31,7 +30,7 @@ export function AnnouncementsList({ items }: { items: AnnouncementItem[] }) {
       ) : (
         <ul className="divide-y divide-border">
           {items.map((a) => {
-            const isNew = Date.now() - new Date(a.created_at).getTime() < RECENT_MS;
+            const isNew = isRecent(a.created_at);
             return (
               <li key={a.id} className="py-3 first:pt-0 last:pb-0">
                 <div className="mb-1 flex flex-wrap items-center gap-2">

@@ -10,7 +10,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  type TooltipContentProps,
+  type TooltipPayloadEntry,
 } from "recharts";
 import type { DifficultyByClass } from "./dashboard-data";
 import { formatDate } from "@/lib/format";
@@ -21,7 +21,12 @@ function colorFor(avg: number): string {
   return "var(--accent-2)";
 }
 
-function DifficultyTooltip({ active, payload }: TooltipContentProps<number, string>) {
+interface TooltipViewProps {
+  active?: boolean;
+  payload?: ReadonlyArray<TooltipPayloadEntry>;
+}
+
+function DifficultyTooltip({ active, payload }: TooltipViewProps) {
   if (!active || !payload?.length) return null;
   const row = payload[0]?.payload as DifficultyByClass | undefined;
   if (!row) return null;
@@ -60,7 +65,9 @@ export function DifficultyChart({ data }: { data: DifficultyByClass[] }) {
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip content={DifficultyTooltip} cursor={{ fill: "var(--surface-2)", opacity: 0.6 }} />
+          <Tooltip
+            content={(p) => <DifficultyTooltip active={p.active} payload={p.payload} />}
+            cursor={{ fill: "var(--surface-2)", opacity: 0.6 }} />
           <Bar dataKey="avg" radius={[6, 6, 0, 0]} maxBarSize={36}>
             {chartData.map((d) => (
               <Cell key={d.class_id} fill={colorFor(d.avg)} />

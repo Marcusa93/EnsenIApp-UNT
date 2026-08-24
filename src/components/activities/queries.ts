@@ -227,6 +227,96 @@ export async function getStudentActivities(supabase: DbClient, studentId: string
   }));
 }
 
+export interface SubmissionStudentRef {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
+export interface SubmissionWithStudent extends Submission {
+  student: SubmissionStudentRef | null;
+}
+
+const SUBMISSION_SELECT = "*, student:profiles!activity_submissions_student_id_fkey(id, full_name, email)" as const;
+
+/** Entregas de una actividad con el perfil del estudiante (RLS: docente del curso). */
+export async function getSubmissionsForActivity(
+  supabase: DbClient,
+  activityId: string,
+): Promise<SubmissionWithStudent[]> {
+  const { data, error } = await supabase
+    .from("activity_submissions")
+    .select(SUBMISSION_SELECT)
+    .eq("activity_id", activityId)
+    .order("submitted_at", { ascending: false, nullsFirst: false });
+  if (error) {
+    console.error("[activities] getSubmissionsForActivity", { activityId, error });
+    throw new Error("No se pudieron cargar las entregas.");
+  }
+  return (data ?? []).map((s) => ({
+    ...s,
+    student: oneOf(s.student as SubmissionStudentRef | SubmissionStudentRef[] | null),
+  }));
+}
+
+export async function getSubmissionById(supabase: DbClient, submissionId: string): Promise<SubmissionWithStudent | null> {
+  const { data, error } = await supabase
+    .from("activity_submissions")
+    .select(SUBMISSION_SELECT)
+    .eq("id", submissionId)
+    .maybeSingle();
+  if (error) {
+    console.error("[activities] getSubmissionById", { submissionId, error });
+    throw new Error("No se pudo cargar la entrega.");
+  }
+  if (!data) return null;
+  return { ...data, student: oneOf(data.student as SubmissionStudentRef | SubmissionStudentRef[] | null) };
+}
+
+/** Entrega del estudiante actual para una actividad (null si no empezó). */
+export async function getOwnSubmission(
+  supabase: DbClient,
+  activityId: string,
+  studentId: string,
+): Promise<Submission | null> {
+  const { data, error } = await supabase
+    .from("activity_submissions")
+    .select("*")
+    .eq("activity_id", activityId)
+    .eq("student_id", studentId)
+    .maybeSingle();
+  if (error) {
+    console.error("[activities] getOwnSubmission", { activityId, studentId, error });
+    throw new Error("No se pudo cargar tu entrega.");
+  }
+  return data;
+}
+
+export interface RecordingContext {
+  id: string;
+  title: string | null;
+  class_id: string;
+  course_id: string;
+  class_topic: string;
+}
+
+/** Grabación + clase + curso (RLS: docente del curso). */
+export async function getRecordingContext(supabase: DbClient, recordingId: string): Promise<RecordingContext | null> {
+  const { data, error } = await supabase
+    .from("class_recordings")
+    .select("id, title, class_id, class:classes(id, course_id, topic)")
+    .eq("id", recordingId)
+    .maybeSingle();
+  if (error) {
+    console.error("[activities] getRecordingContext", { recordingId, error });
+    throw new Error("No se pudo cargar la grabación.");
+  }
+  if (!data) return null;
+  const cls = oneOf(data.class as { id: string; course_id: string; topic: string } | { id: string; course_id: string; topic: string }[] | null);
+  if (!cls) return null;
+  return { id: data.id, title: data.title, class_id: data.class_id, course_id: cls.course_id, class_topic: cls.topic };
+}
+
 /** URL firmada (1 h) para un objeto del bucket class-materials; null si falla. */
 export async function signMaterialUrl(supabase: DbClient, storagePath: string): Promise<string | null> {
   const { data, error } = await supabase.storage.from("class-materials").createSignedUrl(storagePath, 3600);

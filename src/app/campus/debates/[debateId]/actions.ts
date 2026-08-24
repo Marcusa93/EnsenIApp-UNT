@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { errorMessage } from "@/lib/utils";
 import { isDebateClosed } from "@/components/debates/stance";
 import { ARGUMENT_MAX_LENGTH } from "@/components/debates/composer";
-import { canModerateCourse } from "../_lib/data";
+import { canModerateCourse, getArgumentView } from "../_lib/data";
+import type { ArgumentView } from "@/components/debates/types";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -97,6 +98,24 @@ export async function postArgument(input: unknown): Promise<ActionResult<{ id: s
 }
 
 const toggleSchema = z.object({ debateId: uuid, argumentId: uuid });
+
+/**
+ * Devuelve un argumento resuelto (autor, apoyos) para incorporarlo en vivo.
+ * null si ya no es visible para el usuario (p. ej. lo ocultó el docente).
+ */
+export async function fetchArgument(input: unknown): Promise<ActionResult<ArgumentView | null>> {
+  try {
+    const parsed = toggleSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: "Datos inválidos." };
+    const { debateId, argumentId } = parsed.data;
+    const { user } = await requireSession();
+    const supabase = await createClient();
+    const view = await getArgumentView(supabase, debateId, argumentId, user.id);
+    return { ok: true, data: view };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
 
 /** Apoyar / quitar apoyo (toggle). Devuelve el estado resultante. */
 export async function toggleSupport(input: unknown): Promise<ActionResult<{ supported: boolean }>> {

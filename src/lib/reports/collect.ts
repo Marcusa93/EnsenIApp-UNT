@@ -185,9 +185,44 @@ async function studentNames(admin: Admin, ids: string[]): Promise<Map<string, st
 /* Bloques reutilizables                                                      */
 /* ------------------------------------------------------------------------- */
 
-async function usageBlock(admin: Admin, studentIds: string[], range: { from: string; to: string }, entityId?: string) {
+interface UsageEventRow {
+  student_id: string;
+  event_type: string;
+  entity_type: string;
+  entity_id: string | null;
+  created_at: string;
+}
+
+interface UsageBlock {
+  daily: DailyUsage[];
+  by_type: Record<string, number>;
+  by_entity_type: Record<string, number>;
+  by_hour_tucuman: Record<string, number>;
+  active_students: number;
+  events_total: number;
+  focus_lost: number;
+  offline_queued: number;
+  raw: UsageEventRow[];
+}
+
+async function usageBlock(
+  admin: Admin,
+  studentIds: string[],
+  range: { from: string; to: string },
+  entityId?: string,
+): Promise<UsageBlock> {
   if (studentIds.length === 0) {
-    return { daily: [] as DailyUsage[], by_type: {}, active_students: 0, events_total: 0 };
+    return {
+      daily: [],
+      by_type: {},
+      by_entity_type: {},
+      by_hour_tucuman: {},
+      active_students: 0,
+      events_total: 0,
+      focus_lost: 0,
+      offline_queued: 0,
+      raw: [],
+    };
   }
   let q = admin
     .from("usage_events")

@@ -15,7 +15,7 @@ import { PollCard, type OpenPoll } from "./_components/poll-card";
 import { FeedbackPreview } from "./_components/feedback-preview";
 import { WeekActivity } from "./_components/week-activity";
 import { DashboardGrid, DashboardItem } from "./_components/dashboard-grid";
-import { summarizeActivity, todayKey } from "./_components/student-data";
+import { isInFuture, isoDaysAgo, summarizeActivity, todayKey } from "./_components/student-data";
 
 export const metadata = { title: "Hoy · EnsenIA UNT" };
 
@@ -47,7 +47,7 @@ export default async function StudentHomePage() {
   }
 
   const today = todayKey();
-  const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+  const since7d = isoDaysAgo(7);
 
   const [
     nextClassRes,
@@ -208,7 +208,7 @@ export default async function StudentHomePage() {
     const answered = new Set((responses ?? []).map((r) => r.poll_id));
     openPolls = (pollsRes.data ?? [])
       .filter((p) => !answered.has(p.id))
-      .filter((p) => !p.closes_at || new Date(p.closes_at).getTime() > Date.now())
+      .filter((p) => isInFuture(p.closes_at))
       .map((p) => ({
         id: p.id,
         question: p.question,

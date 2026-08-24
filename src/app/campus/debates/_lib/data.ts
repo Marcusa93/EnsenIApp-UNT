@@ -142,6 +142,73 @@ export async function getDebateArguments(
   return roots;
 }
 
+/**
+ * Un solo argumento resuelto (autor, apoyos). null si no existe o RLS lo oculta.
+ * Se usa para incorporar en vivo los argumentos que llegan por Realtime.
+ */
+export async function getArgumentView(
+  supabase: DbClient,
+  debateId: string,
+  argumentId: string,
+  userId: string,
+): Promise<ArgumentView | null> {
+  const { data, error } = await supabase
+    .from("debate_arguments")
+    .select("*, supports:debate_supports(user_id)")
+    .eq("id", argumentId)
+    .eq("debate_id", debateId)
+    .maybeSingle();
+  if (error) {
+    console.error("[debates] getArgumentView", { argumentId, error });
+    throw new Error("No se pudo cargar el argumento.");
+  }
+  if (!data) return null;
+  const { supports, ...arg } = data;
+  const supporters = supports ?? [];
+  const authors = await fetchAuthors([arg.author_id]);
+  return {
+    id: arg.id,
+    debate_id: arg.debate_id,
+    parent_id: arg.parent_id,
+    stance: arg.stance,
+    content: arg.content,
+    status: arg.status,
+    hidden_reason: arg.hidden_reason,
+    hidden_by: arg.hidden_by,
+    author_id: arg.author_id,
+    author: authors.get(arg.author_id) ?? null,
+    created_at: arg.created_at,
+    support_count: supporters.length,
+    supported_by_me: supporters.some((s) => s.user_id === userId),
+    replies: [],
+  };
+}
+
+/** Argumentos visibles agrupados por postura, con nombre de autor (para la síntesis IA). */
+export async function getVisibleArgumentsForSynthesis(supabase: DbClient, debateId: string) {
+  const { data, error } = await supabase
+    .from("debate_arguments")
+    .select("id, parent_id, stance, content, author_id, created_at, supports:debate_supports(user_id)")
+    .eq("debate_id", debateId)
+    .eq("status", "visible")
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("[debates] getVisibleArgumentsForSynthesis", { debateId, error });
+    throw new Error("No se pudieron cargar los argumentos del debate.");
+  }
+  const rows = data ?? [];
+  const authors = await fetchAuthors(rows.map((r) => r.author_id));
+  return rows.map((r) => ({
+    id: r.id,
+    parent_id: r.parent_id,
+    stance: r.stance,
+    content: r.content,
+    author: authors.get(r.author_id)?.full_name ?? "Participante",
+    supports: (r.supports ?? []).length,
+    created_at: r.created_at,
+  }));
+}
+
 /** ¿El usuario puede moderar este debate? Admin siempre; docente si está asignado al curso. */
 export async function canModerateCourse(supabase: DbClient, userId: string, role: UserRole, courseId: string) {
   if (role === "admin") return true;

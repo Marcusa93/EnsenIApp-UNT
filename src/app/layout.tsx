@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { PwaRegister } from "@/components/pwa/pwa-register";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -25,6 +26,10 @@ export const metadata: Metadata = {
   description:
     "Campus digital de Derecho de las Nuevas Tecnologías y Bioderecho (Facultad de Derecho, UNT). Clases grabadas procesadas con IA: resúmenes, placas interactivas, lenguaje simple y feedback personalizado.",
   applicationName: "EnsenIA UNT",
+  // PWA: manifest en src/app/manifest.ts, íconos en public/icons, SW en public/sw.js (ver docs/PWA.md).
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EnsenIA" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
   // Íconos y OG: convenciones de archivo (src/app/icon.svg, apple-icon.tsx, opengraph-image.tsx).
   openGraph: {
     type: "website",
@@ -57,6 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Saltar al contenido
         </a>
         {children}
+        <PwaRegister />
       </body>
     </html>
   );

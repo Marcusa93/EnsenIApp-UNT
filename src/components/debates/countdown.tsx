@@ -5,6 +5,8 @@ import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format";
 
+const subscribeNoop = () => () => {};
+
 function parts(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
   const d = Math.floor(total / 86400);
@@ -34,12 +36,18 @@ export interface CountdownProps {
 /** Cuenta regresiva al cierre. Se actualiza cada segundo sólo cuando falta menos de una hora. */
 export function Countdown({ closesAt, open, onExpire, className }: CountdownProps) {
   const target = React.useMemo(() => (closesAt ? new Date(closesAt).getTime() : null), [closesAt]);
-  const [now, setNow] = React.useState<number | null>(null);
+  // Hasta hidratar mostramos la fecha absoluta (evita desajustes SSR/cliente).
+  const hydrated = React.useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+  const [clientNow, setNow] = React.useState<number>(() => Date.now());
+  const now = hydrated ? clientNow : null;
   const expiredRef = React.useRef(false);
 
   React.useEffect(() => {
     if (!target || !open) return;
-    setNow(Date.now());
     const tick = () => {
       const t = Date.now();
       setNow(t);

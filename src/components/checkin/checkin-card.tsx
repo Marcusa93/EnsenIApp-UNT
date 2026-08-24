@@ -29,6 +29,19 @@ const LEVELS: { value: number; label: string; emoji: string }[] = [
 
 const storageKey = (classId: string) => `ensenia.checkin.${classId}`;
 
+function readStored(classId: string): string | null {
+  try {
+    return window.localStorage.getItem(storageKey(classId));
+  } catch {
+    return null;
+  }
+}
+
+function subscribeStorage(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
 function looksLikeNetworkError(err: unknown): boolean {
   const msg = errorMessage(err, "");
   return /fetch|network|load failed|timeout|ECONN|abort/i.test(msg);
@@ -43,16 +56,17 @@ export function CheckinCard({ classId, studentId, classTopic, onSubmitted, class
   const [comment, setComment] = React.useState("");
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [done, setDone] = React.useState<{ queued: boolean } | null>(null);
+  const [submitted, setSubmitted] = React.useState<{ queued: boolean } | null>(null);
   const commentId = React.useId();
 
-  React.useEffect(() => {
-    try {
-      if (window.localStorage.getItem(storageKey(classId))) setDone({ queued: false });
-    } catch {
-      /* sin storage: no pasa nada */
-    }
-  }, [classId]);
+  // Check-in ya hecho en este dispositivo (localStorage), sin setState en efectos.
+  const storedAt = React.useSyncExternalStore(
+    subscribeStorage,
+    () => readStored(classId),
+    () => null,
+  );
+  const done = submitted ?? (storedAt ? { queued: false } : null);
+  const setDone = setSubmitted;
 
   async function resolveStudentId(): Promise<string | null> {
     if (studentId) return studentId;

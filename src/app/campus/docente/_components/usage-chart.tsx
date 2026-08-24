@@ -10,7 +10,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  type TooltipContentProps,
+  type TooltipPayloadEntry,
 } from "recharts";
 import type { UsageDay } from "./dashboard-data";
 
@@ -21,7 +21,13 @@ function labelFor(date: string): string {
   return dayLabel.format(new Date(y, m - 1, d)).replace(".", "");
 }
 
-function UsageTooltip({ active, payload, label }: TooltipContentProps<number, string>) {
+interface TooltipViewProps {
+  active?: boolean;
+  payload?: ReadonlyArray<TooltipPayloadEntry>;
+  label?: unknown;
+}
+
+function UsageTooltip({ active, payload, label }: TooltipViewProps) {
   if (!active || !payload?.length) return null;
   const events = payload.find((p) => p.dataKey === "events")?.value ?? 0;
   const students = payload.find((p) => p.dataKey === "students")?.value ?? 0;
@@ -68,7 +74,9 @@ export function UsageChart({ data }: { data: UsageDay[] }) {
             allowDecimals={false}
           />
           <YAxis yAxisId="students" orientation="right" hide allowDecimals={false} />
-          <Tooltip content={UsageTooltip} cursor={{ fill: "var(--surface-2)", opacity: 0.6 }} />
+          <Tooltip
+            content={(p) => <UsageTooltip active={p.active} payload={p.payload} label={p.label} />}
+            cursor={{ fill: "var(--surface-2)", opacity: 0.6 }} />
           <Bar yAxisId="events" dataKey="events" fill="var(--accent)" radius={[6, 6, 0, 0]} maxBarSize={28} />
           <Area
             yAxisId="students"

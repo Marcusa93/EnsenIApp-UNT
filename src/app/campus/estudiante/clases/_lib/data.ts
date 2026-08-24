@@ -18,10 +18,20 @@ import type { GlossaryTerm, SummarySection, TranscriptSegment } from "@/lib/type
 
 export type ClassTemporalState = "pasada" | "hoy" | "proxima" | "futura";
 
+/**
+ * Docente a cargo. Se resuelve desde `faculty` (lectura pública) y no desde `profiles`,
+ * porque la RLS de profiles sólo deja ver el propio perfil al estudiante.
+ */
 export interface TeacherRef {
   id: string;
   full_name: string;
-  avatar_url: string | null;
+  position: string | null;
+}
+
+export interface StudentCourseRef {
+  id: string;
+  name: string;
+  subject_id: string;
 }
 
 export interface ClassListItem {
@@ -133,11 +143,11 @@ const SIGNED_URL_TTL = 60 * 60; // 1 h
 interface RawClassRow {
   id: string;
   course_id: string;
+  teacher_id: string | null;
   class_date: string;
   topic: string;
   summary: string | null;
   sort_order: number;
-  teacher: TeacherRef | TeacherRef[] | null;
   recordings: { id: string }[] | null;
   materials: { id: string }[] | null;
 }
@@ -147,21 +157,47 @@ function one<T>(v: T | T[] | null | undefined): T | null {
   return v ?? null;
 }
 
+/** Mapa profile_id → docente a partir de `faculty` de las materias indicadas. */
+async function getFacultyByProfile(supabase: DbClient, subjectIds: string[]): Promise<Map<string, TeacherRef>> {
+  const map = new Map<string, TeacherRef>();
+  const ids = Array.from(new Set(subjectIds.filter(Boolean)));
+  if (ids.length === 0) return map;
+  const { data, error } = await supabase
+    .from("faculty")
+    .select("profile_id, full_name, position")
+    .in("subject_id", ids);
+  if (error) {
+    // No bloquea: el docente es informativo.
+    console.error("[clases] faculty", { error });
+    return map;
+  }
+  for (const f of data ?? []) {
+    if (f.profile_id) map.set(f.profile_id, { id: f.profile_id, full_name: f.full_name, position: f.position });
+  }
+  return map;
+}
+
 /** Cronograma de todos los cursos del estudiante. RLS ya limita grabaciones a publicadas. */
 export async function getStudentClasses(
   supabase: DbClient,
-  courses: { id: string; name: string }[],
+  courses: StudentCourseRef[],
 ): Promise<ClassListItem[]> {
   if (courses.length === 0) return [];
-  const { data, error } = await supabase
-    .from("classes")
-    .select(
-      "id, course_id, class_date, topic, summary, sort_order, teacher:profiles(id, full_name, avatar_url), recordings:class_recordings(id), materials:class_materials(id)",
-    )
-    .in(
-      "course_id",
-      courses.map((c) => c.id),
-    );
+  const [{ data, error }, faculty] = await Promise.all([
+    supabase
+      .from("classes")
+      .select(
+        "id, course_id, teacher_id, class_date, topic, summary, sort_order, recordings:class_recordings(id), materials:class_materials(id)",
+      )
+      .in(
+        "course_id",
+        courses.map((c) => c.id),
+      ),
+    getFacultyByProfile(
+      supabase,
+      courses.map((c) => c.subject_id),
+    ),
+  ]);
   if (error) {
     console.error("[clases] getStudentClasses", { error });
     throw new Error("No se pudo cargar el cronograma. Probá de nuevo en unos segundos.");
@@ -175,7 +211,7 @@ export async function getStudentClasses(
     topic: r.topic,
     summary: r.summary,
     sort_order: r.sort_order,
-    teacher: one(r.teacher),
+    teacher: r.teacher_id ? (faculty.get(r.teacher_id) ?? null) : null,
     recordings_count: r.recordings?.length ?? 0,
     materials_count: r.materials?.length ?? 0,
   }));
@@ -290,7 +326,7 @@ export async function getClassDetail(
   const { data: cls, error } = await supabase
     .from("classes")
     .select(
-      "id, course_id, class_date, topic, summary, sort_order, teacher:profiles(id, full_name, avatar_url), course:courses(id, name)",
+      "id, course_id, teacher_id, class_date, topic, summary, sort_order, course:courses(id, name, subject_id)",
     )
     .eq("id", classId)
     .maybeSingle();
@@ -300,7 +336,19 @@ export async function getClassDetail(
   }
   if (!cls) return null;
 
-  const [annRes, matRes, recRes, checkinRes] = await Promise.all([
+  const raw = cls as unknown as {
+    id: string;
+    course_id: string;
+    teacher_id: string | null;
+    class_date: string;
+    topic: string;
+    summary: string | null;
+    sort_order: number;
+    course: { id: string; name: string; subject_id: string } | { id: string; name: string; subject_id: string }[] | null;
+  };
+  const course = one(raw.course);
+
+  const [annRes, matRes, recRes, checkinRes, faculty] = await Promise.all([
     supabase
       .from("announcements")
       .select("id, title, body, created_at")
@@ -325,6 +373,7 @@ export async function getClassDetail(
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    getFacultyByProfile(supabase, course ? [course.subject_id] : []),
   ]);
 
   if (annRes.error) console.error("[clases] announcements", { classId, error: annRes.error });
@@ -345,26 +394,16 @@ export async function getClassDetail(
     ),
   ]);
 
-  const raw = cls as unknown as {
-    id: string;
-    course_id: string;
-    class_date: string;
-    topic: string;
-    summary: string | null;
-    sort_order: number;
-    teacher: TeacherRef | TeacherRef[] | null;
-    course: { id: string; name: string } | { id: string; name: string }[] | null;
-  };
   const [stated] = withTemporalState([{ class_date: raw.class_date, sort_order: raw.sort_order }]);
 
   return {
     id: raw.id,
     course_id: raw.course_id,
-    course_name: one(raw.course)?.name ?? "Curso",
+    course_name: course?.name ?? "Curso",
     class_date: raw.class_date,
     topic: raw.topic,
     summary: raw.summary,
-    teacher: one(raw.teacher),
+    teacher: raw.teacher_id ? (faculty.get(raw.teacher_id) ?? null) : null,
     state: stated.state === "futura" ? "proxima" : stated.state,
     announcements: annRes.data ?? [],
     materials,

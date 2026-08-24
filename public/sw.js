@@ -125,7 +125,7 @@ self.addEventListener("message", (event) => {
       self.skipWaiting();
       break;
     case "CLEAR_DATA":
-      event.waitUntil(caches.delete(DATA_CACHE));
+      event.waitUntil(clearUserCaches());
       break;
     case "GET_VERSION":
       if (event.source) event.source.postMessage({ type: "SW_VERSION", version: VERSION });
@@ -165,6 +165,22 @@ async function trimCache(cacheName, maxEntries) {
     await Promise.all(excess.map((k) => cache.delete(k)));
   } catch (err) {
     console.warn("[sw] trimCache falló", cacheName, err);
+  }
+}
+
+/** Borra lo que es personal del usuario: datos REST y páginas navegadas (no las del precache). */
+async function clearUserCaches() {
+  try {
+    await caches.delete(DATA_CACHE);
+    const shell = await caches.open(SHELL_CACHE);
+    const keys = await shell.keys();
+    await Promise.all(
+      keys
+        .filter((req) => !PRECACHE_URLS.includes(new URL(req.url).pathname))
+        .map((req) => shell.delete(req)),
+    );
+  } catch (err) {
+    console.warn("[sw] clearUserCaches falló", err);
   }
 }
 
@@ -289,9 +305,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Efecto lateral sin interceptar: al cerrar sesión se descartan los datos cacheados del usuario.
+  // Efecto lateral sin interceptar: al cerrar sesión se descartan los datos cacheados del usuario
+  // (REST de Supabase y páginas del campus ya visitadas); el app shell precacheado se conserva.
   if (request.method === "POST" && url.origin === self.location.origin && url.pathname === "/auth/signout") {
-    event.waitUntil(caches.delete(DATA_CACHE));
+    event.waitUntil(clearUserCaches());
     return;
   }
 

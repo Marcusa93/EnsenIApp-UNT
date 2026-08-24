@@ -93,7 +93,7 @@ export function ReportRequestForm({ courseId, classes, activities, students, ini
             transition={{ duration: 0.18 }}
             className="grid gap-4 sm:grid-cols-2"
           >
-            {(needsStudent || scope === "estudiante") && (
+            {needsStudent && (
               <Field label="Estudiante" htmlFor="student_id" required className="sm:col-span-2">
                 <Select
                   id="student_id"

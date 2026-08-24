@@ -2,7 +2,8 @@ import Link from "next/link";
 import { FileBarChart } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getCoursesForRole } from "@/lib/courses";
+import { getActiveCourse } from "@/components/docente/active-course";
+import { CourseSwitcher } from "@/components/docente/course-switcher";
 import { PageHeader, EmptyState, Button } from "@/components/ui";
 import { ReportRequestForm } from "@/components/informes/report-request-form";
 import { ReportList } from "@/components/informes/report-list";
@@ -18,8 +19,7 @@ export default async function InformesPage({ searchParams }: PageProps) {
   const { user, profile } = await requireRole("docente", "admin");
   const supabase = await createClient();
 
-  const courses = await getCoursesForRole(supabase, user.id, profile.role);
-  const course = courses.find((c) => c.id === sp.course) ?? courses[0] ?? null;
+  const { course, courses } = await getActiveCourse(supabase, user.id, profile.role, sp.course);
 
   if (!course) {
     return (
@@ -84,6 +84,7 @@ export default async function InformesPage({ searchParams }: PageProps) {
         eyebrow={`Docente · Informes · ${course.name}`}
         title="Informes a demanda"
         description="Pedí un informe sobre cómo se está cursando: la IA analiza los datos agregados del campus y te devuelve hallazgos con evidencia y recomendaciones concretas."
+        actions={<CourseSwitcher courses={courses} activeCourseId={course.id} />}
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

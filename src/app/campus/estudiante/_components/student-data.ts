@@ -43,6 +43,26 @@ export function weekdayShort(key: string): string {
   return WEEKDAY_SHORT[dow];
 }
 
+/** Instante actual en ms (helper para no llamar Date.now() dentro del render). */
+export function nowMs(): number {
+  return Date.now();
+}
+
+/** Instante ISO de hace N días. */
+export function isoDaysAgo(days: number): string {
+  return new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
+}
+
+/** true si el timestamp es posterior al instante actual (p. ej. closes_at). */
+export function isInFuture(iso: string | null | undefined): boolean {
+  return !iso || new Date(iso).getTime() > Date.now();
+}
+
+/** true si el timestamp tiene menos de `hours` horas. */
+export function isRecent(iso: string, hours = 72): boolean {
+  return Date.now() - new Date(iso).getTime() < hours * 3600 * 1000;
+}
+
 export interface DayActivity {
   key: string;
   label: string;
