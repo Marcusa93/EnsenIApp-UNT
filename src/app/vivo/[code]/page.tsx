@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveLiveRoom, hasResponded } from "@/lib/live/data";
 import { normalizeLiveCode } from "@/lib/live/code";
 import { Brand } from "@/components/shell/brand";
+import { LabBadge } from "@/components/live/lab-badge";
 import { LiveRoom } from "./room";
 
 export const metadata: Metadata = { title: "Sesión en vivo · EnsenIA UNT" };
@@ -28,7 +29,8 @@ export default async function LiveJoinPage({ params }: { params: Promise<{ code:
         style={{ background: "radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 55%, transparent), transparent 70%)" }}
         aria-hidden
       />
-      <div className="relative z-10 mb-8">
+      <div className="relative z-10 mb-8 flex flex-col items-center gap-3">
+        <LabBadge size={72} />
         <Brand />
       </div>
 

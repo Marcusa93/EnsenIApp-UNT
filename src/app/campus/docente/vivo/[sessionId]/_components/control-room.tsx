@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy, ExternalLink, MonitorPlay, Pause, Radio, Square } from "lucide-react";
 import { Badge, Button, Card, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { LabBadge } from "@/components/live/lab-badge";
 import type { LivePrompt, LiveSession } from "@/lib/live/types";
 import { endSession, pauseSession, setActivePrompt } from "../actions";
 
@@ -140,10 +141,13 @@ export function ControlRoom({ session, prompts, joinUrl, projectorUrl }: Control
   return (
     <div className="flex flex-col gap-4">
       <Card highlight>
-        <CardHeader>
-          <CardTitle eyebrow="Compartí este link una sola vez">Código de sala</CardTitle>
-          <CardDescription>Cualquiera que lo abra queda esperando — no hace falta que esté inscripto.</CardDescription>
-        </CardHeader>
+        <div className="mb-1 flex items-start justify-between gap-3">
+          <CardHeader className="mb-0">
+            <CardTitle eyebrow="Compartí este link una sola vez">Código de sala</CardTitle>
+            <CardDescription>Cualquiera que lo abra queda esperando — no hace falta que esté inscripto.</CardDescription>
+          </CardHeader>
+          <LabBadge size={48} />
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <span className="rounded-2xl border border-border bg-surface-2 px-5 py-3 font-mono text-3xl font-semibold tracking-[0.2em]">

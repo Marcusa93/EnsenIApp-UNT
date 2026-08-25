@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProjectorWordCloud } from "@/components/live/projector-word-cloud";
+import { LabBadge } from "@/components/live/lab-badge";
 import type { LiveRoomState, WordCount } from "@/lib/live/types";
 
 export interface ProjectorRoomProps {
@@ -81,7 +82,8 @@ export function ProjectorRoom({ initial, initialWords }: ProjectorRoomProps) {
   }, [initial.session.id, refreshWords]);
 
   return (
-    <main className="flex min-h-dvh flex-col bg-[#06070f]">
+    <main className="relative flex min-h-dvh flex-col bg-[#06070f]">
+      <LabBadge size={56} className="absolute left-[2vw] top-[2vh] z-20" />
       <AnimatePresence mode="wait">
         {status === "ended" ? (
           <motion.div key="ended" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 flex-col items-center justify-center gap-4 text-white/80">
