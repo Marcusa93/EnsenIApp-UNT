@@ -970,6 +970,164 @@ export type Database = {
           },
         ]
       }
+      live_prompts: {
+        Row: {
+          class_id: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          question: string
+          type: Database["public"]["Enums"]["live_prompt_type"]
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          question: string
+          type?: Database["public"]["Enums"]["live_prompt_type"]
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          question?: string
+          type?: Database["public"]["Enums"]["live_prompt_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_prompts_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_prompts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_responses: {
+        Row: {
+          created_at: string
+          id: string
+          normalized_word: string
+          participant_id: string
+          prompt_id: string
+          session_id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          normalized_word: string
+          participant_id: string
+          prompt_id: string
+          session_id: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          normalized_word?: string
+          participant_id?: string
+          prompt_id?: string
+          session_id?: string
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_responses_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_responses_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "live_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_sessions: {
+        Row: {
+          active_prompt_id: string | null
+          class_id: string
+          class_topic: string | null
+          code: string
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["live_session_status"]
+        }
+        Insert: {
+          active_prompt_id?: string | null
+          class_id: string
+          class_topic?: string | null
+          code: string
+          created_at?: string
+          created_by: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["live_session_status"]
+        }
+        Update: {
+          active_prompt_id?: string | null
+          class_id?: string
+          class_topic?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["live_session_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_sessions_active_prompt_id_fkey"
+            columns: ["active_prompt_id"]
+            isOneToOne: false
+            referencedRelation: "live_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_sessions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_campaigns: {
         Row: {
           body: string
@@ -1967,6 +2125,31 @@ export type Database = {
         }
         Relationships: []
       }
+      v_live_wordcloud: {
+        Row: {
+          display_word: string | null
+          frequency: number | null
+          normalized_word: string | null
+          prompt_id: string | null
+          session_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_responses_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "live_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_recording_status: {
         Row: {
           chunks_done: number | null
@@ -2068,6 +2251,8 @@ export type Database = {
       debate_status: "open" | "closed" | "archived"
       delivery_channel: "email" | "push"
       delivery_status: "pending" | "sent" | "failed" | "skipped"
+      live_prompt_type: "nube"
+      live_session_status: "draft" | "live" | "ended"
       material_kind: "pdf" | "link" | "video" | "doc" | "otro"
       notification_kind:
         | "aviso"
@@ -2246,6 +2431,8 @@ export const Constants = {
       debate_status: ["open", "closed", "archived"],
       delivery_channel: ["email", "push"],
       delivery_status: ["pending", "sent", "failed", "skipped"],
+      live_prompt_type: ["nube"],
+      live_session_status: ["draft", "live", "ended"],
       material_kind: ["pdf", "link", "video", "doc", "otro"],
       notification_kind: [
         "aviso",

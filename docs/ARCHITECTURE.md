@@ -68,7 +68,8 @@ Nunca importar `admin.ts` desde un componente cliente.
 | Debate | `debates`, `debate_arguments` (stance, parent_id, status visible/hidden), `debate_supports` |
 | Seguimiento | `usage_events` (telemetría; ver taxonomía en `src/lib/types/helpers.ts`), `teacher_alerts` (triggers automáticos), `report_requests` (informes a demanda: scope, filters, result_md) |
 | Notificaciones | `notifications` (bandeja in-app), `notification_preferences`, `notification_deliveries`, `notification_campaigns`, `push_subscriptions` — esquema listo (004) con RLS; la UI/envíos son un módulo futuro |
-| Vistas | `v_course_engagement`, `v_recording_status` (incluye `error_message` desde 004) |
+| Sesión en vivo | `live_prompts` (banco de disparadoras por clase; sólo docente ve el banco completo), `live_sessions` (code, status draft/live/ended, `active_prompt_id` = única fuente de verdad de qué se ve ahora, `class_topic` denormalizado para el link público), `live_responses` (una por participante y prompt; RLS exige que sea justo la disparadora activa) |
+| Vistas | `v_course_engagement`, `v_recording_status` (incluye `error_message` desde 004), `v_live_wordcloud` (agregado público, sin identidad, para el proyector) |
 
 Tipos: `import type { Tables, Enums } from "@/lib/types/helpers"` → `Tables<"activities">`. Los JSONB llegan como `Json`;
 castear en el borde con las interfaces de `helpers.ts` (`InteractiveCardItem[]`, `TranscriptSegment[]`, etc.).
@@ -76,7 +77,9 @@ castear en el borde con las interfaces de `helpers.ts` (`InteractiveCardItem[]`,
 Migraciones aplicadas: `001_init` → `004_integration` (esta última consolidó los pendientes de la fase
 paralela: constraints del pipeline, policies de storage para entregas y borrado, visibilidad de perfiles
 docentes, esquema de notificaciones, delete de informes, realtime de `debate_supports` y unicidad de
-check-ins). Cambios de esquema nuevos: `supabase/migrations/NNN_*.sql` + `scripts/db.sh` + `scripts/gen-types.sh`.
+check-ins). `005` agrega el acceso por nombre (sesión anónima). `006`/`007` agregan la sesión en vivo (nube de
+palabras) y seedean la clase de Ciberdelitos con sus 6 disparadoras. Cambios de esquema nuevos:
+`supabase/migrations/NNN_*.sql` + `scripts/db.sh` + `scripts/gen-types.sh`.
 
 ## 5. Mapa de rutas (única fuente de verdad: `src/lib/nav.ts`)
 
@@ -108,6 +111,11 @@ check-ins). Cambios de esquema nuevos: `supabase/migrations/NNN_*.sql` + `script
 /campus/docente/informes                    pedir informe (scope + filtros) → lista → ver informe
 /campus/docente/informes/[reportId]
 /campus/admin                               usuarios/roles, cursos, docentes por curso, cuerpo docente
+/campus/docente/clases/[classId]/vivo       banco de disparadoras (nube de palabras) de la clase + iniciar sesión en vivo
+/campus/docente/vivo/[sessionId]            sala de control: código/link, activar una disparadora a la vez, conteo en vivo
+
+/vivo/[code]                estudiante: entra con el link (nombre y apellido alcanza), responde la disparadora activa
+/vivo/[code]/proyector       pantalla grande: nube de palabras en vivo (sin login — RLS pública para sesiones live/ended)
 
 /api/recordings/[recordingId]/step   POST — avanza un paso del pipeline (ver §6)
 /api/questions/[questionId]/answer   POST — respuesta IA a una consulta

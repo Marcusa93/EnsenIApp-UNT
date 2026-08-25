@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, BarChart3, ClipboardPlus, Swords } from "lucide-react";
+import { ArrowLeft, BarChart3, ClipboardPlus, Radio, Swords } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getCourseById } from "@/lib/courses";
@@ -101,7 +101,7 @@ export default async function DocenteClasePage({ params }: { params: Promise<{ c
                 <CardTitle eyebrow="Desde esta clase">Crear con un clic</CardTitle>
                 <CardDescription>Generá actividades, debates o encuestas vinculadas a esta clase.</CardDescription>
               </CardHeader>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 <Button asChild variant="secondary" leftIcon={<ClipboardPlus />}>
                   <Link href={`/campus/docente/actividades/nueva?classId=${cls.id}`}>Actividad</Link>
                 </Button>
@@ -110,6 +110,9 @@ export default async function DocenteClasePage({ params }: { params: Promise<{ c
                 </Button>
                 <Button asChild variant="secondary" leftIcon={<BarChart3 />}>
                   <Link href={`/campus/docente/consultas?tab=encuestas&classId=${cls.id}`}>Encuesta rápida</Link>
+                </Button>
+                <Button asChild variant="secondary" leftIcon={<Radio />}>
+                  <Link href={`/campus/docente/clases/${cls.id}/vivo`}>Sesión en vivo</Link>
                 </Button>
               </div>
             </Card>
