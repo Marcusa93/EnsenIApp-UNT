@@ -2034,10 +2034,15 @@ export type Database = {
       auth_can_see_activity: { Args: { a_id: string }; Returns: boolean }
       auth_is_enrolled: { Args: { target_course: string }; Returns: boolean }
       auth_is_teacher_of: { Args: { target_course: string }; Returns: boolean }
+      auth_profile_status: {
+        Args: never
+        Returns: Database["public"]["Enums"]["profile_status"]
+      }
       auth_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      try_uuid: { Args: { v: string }; Returns: string }
       unread_notifications_count: { Args: never; Returns: number }
     }
     Enums: {
