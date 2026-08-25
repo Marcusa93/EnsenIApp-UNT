@@ -18,6 +18,7 @@ export { ModerationBar } from "./moderation-bar";
 export type { ModerationBarProps } from "./moderation-bar";
 export { DebateView } from "./debate-view";
 export type { DebateViewProps } from "./debate-view";
-export { Composer, ARGUMENT_MAX_LENGTH } from "./composer";
+export { Composer } from "./composer";
+export { ARGUMENT_MAX_LENGTH } from "./constants";
 export type { ComposerProps, ComposerReplyTarget } from "./composer";
 export type { ArgumentView, ArgumentAuthor, DebateListItem, DebateDetail, DebateRow, ArgumentRow } from "./types";

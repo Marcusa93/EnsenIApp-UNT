@@ -14,6 +14,13 @@ import type { GlossaryTerm, InteractiveCardItem, SummarySection } from "@/lib/ty
 
 /** Umbral a partir del cual se hace map-reduce. */
 export const LONG_TRANSCRIPT_CHARS = 60_000;
+
+/**
+ * Timeout para las generaciones de calidad (modelo de razonamiento, salidas largas).
+ * Estos generadores corren sólo en rutas con maxDuration=300: 240 s deja margen para
+ * persistir el resultado o el estado de error sin que Vercel mate la función.
+ */
+const REASONING_TIMEOUT_MS = 240_000;
 /** Tamaño objetivo de cada tramo en map-reduce. */
 const PART_CHARS = 35_000;
 
@@ -98,17 +105,25 @@ export async function condenseTranscript(transcript: string): Promise<CondensedT
   if (clean.length <= LONG_TRANSCRIPT_CHARS) return { text: clean, condensed: false, parts: 1 };
 
   const parts = splitIntoParts(clean);
-  const notes: string[] = [];
-  for (let i = 0; i < parts.length; i++) {
-    const res = await chatJSON({
-      schema: notesSchema,
-      system: CHUNK_NOTES_SYSTEM,
-      user: `TRAMO ${i + 1} de ${parts.length}:\n"""\n${parts[i]}\n"""\n\nDevolvé { "notes_md": string } con notas en Markdown (300 a 700 palabras).`,
-      model: MODELS.fast,
-      temperature: 0.2,
-      maxTokens: 2_500,
-    });
-    notes.push(`## Tramo ${i + 1}\n${res.data.notes_md.trim()}`);
+  const notes: string[] = new Array<string>(parts.length);
+  // Los tramos son independientes: se procesan en paralelo acotado para bajar la latencia
+  // total (secuencial, una clase de 3 h suma 100-200 s sólo de condensación).
+  const CONCURRENCY = 3;
+  for (let start = 0; start < parts.length; start += CONCURRENCY) {
+    await Promise.all(
+      parts.slice(start, start + CONCURRENCY).map(async (part, offset) => {
+        const i = start + offset;
+        const res = await chatJSON({
+          schema: notesSchema,
+          system: CHUNK_NOTES_SYSTEM,
+          user: `TRAMO ${i + 1} de ${parts.length}:\n"""\n${part}\n"""\n\nDevolvé { "notes_md": string } con notas en Markdown (300 a 700 palabras).`,
+          model: MODELS.fast,
+          temperature: 0.2,
+          maxTokens: 2_500,
+        });
+        notes[i] = `## Tramo ${i + 1}\n${res.data.notes_md.trim()}`;
+      }),
+    );
   }
   return { text: notes.join("\n\n"), condensed: true, parts: parts.length };
 }
@@ -137,6 +152,7 @@ export async function generateSummary(transcript: string, ctx?: GenerateContext)
     model: MODELS.reasoning,
     temperature: 0.3,
     maxTokens: 4_000,
+    timeoutMs: REASONING_TIMEOUT_MS,
   });
   return res;
 }
@@ -154,6 +170,7 @@ export async function generateCards(
     model: MODELS.reasoning,
     temperature: 0.5,
     maxTokens: 6_000,
+    timeoutMs: REASONING_TIMEOUT_MS,
   });
   return { ...res, data: res.data.cards };
 }

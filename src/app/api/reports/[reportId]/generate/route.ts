@@ -13,7 +13,7 @@ import { errorMessage } from "@/lib/utils";
 
 export const maxDuration = 300;
 
-const paramsSchema = z.object({ reportId: z.uuid() });
+const paramsSchema = z.object({ reportId: z.guid() });
 
 /**
  * POST /api/reports/[reportId]/generate
@@ -55,14 +55,24 @@ export async function POST(_req: Request, ctx: { params: Promise<{ reportId: str
   }
 
   const admin = createAdminClient();
+  // Claim atómico (compare-and-set sobre el estado leído): dos POST concurrentes no pueden
+  // generar el informe dos veces — el perdedor no matchea status/completed_at y recibe 409.
   // completed_at marca el inicio del procesamiento (se sobreescribe al terminar).
-  const { error: startErr } = await admin
+  const claimQuery = admin
     .from("report_requests")
     .update({ status: "processing", result_md: null, completed_at: new Date().toISOString() })
-    .eq("id", reportId);
+    .eq("id", reportId)
+    .eq("status", report.status);
+  const guardedClaim = report.completed_at
+    ? claimQuery.eq("completed_at", report.completed_at)
+    : claimQuery.is("completed_at", null);
+  const { data: claimed, error: startErr } = await guardedClaim.select("id").maybeSingle();
   if (startErr) {
     console.error("[reports/generate] no se pudo marcar processing", { reportId, startErr });
     return NextResponse.json({ error: "No se pudo iniciar la generación." }, { status: 500 });
+  }
+  if (!claimed) {
+    return NextResponse.json({ status: "processing", error: "El informe ya se está generando en otro pedido." }, { status: 409 });
   }
 
   try {

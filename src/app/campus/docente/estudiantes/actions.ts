@@ -11,8 +11,8 @@ import { rosterEntrySchema } from "./_components/roster-schema";
 const PATH = "/campus/docente/estudiantes";
 
 const statusSchema = z.object({
-  course_id: z.uuid(),
-  student_id: z.uuid(),
+  course_id: z.guid(),
+  student_id: z.guid(),
   status: z.enum(["validado", "bloqueado", "pendiente"]),
 });
 
@@ -65,7 +65,7 @@ export async function setStudentStatus(input: z.input<typeof statusSchema>): Pro
 }
 
 const upsertSchema = z.object({
-  course_id: z.uuid(),
+  course_id: z.guid(),
   entries: z.array(rosterEntrySchema).min(1, "No hay filas para cargar.").max(2000, "Máximo 2000 filas por carga."),
 });
 
@@ -112,7 +112,7 @@ export async function upsertRoster(input: z.input<typeof upsertSchema>): Promise
   }
 }
 
-const deleteSchema = z.object({ course_id: z.uuid(), roster_id: z.uuid() });
+const deleteSchema = z.object({ course_id: z.guid(), roster_id: z.guid() });
 
 export async function deleteRosterEntry(input: z.input<typeof deleteSchema>): Promise<ActionResult> {
   const parsed = deleteSchema.safeParse(input);

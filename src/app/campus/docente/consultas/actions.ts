@@ -35,7 +35,7 @@ async function guardQuestion(questionId: string): Promise<{ question: QuestionRo
 }
 
 const answerSchema = z.object({
-  question_id: z.uuid(),
+  question_id: z.guid(),
   answer_md: z
     .string()
     .trim()
@@ -70,7 +70,7 @@ export async function answerQuestion(input: z.input<typeof answerSchema>): Promi
   }
 }
 
-const publicSchema = z.object({ question_id: z.uuid(), is_public: z.boolean() });
+const publicSchema = z.object({ question_id: z.guid(), is_public: z.boolean() });
 
 /** Marca la consulta como pública (visible para todo el curso) o vuelve a privada. */
 export async function setQuestionPublic(input: z.input<typeof publicSchema>): Promise<ActionResult> {
@@ -94,7 +94,7 @@ export async function setQuestionPublic(input: z.input<typeof publicSchema>): Pr
   }
 }
 
-const closedSchema = z.object({ question_id: z.uuid(), closed: z.boolean() });
+const closedSchema = z.object({ question_id: z.guid(), closed: z.boolean() });
 
 /** Cierra la consulta o la reabre (recupera el estado según qué respuestas tenga). */
 export async function setQuestionClosed(input: z.input<typeof closedSchema>): Promise<ActionResult> {
@@ -128,8 +128,8 @@ export async function setQuestionClosed(input: z.input<typeof closedSchema>): Pr
 
 const createPollSchema = z
   .object({
-    course_id: z.uuid(),
-    class_id: z.uuid().nullable().optional(),
+    course_id: z.guid(),
+    class_id: z.guid().nullable().optional(),
     question: z.string().trim().min(5, "La pregunta es muy corta.").max(500, "La pregunta es demasiado larga."),
     options: z.array(z.string().trim().min(1, "Hay opciones vacías.").max(200)).max(10, "Máximo 10 opciones."),
     allow_free_text: z.boolean(),
@@ -190,7 +190,7 @@ export async function createPoll(input: z.input<typeof createPollSchema>): Promi
   }
 }
 
-const pollStatusSchema = z.object({ poll_id: z.uuid(), status: z.enum(["open", "closed"]) });
+const pollStatusSchema = z.object({ poll_id: z.guid(), status: z.enum(["open", "closed"]) });
 
 /** Abre o cierra una encuesta. Al cerrar se registra closes_at. */
 export async function setPollStatus(input: z.input<typeof pollStatusSchema>): Promise<ActionResult> {
@@ -223,7 +223,7 @@ export async function setPollStatus(input: z.input<typeof pollStatusSchema>): Pr
   }
 }
 
-const deletePollSchema = z.object({ poll_id: z.uuid() });
+const deletePollSchema = z.object({ poll_id: z.guid() });
 
 /** Elimina la encuesta y sus respuestas (cascade). */
 export async function deletePoll(input: z.input<typeof deletePollSchema>): Promise<ActionResult> {

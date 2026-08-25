@@ -7,8 +7,7 @@ import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { STANCES, STANCE_META, type DebateStance } from "./stance";
 import { StanceIcon } from "./stance-badge";
-
-export const ARGUMENT_MAX_LENGTH = 4000;
+import { ARGUMENT_MAX_LENGTH } from "./constants";
 
 export interface ComposerReplyTarget {
   id: string;

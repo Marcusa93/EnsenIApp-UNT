@@ -1,9 +1,20 @@
 import OpenAI from "openai";
 
+/**
+ * Timeout por defecto de cada request a OpenRouter. El default del SDK (600 s + 2 retries)
+ * supera cualquier maxDuration de Vercel: un proveedor colgado consumiría el budget completo
+ * de la función y anularía fallbacks y escritura de estados de error. 100 s deja margen en
+ * las rutas de 120 s; las llamadas con más presupuesto lo suben por request (`{ timeout }`).
+ */
+export const OPENROUTER_DEFAULT_TIMEOUT_MS = 100_000;
+
 /** OpenRouter es OpenAI-compatible: chat/completions y audio/transcriptions. Sólo server-side. */
 export const openrouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY ?? "missing-key",
   baseURL: "https://openrouter.ai/api/v1",
+  timeout: OPENROUTER_DEFAULT_TIMEOUT_MS,
+  // Los reintentos los maneja la app (pipeline por pasos, chatJSON): acá duplicarían el budget.
+  maxRetries: 0,
   defaultHeaders: {
     "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://ensenia-unt.vercel.app",
     "X-Title": "EnsenIA UNT",

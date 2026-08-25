@@ -117,7 +117,7 @@ export const quizContentSchema = z.object({
 
 export const textContentSchema = z.object({
   body_md: z.string().max(50_000).optional(),
-  material_ids: z.array(z.uuid()).max(50).optional(),
+  material_ids: z.array(z.guid()).max(50).optional(),
   allow_file_upload: z.boolean().optional(),
 });
 
@@ -296,15 +296,15 @@ export function effectiveScore(s: Pick<Submission, "score" | "auto_score">): num
 
 export const activityInputSchema = z
   .object({
-    course_id: z.uuid("Elegí un curso."),
-    class_id: z.uuid().nullable(),
-    recording_id: z.uuid().nullable(),
+    course_id: z.guid("Elegí un curso."),
+    class_id: z.guid().nullable(),
+    recording_id: z.guid().nullable(),
     type: z.enum(EDITABLE_TYPES, { message: "Elegí un tipo de actividad." }),
     title: z.string().trim().min(3, "El título necesita al menos 3 caracteres.").max(200, "Título demasiado largo."),
     instructions_md: z.string().max(20_000, "Las instrucciones son demasiado largas."),
     content: z.unknown(),
     target: z.enum(["todos", "seleccionados"]),
-    student_ids: z.array(z.uuid()).max(1000),
+    student_ids: z.array(z.guid()).max(1000),
     due_at: z.iso.datetime({ offset: true }).nullable(),
     max_score: z.number().min(1, "El puntaje máximo debe ser al menos 1.").max(100, "El puntaje máximo no puede superar 100."),
   })

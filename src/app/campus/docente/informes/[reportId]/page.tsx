@@ -21,7 +21,7 @@ interface PageProps {
 
 export default async function InformeDetallePage({ params, searchParams }: PageProps) {
   const [{ reportId }, sp] = await Promise.all([params, searchParams]);
-  if (!z.uuid().safeParse(reportId).success) notFound();
+  if (!z.guid().safeParse(reportId).success) notFound();
   await requireRole("docente", "admin");
   const supabase = await createClient();
 

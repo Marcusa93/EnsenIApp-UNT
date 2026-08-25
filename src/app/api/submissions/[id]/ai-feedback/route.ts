@@ -11,7 +11,7 @@ import { isEditableType } from "@/components/activities/model";
 
 export const maxDuration = 120;
 
-const paramsSchema = z.object({ id: z.uuid() });
+const paramsSchema = z.object({ id: z.guid() });
 
 /**
  * POST /api/submissions/[id]/ai-feedback

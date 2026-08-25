@@ -6,14 +6,14 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const askSchema = z.object({
-  courseId: z.uuid("Curso inválido."),
+  courseId: z.guid("Curso inválido."),
   question: z
     .string()
     .trim()
     .min(12, "Contanos un poco más: al menos 12 caracteres.")
     .max(2000, "La consulta no puede superar los 2000 caracteres."),
-  classId: z.uuid().nullable(),
-  recordingId: z.uuid().nullable(),
+  classId: z.guid().nullable(),
+  recordingId: z.guid().nullable(),
   isAnonymous: z.boolean(),
   isPublic: z.boolean(),
 });
@@ -53,6 +53,20 @@ export async function askQuestion(input: AskQuestionInput): Promise<AskQuestionR
     if (!rec) recordingId = null;
     else if (!classId) classId = rec.class_id;
     else if (rec.class_id !== classId) recordingId = null;
+  }
+
+  // La clase (propia o heredada de la grabación) debe pertenecer al curso indicado.
+  if (classId) {
+    const { data: cls, error: clsErr } = await supabase
+      .from("classes")
+      .select("id, course_id")
+      .eq("id", classId)
+      .maybeSingle();
+    if (clsErr) console.error("[consultas] validar clase", clsErr);
+    if (!cls || cls.course_id !== data.courseId) {
+      classId = null;
+      recordingId = null;
+    }
   }
 
   const { data: inserted, error } = await supabase

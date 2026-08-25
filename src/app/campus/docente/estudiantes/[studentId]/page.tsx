@@ -65,7 +65,7 @@ export default async function EstudianteDetallePage({
   searchParams: Promise<{ course?: string }>;
 }) {
   const [{ studentId }, sp] = await Promise.all([params, searchParams]);
-  if (!z.uuid().safeParse(studentId).success) notFound();
+  if (!z.guid().safeParse(studentId).success) notFound();
   const { user, profile } = await requireRole("docente", "admin");
   const supabase = await createClient();
   const { course } = await getActiveCourse(supabase, user.id, profile.role, sp.course);

@@ -1,4 +1,4 @@
-import { formatDistanceToNowStrict, isValid, parseISO } from "date-fns";
+import { formatDistanceToNowStrict, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 
 export const TIME_ZONE = "America/Argentina/Tucuman";
@@ -12,8 +12,10 @@ function toDate(input: DateInput): Date | null {
     const d = new Date(input);
     return isValid(d) ? d : null;
   }
-  // Fechas `date` de Postgres (YYYY-MM-DD) se interpretan como día local, no UTC.
-  const d = /^\d{4}-\d{2}-\d{2}$/.test(input) ? parseISO(input) : new Date(input);
+  // Fechas `date` de Postgres (YYYY-MM-DD): ancladas a la zona del campus (-03:00, Argentina
+  // no tiene DST) para que los Intl con TZ Tucumán muestren el día correcto aunque el proceso
+  // corra en UTC (Vercel). parseISO usaba la zona local del proceso y corría la fecha un día.
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(input) ? new Date(`${input}T00:00:00-03:00`) : new Date(input);
   return isValid(d) ? d : null;
 }
 

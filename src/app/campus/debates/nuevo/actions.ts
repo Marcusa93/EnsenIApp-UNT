@@ -12,7 +12,7 @@ import { canModerateCourse } from "../_lib/data";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
-const uuid = z.string().uuid("Identificador inválido.");
+const uuid = z.string().guid("Identificador inválido.");
 
 const createSchema = z.object({
   courseId: uuid,

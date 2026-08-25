@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const uuidSchema = z.string().uuid();
+export const uuidSchema = z.string().guid();
 
 /** Acepta YYYY-MM-DD o DD/MM/YYYY y normaliza a YYYY-MM-DD. */
 export const dateSchema = z

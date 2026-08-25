@@ -26,9 +26,9 @@ export const REPORT_SCOPE_DESCRIPTION: Record<ReportScope, string> = {
 export const reportFiltersSchema = z.object({
   from: z.string().date().optional(),
   to: z.string().date().optional(),
-  class_id: z.uuid().optional(),
-  activity_id: z.uuid().optional(),
-  student_id: z.uuid().optional(),
+  class_id: z.guid().optional(),
+  activity_id: z.guid().optional(),
+  student_id: z.guid().optional(),
   question: z.string().trim().max(600).optional(),
 });
 export type ReportFilters = z.infer<typeof reportFiltersSchema>;

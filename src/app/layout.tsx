@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { MotionProvider } from "@/components/shell/motion-provider";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 
 const spaceGrotesk = Space_Grotesk({
@@ -61,7 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Saltar al contenido
         </a>
-        {children}
+        <MotionProvider>{children}</MotionProvider>
         <PwaRegister />
       </body>
     </html>

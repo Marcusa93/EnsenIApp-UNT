@@ -3,9 +3,11 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { chatText, LLMError } from "@/lib/ai/llm";
+import { inlineUntrusted, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/untrusted";
 import { MODELS } from "@/lib/openrouter";
 import { getPrimaryCourse } from "@/lib/courses";
 import { parseCards } from "@/components/class-content/parse";
+import { todayKey } from "@/app/campus/estudiante/_components/student-data";
 import { errorMessage } from "@/lib/utils";
 
 export const maxDuration = 180;
@@ -26,7 +28,9 @@ Reglas:
   ## Tu plan para esta semana
   (El plan: 3 pasos concretos, numerados, accionables en el campus o con el material de la materia, cada uno en 1–2 líneas.)
 - Cerrá con una línea breve de aliento (sin encabezado).
-- Extensión total: 220–450 palabras.`;
+- Extensión total: 220–450 palabras.
+
+${UNTRUSTED_CONTENT_RULE}`;
 
 function one<T>(v: T | T[] | null | undefined): T | null {
   if (Array.isArray(v)) return v[0] ?? null;
@@ -185,7 +189,7 @@ export async function POST() {
   const submissions = (submissionsRes.data ?? []).map((s) => ({ ...s, activity: one(s.activity) }));
   const questions = (questionsRes.data ?? []).map((q) => ({ ...q, class: one(q.class) }));
   const classes = classesRes.data ?? [];
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayKey();
   const pastClasses = classes.filter((c) => c.class_date <= today);
 
   const dataset = [
@@ -203,7 +207,8 @@ export async function POST() {
       avgDifficulty != null ? `, promedio ${avgDifficulty.toFixed(1)}` : ""
     }.`,
     ...checkins.slice(0, 15).map(
-      (c) => `- ${fmtDate(c.created_at)} · "${c.class?.topic ?? "clase"}" · dificultad ${c.difficulty}${c.comment ? ` · comentario: "${c.comment}"` : ""}`,
+      (c) =>
+        `- ${fmtDate(c.created_at)} · "${c.class?.topic ?? "clase"}" · dificultad ${c.difficulty}${c.comment ? ` · comentario: "${inlineUntrusted(c.comment).slice(0, 300)}"` : ""}`,
     ),
     `\nPLACAS INTERACTIVAS: ${progress.length} placas vistas, ${known} marcadas como sabidas, ${correct}/${attempts} respuestas correctas en quiz.`,
     weakTags.size ? `Temas con dificultad en placas: ${topTags(weakTags).join(", ")}.` : null,
@@ -217,7 +222,7 @@ export async function POST() {
     }),
     `\nCONSULTAS (${questions.length}):`,
     ...questions.slice(0, 10).map(
-      (q) => `- ${fmtDate(q.created_at)} · ${q.status}${q.class?.topic ? ` · clase "${q.class.topic}"` : ""} · "${q.question.slice(0, 200)}"`,
+      (q) => `- ${fmtDate(q.created_at)} · ${q.status}${q.class?.topic ? ` · clase "${q.class.topic}"` : ""} · "${inlineUntrusted(q.question).slice(0, 200)}"`,
     ),
   ]
     .filter((l): l is string => Boolean(l))
@@ -227,7 +232,8 @@ export async function POST() {
     const result = await chatText({
       system: SYSTEM_PROMPT,
       user: `Datos de cursada del estudiante (generados por el campus):\n\n${dataset}\n\nEscribí la devolución.`,
-      model: MODELS.reasoning,
+      // Feedback corto sobre datos ya digeridos: tarea del modelo fast (ARCHITECTURE §6).
+      model: MODELS.fast,
       temperature: 0.5,
       maxTokens: 1600,
     });
@@ -236,6 +242,20 @@ export async function POST() {
     // ai_feedback no tiene política de insert para el estudiante: se guarda con service role
     // después de haber verificado sesión y rol arriba.
     const admin = createAdminClient();
+
+    // Guarda contra doble POST concurrente: si mientras corría el LLM otro request
+    // ya insertó una devolución nueva, devolvemos esa en vez de duplicar.
+    const { data: concurrent } = await admin
+      .from("ai_feedback")
+      .select("id, feedback_md, created_at")
+      .eq("student_id", studentId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (concurrent && concurrent.created_at !== (last?.created_at ?? null)) {
+      return NextResponse.json({ id: concurrent.id, feedback_md: concurrent.feedback_md, created_at: concurrent.created_at });
+    }
+
     const { data: inserted, error: insErr } = await admin
       .from("ai_feedback")
       .insert({ student_id: studentId, feedback_md: feedbackMd, model: result.model })

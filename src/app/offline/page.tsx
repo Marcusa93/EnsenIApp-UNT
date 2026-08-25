@@ -16,7 +16,11 @@ export const dynamic = "force-static";
 /** Fallback de navegación del service worker cuando no hay red ni copia cacheada. */
 export default function OfflinePage() {
   return (
-    <main className="campus-grid campus-grid-fade relative flex min-h-dvh flex-col items-center justify-center px-6 py-16">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="campus-grid campus-grid-fade relative flex min-h-dvh flex-col items-center justify-center px-6 py-16 outline-none"
+    >
       <div className="glow-2 pointer-events-none absolute left-1/2 top-1/3 size-72 -translate-x-1/2 rounded-full bg-accent-2/15 blur-3xl" aria-hidden />
       <div className="relative w-full max-w-md text-center">
         <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl border border-warning/30 bg-warning/10 text-warning">

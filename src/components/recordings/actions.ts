@@ -15,7 +15,7 @@ const BUCKET = "class-recordings";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
-const idSchema = z.uuid();
+const idSchema = z.guid();
 
 interface OwnedRecording {
   id: string;

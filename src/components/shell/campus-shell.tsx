@@ -177,11 +177,34 @@ export function CampusShell({ profile, children }: CampusShellProps) {
 
 function MoreMenu({ items, active }: { items: NavItem[]; active: string | null }) {
   const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const isActive = items.some((i) => i.href === active);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div ref={ref} className="relative">
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -200,26 +223,23 @@ function MoreMenu({ items, active }: { items: NavItem[]; active: string | null }
         <span className="font-mono uppercase tracking-wider">Más</span>
       </button>
       {open && (
-        <>
-          <button type="button" className="fixed inset-0 z-40 cursor-default" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
-          <div role="menu" className="glass absolute bottom-full right-1 z-50 mb-2 w-52 rounded-2xl p-1.5 shadow-2xl">
-            {items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                role="menuitem"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition hover:bg-surface-2",
-                  active === item.href ? "text-accent" : "text-foreground",
-                )}
-              >
-                <NavIcon name={item.icon} className="size-4" />
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </>
+        <div role="menu" className="glass absolute bottom-full right-1 z-50 mb-2 w-52 rounded-2xl p-1.5 shadow-2xl">
+          {items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className={cn(
+                "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition hover:bg-surface-2",
+                active === item.href ? "text-accent" : "text-foreground",
+              )}
+            >
+              <NavIcon name={item.icon} className="size-4" />
+              {item.label}
+            </Link>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -9,7 +9,7 @@ import { getCoursesForRole } from "@/lib/courses";
 import { COURSE_COOKIE } from "./active-course";
 import { fail, succeed, type ActionResult } from "./types";
 
-const schema = z.string().uuid();
+const schema = z.string().guid();
 
 /** Guarda el curso activo en la cookie `ensenia.course` (sólo si el usuario puede operarlo). */
 export async function setActiveCourse(courseId: string): Promise<ActionResult> {

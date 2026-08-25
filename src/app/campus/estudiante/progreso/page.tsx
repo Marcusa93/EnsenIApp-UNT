@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Button, EmptyState, PageHeader, Stat } from "@/components/ui";
 import { RevealGroup, RevealItem } from "@/components/shell";
 import { formatPercent } from "@/lib/format";
+import { EDITABLE_TYPES, effectiveScore } from "@/components/activities/model";
 import { PageViewTracker } from "../_components/page-view-tracker";
 import { dayKey, shiftDayKey, todayKey, weekStartKey } from "../_components/student-data";
 import { CardsRadial, WeeklyActivityChart, type WeekBucket } from "./_components/progress-charts";
@@ -60,7 +61,12 @@ export default async function ProgresoPage() {
         .eq("published", true)
         .eq("status", "ready"),
       supabase.from("card_progress").select("recording_id, card_index, known, attempts, correct").eq("student_id", user.id),
-      supabase.from("activities").select("id").eq("course_id", course.id).in("status", ["published", "closed"]),
+      supabase
+        .from("activities")
+        .select("id")
+        .eq("course_id", course.id)
+        .in("status", ["published", "closed"])
+        .in("type", [...EDITABLE_TYPES]),
       supabase.from("activity_submissions").select("activity_id, status, score, auto_score").eq("student_id", user.id),
       supabase.from("student_checkins").select("difficulty").eq("student_id", user.id),
       supabase.from("student_questions").select("id, status").eq("student_id", user.id),
@@ -125,8 +131,8 @@ export default async function ProgresoPage() {
   const activityIds = new Set((activitiesRes.data ?? []).map((a) => a.id));
   const submissions = (submissionsRes.data ?? []).filter((s) => activityIds.has(s.activity_id));
   const delivered = submissions.filter((s) => s.status === "entregada" || s.status === "corregida");
-  const graded = submissions.filter((s) => s.score != null);
-  const avgScore = graded.length ? graded.reduce((a, s) => a + Number(s.score), 0) / graded.length : null;
+  const graded = submissions.filter((s) => effectiveScore(s) != null);
+  const avgScore = graded.length ? graded.reduce((a, s) => a + Number(effectiveScore(s)), 0) / graded.length : null;
 
   // --- Dificultad y consultas ---
   const checkins = checkinsRes.data ?? [];

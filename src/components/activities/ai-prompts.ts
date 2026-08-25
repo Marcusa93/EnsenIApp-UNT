@@ -1,4 +1,5 @@
 import { COURSE_CONTEXT } from "@/lib/ai/prompts/context";
+import { fenceUntrusted, inlineUntrusted, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/untrusted";
 import type { Activity } from "@/lib/types/helpers";
 import {
   ACTIVITY_TYPE_LABEL,
@@ -52,7 +53,9 @@ Tu tarea: sos asistente del docente para CORREGIR la entrega de un estudiante. V
 2. "**Fortalezas**": 2-3 viñetas con lo que está bien, citando la respuesta.
 3. "**Para mejorar**": 2-4 viñetas con errores conceptuales o de argumentación, explicando la corrección y, si corresponde, la norma o concepto que faltó.
 4. "**Sugerencia de puntaje**": un número sobre el puntaje máximo, justificado en una oración, aplicando la rúbrica implícita en la consigna (comprensión conceptual, precisión jurídica, argumentación, cumplimiento de la consigna).
-Sé honesto y específico. Si la entrega está vacía o es insuficiente, decilo con claridad y sugerí cómo rehacerla. No inventes contenido que el estudiante no escribió. Respondé sólo con el feedback en markdown, sin preámbulos.`;
+Sé honesto y específico. Si la entrega está vacía o es insuficiente, decilo con claridad y sugerí cómo rehacerla. No inventes contenido que el estudiante no escribió. Respondé sólo con el feedback en markdown, sin preámbulos.
+
+${UNTRUSTED_CONTENT_RULE}`;
 
 export function feedbackUserPrompt(
   activity: Pick<Activity, "type" | "title" | "instructions_md" | "content" | "max_score">,
@@ -79,13 +82,13 @@ export function feedbackUserPrompt(
     const a = parseReadingAnswers(submission.answers);
     if (text.body_md) parts.push(`TEXTO DE LA LECTURA (recortado):\n${text.body_md.slice(0, 8000)}`);
     parts.push(`MARCÓ COMO LEÍDA: ${a.read ? "sí" : "no"}`);
-    parts.push(`REFLEXIÓN DEL ESTUDIANTE:\n${a.reflection.trim() || "(vacía)"}`);
+    parts.push(`REFLEXIÓN DEL ESTUDIANTE:\n${a.reflection.trim() ? fenceUntrusted(a.reflection) : "(vacía)"}`);
   } else {
     const text = parseTextContent(activity.content);
     const a = parseEssayAnswers(submission.answers);
     if (text.body_md) parts.push(`MATERIAL DE APOYO (recortado):\n${text.body_md.slice(0, 6000)}`);
-    parts.push(`TEXTO DE LA ENTREGA:\n${a.text.trim() || "(vacío)"}`);
-    if (a.file_name) parts.push(`ADJUNTO: ${a.file_name} (no se puede leer su contenido; evaluá sólo el texto).`);
+    parts.push(`TEXTO DE LA ENTREGA:\n${a.text.trim() ? fenceUntrusted(a.text) : "(vacío)"}`);
+    if (a.file_name) parts.push(`ADJUNTO: ${inlineUntrusted(a.file_name)} (no se puede leer su contenido; evaluá sólo el texto).`);
   }
   parts.push(`TIEMPO DEDICADO: ${Math.round(submission.time_spent_seconds / 60)} minutos`);
   return parts.join("\n\n");

@@ -7,7 +7,7 @@ import { requireTeacherOf } from "@/components/docente/teacher-guard";
 import { fail, succeed, type ActionResult } from "@/components/docente/types";
 import { errorMessage } from "@/lib/utils";
 
-const idSchema = z.string().uuid();
+const idSchema = z.string().guid();
 
 /** Marca una alerta como resuelta (sólo docente del curso o admin). */
 export async function resolveAlert(alertId: string): Promise<ActionResult> {

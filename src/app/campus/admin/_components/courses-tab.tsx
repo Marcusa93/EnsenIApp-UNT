@@ -103,13 +103,13 @@ export function CoursesTab({ subjects, courses }: { subjects: AdminSubject[]; co
       </section>
 
       <SubjectDialog
-        key={subjectDialog.session}
+        key={`subject-${subjectDialog.session}`}
         open={subjectDialog.open}
         subject={subjectDialog.subject}
         onOpenChange={(open) => setSubjectDialog((s) => ({ ...s, open }))}
       />
       <CourseDialog
-        key={courseDialog.session}
+        key={`course-${courseDialog.session}`}
         open={courseDialog.open}
         course={courseDialog.course}
         subjects={subjects}

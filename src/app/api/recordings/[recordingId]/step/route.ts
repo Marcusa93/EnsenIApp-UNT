@@ -7,7 +7,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, Json } from "@/lib/types/database";
 import type { ClassRecording, TranscriptSegment } from "@/lib/types/helpers";
 import { transcribeChunk } from "@/lib/ai/transcribe";
-import { condenseTranscript, generateCards, generateSimplified, generateSummary, type CondensedTranscript } from "@/lib/ai/generate";
+import { LLMValidationError } from "@/lib/ai/llm";
+import {
+  condenseTranscript,
+  generateCards,
+  generateSimplified,
+  generateSummary,
+  LONG_TRANSCRIPT_CHARS,
+  type CondensedTranscript,
+} from "@/lib/ai/generate";
 import { parseSegments } from "@/components/class-content/parse";
 import {
   GENERATION_STEPS,
@@ -22,7 +30,12 @@ import { errorMessage } from "@/lib/utils";
 export const maxDuration = 300;
 
 const BUCKET = "class-recordings";
-const paramsSchema = z.object({ recordingId: z.uuid() });
+const paramsSchema = z.object({ recordingId: z.guid() });
+
+/** Notas condensadas cacheadas en Storage para no repetir el map-reduce en cada sub-paso. */
+function condensedPath(recordingId: string): string {
+  return `${recordingId}/condensed.md`;
+}
 
 type Admin = SupabaseClient<Database>;
 
@@ -210,6 +223,10 @@ async function stepCompile(admin: Admin, rec: ClassRecording): Promise<{ rec: Cl
     );
   if (upsertErr) throw new StepError(`No se pudo guardar la transcripción: ${upsertErr.message}`, "compile");
 
+  // La transcripción cambió: invalidamos las notas condensadas cacheadas (si existían).
+  const { error: rmErr } = await admin.storage.from(BUCKET).remove([condensedPath(rec.id)]);
+  if (rmErr) console.warn("[recordings/step] no se pudo invalidar el cache de condensación", { recordingId: rec.id, rmErr });
+
   const updated = await patch(admin, rec.id, {
     status: "generating",
     current_step: GENERATION_STEPS[0],
@@ -269,6 +286,36 @@ function keyPointsFrom(json: Json): string[] {
   return Array.isArray(json) ? json.filter((k): k is string => typeof k === "string") : [];
 }
 
+/**
+ * Devuelve la transcripción condensada, reutilizando el resultado cacheado en Storage.
+ * El map-reduce de condensación es caro (4-5 llamadas LLM en clases de 2-3 h): sin cache
+ * se repetiría en cada uno de los 4 sub-pasos de generación, que corren en requests separados.
+ */
+async function loadOrCondense(admin: Admin, recordingId: string, fullText: string): Promise<CondensedTranscript> {
+  const clean = fullText.replace(/\s+/g, " ").trim();
+  if (clean.length <= LONG_TRANSCRIPT_CHARS) return { text: clean, condensed: false, parts: 1 };
+
+  const path = condensedPath(recordingId);
+  const { data: cached } = await admin.storage.from(BUCKET).download(path);
+  if (cached) {
+    const text = (await cached.text()).trim();
+    if (text.length > 0) {
+      const parts = (text.match(/^## Tramo /gm) ?? []).length || 1;
+      return { text, condensed: true, parts };
+    }
+  }
+
+  const condensed = await condenseTranscript(clean);
+  if (condensed.condensed) {
+    const { error } = await admin.storage
+      .from(BUCKET)
+      .upload(path, new Blob([condensed.text], { type: "text/markdown" }), { upsert: true, contentType: "text/markdown" });
+    // El cache es una optimización: si no se pudo guardar, seguimos igual con el resultado en memoria.
+    if (error) console.warn("[recordings/step] no se pudo cachear la condensación", { recordingId, error });
+  }
+  return condensed;
+}
+
 async function stepGenerate(admin: Admin, rec: ClassRecording): Promise<{ rec: ClassRecording; done: boolean }> {
   const existing = await loadExisting(admin, rec.id);
 
@@ -302,22 +349,25 @@ async function stepGenerate(admin: Admin, rec: ClassRecording): Promise<{ rec: C
     return { rec: updated, done: false };
   }
 
-  const condensed: CondensedTranscript = await condenseTranscript(transcript.full_text);
+  const condensed: CondensedTranscript = await loadOrCondense(admin, rec.id, transcript.full_text);
   const ctx = { condensed, title: rec.title };
   let model = "";
   let detail = "";
 
   if (step === "summary") {
     const res = await generateSummary(transcript.full_text, ctx);
-    await admin.from("class_summaries").delete().eq("recording_id", rec.id);
-    const { error } = await admin.from("class_summaries").insert({
-      recording_id: rec.id,
-      summary_md: res.data.summary_md,
-      key_points: res.data.key_points as unknown as Json,
-      sections: res.data.sections as unknown as Json,
-      glossary: res.data.glossary as unknown as Json,
-      model: res.model,
-    });
+    // Upsert (no delete+insert): dos requests concurrentes no chocan contra la unique de recording_id.
+    const { error } = await admin.from("class_summaries").upsert(
+      {
+        recording_id: rec.id,
+        summary_md: res.data.summary_md,
+        key_points: res.data.key_points as unknown as Json,
+        sections: res.data.sections as unknown as Json,
+        glossary: res.data.glossary as unknown as Json,
+        model: res.model,
+      },
+      { onConflict: "recording_id" },
+    );
     if (error) throw new StepError(`No se pudo guardar el resumen: ${error.message}`, step);
     model = res.model;
     detail = `${res.data.key_points.length} ideas clave, ${res.data.sections.length} secciones, ${res.data.glossary.length} términos`;
@@ -326,10 +376,10 @@ async function stepGenerate(admin: Admin, rec: ClassRecording): Promise<{ rec: C
       ? { summary_md: existing.summary.summary_md, key_points: keyPointsFrom(existing.summary.key_points) }
       : { summary_md: "", key_points: [] };
     const res = await generateCards(transcript.full_text, summary, ctx);
-    await admin.from("interactive_cards").delete().eq("recording_id", rec.id);
+    // Upsert (no delete+insert): dos requests concurrentes no chocan contra la unique de recording_id.
     const { error } = await admin
       .from("interactive_cards")
-      .insert({ recording_id: rec.id, cards: res.data as unknown as Json, model: res.model });
+      .upsert({ recording_id: rec.id, cards: res.data as unknown as Json, model: res.model }, { onConflict: "recording_id" });
     if (error) throw new StepError(`No se pudieron guardar las placas: ${error.message}`, step);
     model = res.model;
     detail = `${res.data.length} placas`;
@@ -443,7 +493,9 @@ export async function POST(_req: Request, ctx: { params: Promise<{ recordingId: 
     return NextResponse.json(toResponse(updated, done));
   } catch (err) {
     const step = err instanceof StepError ? err.step : rec.current_step ?? rec.status;
-    const httpStatus = err instanceof StepError ? err.httpStatus : 500;
+    // LLMValidationError es determinístico (el modelo nunca validó el schema): se responde 422
+    // para que el cliente aborte sin backoff en vez de pagar reintentos condenados.
+    const httpStatus = err instanceof StepError ? err.httpStatus : err instanceof LLMValidationError ? 422 : 500;
     const message = errorMessage(err, "Falló el procesamiento. Reintentá en unos minutos.");
     console.error("[recordings/step] error", { recordingId, step, status: rec.status, err });
 

@@ -43,6 +43,13 @@ export class TranscribeError extends Error {
 /** Límite del endpoint Whisper de OpenAI/OpenRouter. */
 export const WHISPER_MAX_BYTES = 25 * 1024 * 1024;
 
+/**
+ * Timeout por proveedor: el step route corre con maxDuration=300, así que
+ * 110 s (Whisper) + 110 s (fallback multimodal) dejan margen para persistir
+ * el resultado o el estado de error antes de que Vercel mate la función.
+ */
+const PROVIDER_TIMEOUT_MS = 110_000;
+
 const segmentSchema = z.object({
   start: z.number().nonnegative(),
   end: z.number().nonnegative(),
@@ -99,13 +106,16 @@ async function transcribeWithWhisper(buf: Buffer, opts: TranscribeOptions): Prom
     throw new TranscribeError(`El chunk pesa ${(buf.byteLength / 1024 / 1024).toFixed(1)} MB y supera el límite de 25 MB de Whisper.`);
   }
   const file = await toFile(buf, "chunk.mp3", { type: "audio/mpeg" });
-  const res = await openrouter.audio.transcriptions.create({
-    file,
-    model: MODELS.transcription,
-    response_format: "verbose_json",
-    language: opts.language ?? "es",
-    temperature: 0,
-  });
+  const res = await openrouter.audio.transcriptions.create(
+    {
+      file,
+      model: MODELS.transcription,
+      response_format: "verbose_json",
+      language: opts.language ?? "es",
+      temperature: 0,
+    },
+    { timeout: PROVIDER_TIMEOUT_MS },
+  );
   const parsed = verboseSchema.safeParse(res);
   if (!parsed.success) {
     throw new TranscribeError("Whisper devolvió una respuesta con formato inesperado.", parsed.error);
@@ -124,20 +134,23 @@ async function transcribeWithWhisper(buf: Buffer, opts: TranscribeOptions): Prom
 
 async function transcribeWithAudioChat(buf: Buffer, opts: TranscribeOptions): Promise<TranscribeResult> {
   const base64 = buf.toString("base64");
-  const res = await openrouter.chat.completions.create({
-    model: MODELS.audio,
-    temperature: 0,
-    messages: [
-      { role: "system", content: AUDIO_TRANSCRIBE_SYSTEM },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: audioTranscribeUserPrompt(opts.durationSeconds) },
-          { type: "input_audio", input_audio: { data: base64, format: "mp3" } },
-        ],
-      },
-    ],
-  });
+  const res = await openrouter.chat.completions.create(
+    {
+      model: MODELS.audio,
+      temperature: 0,
+      messages: [
+        { role: "system", content: AUDIO_TRANSCRIBE_SYSTEM },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: audioTranscribeUserPrompt(opts.durationSeconds) },
+            { type: "input_audio", input_audio: { data: base64, format: "mp3" } },
+          ],
+        },
+      ],
+    },
+    { timeout: PROVIDER_TIMEOUT_MS },
+  );
   const content = res.choices?.[0]?.message?.content ?? "";
   if (!content.trim()) throw new TranscribeError("El modelo de audio devolvió una respuesta vacía.");
 

@@ -9,7 +9,7 @@ import { errorMessage } from "@/lib/utils";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
-const uuid = z.string().uuid("Identificador inválido.");
+const uuid = z.string().guid("Identificador inválido.");
 const roleSchema = z.enum(["estudiante", "docente", "admin"]);
 const statusSchema = z.enum(["pendiente", "validado", "bloqueado"]);
 

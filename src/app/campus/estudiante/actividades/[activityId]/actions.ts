@@ -29,7 +29,7 @@ const answersByType = {
 } satisfies Record<EditableType, z.ZodType>;
 
 const progressSchema = z.object({
-  activityId: z.uuid(),
+  activityId: z.guid(),
   answers: z.unknown(),
   /** Tiempo total acumulado (no un delta): el cliente lo lleva y el server nunca lo baja. */
   timeSpentSeconds: z.number().int().min(0).max(60 * 60 * 24 * 30),

@@ -94,6 +94,7 @@ export function TranscriptViewer({ segments, fullText, onSeek, className }: Tran
             placeholder="Buscar en la transcripción…"
             aria-label="Buscar en la transcripción"
             leftIcon={<Search />}
+            className="pr-10"
           />
           {query && (
             <button

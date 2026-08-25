@@ -6,13 +6,13 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { errorMessage } from "@/lib/utils";
 import { isDebateClosed } from "@/components/debates/stance";
-import { ARGUMENT_MAX_LENGTH } from "@/components/debates/composer";
+import { ARGUMENT_MAX_LENGTH } from "@/components/debates/constants";
 import { canModerateCourse, getArgumentView } from "../_lib/data";
 import type { ArgumentView } from "@/components/debates/types";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
-const uuid = z.string().uuid("Identificador inválido.");
+const uuid = z.string().guid("Identificador inválido.");
 
 const postArgumentSchema = z.object({
   debateId: uuid,
@@ -127,6 +127,24 @@ export async function toggleSupport(input: unknown): Promise<ActionResult<{ supp
     const { user } = await requireSession();
     const { supabase, debate } = await loadDebate(debateId);
     if (isDebateClosed(debate)) return { ok: false, error: "El debate está cerrado." };
+
+    // El argumento debe pertenecer a ESTE debate (si no, se podría apoyar en debates
+    // cerrados pasando el id de un debate abierto cualquiera) y estar visible.
+    const { data: argument, error: argumentError } = await supabase
+      .from("debate_arguments")
+      .select("id, debate_id, status")
+      .eq("id", argumentId)
+      .maybeSingle();
+    if (argumentError) {
+      console.error("[debates] toggleSupport argument", { argumentId, error: argumentError });
+      return { ok: false, error: "No se pudo registrar el apoyo." };
+    }
+    if (!argument || argument.debate_id !== debateId) {
+      return { ok: false, error: "El argumento ya no está disponible en este debate." };
+    }
+    if (argument.status !== "visible") {
+      return { ok: false, error: "No se puede apoyar un argumento oculto." };
+    }
 
     const { data: existing, error: readError } = await supabase
       .from("debate_supports")

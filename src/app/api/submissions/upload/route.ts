@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   if (!form) return NextResponse.json({ error: "Formulario inválido." }, { status: 400 });
   const activityId = form.get("activityId");
   const file = form.get("file");
-  if (!z.uuid().safeParse(activityId).success || typeof activityId !== "string") {
+  if (!z.guid().safeParse(activityId).success || typeof activityId !== "string") {
     return NextResponse.json({ error: "Actividad inválida." }, { status: 400 });
   }
   if (!(file instanceof File)) return NextResponse.json({ error: "Falta el archivo." }, { status: 400 });

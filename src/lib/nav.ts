@@ -29,7 +29,10 @@ export const NAV: NavItem[] = [
   { href: "/campus/estudiante/clases", label: "Clases", icon: "CalendarDays", roles: ["estudiante"] },
   { href: "/campus/estudiante/actividades", label: "Actividades", icon: "ClipboardList", roles: ["estudiante"] },
   { href: "/campus/estudiante/consultas", label: "Consultas", icon: "MessageCircleQuestion", roles: ["estudiante"] },
-  { href: "/campus/debates", label: "Debates", icon: "Swords", roles: ["estudiante", "docente", "admin"] },
+  // Debates es compartida pero se declara por rol para controlar el orden:
+  // para docente/admin va DESPUÉS de sus ítems propios (Panel primero, Consultas
+  // visible en la bottom nav mobile, que muestra sólo los primeros 5).
+  { href: "/campus/debates", label: "Debates", icon: "Swords", roles: ["estudiante"] },
   { href: "/campus/estudiante/progreso", label: "Mi progreso", icon: "TrendingUp", roles: ["estudiante"] },
 
   // Docente
@@ -38,6 +41,7 @@ export const NAV: NavItem[] = [
   { href: "/campus/docente/actividades", label: "Actividades", icon: "ClipboardList", roles: ["docente", "admin"] },
   { href: "/campus/docente/estudiantes", label: "Estudiantes", icon: "Users", roles: ["docente", "admin"] },
   { href: "/campus/docente/consultas", label: "Consultas", icon: "MessageCircleQuestion", roles: ["docente", "admin"] },
+  { href: "/campus/debates", label: "Debates", icon: "Swords", roles: ["docente", "admin"] },
   { href: "/campus/docente/informes", label: "Informes", icon: "FileBarChart", roles: ["docente", "admin"] },
 
   // Admin

@@ -4,6 +4,7 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { chatText, LLMError } from "@/lib/ai/llm";
+import { fenceUntrusted, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/untrusted";
 import { MODELS } from "@/lib/openrouter";
 import { parseKeyPoints, parseSegments } from "@/components/class-content/parse";
 import type { TranscriptSegment } from "@/lib/types/helpers";
@@ -11,7 +12,7 @@ import { errorMessage } from "@/lib/utils";
 
 export const maxDuration = 120;
 
-const paramsSchema = z.object({ questionId: z.uuid() });
+const paramsSchema = z.object({ questionId: z.guid() });
 
 const MAX_SUMMARY_CHARS = 6000;
 const MAX_SEGMENTS = 14;
@@ -25,7 +26,9 @@ Reglas:
 - Si la consulta excede lo visto en clase o el material no alcanza, decilo con honestidad, respondé lo que puedas con criterio jurídico general y sugerí que el estudiante se lo pregunte al equipo docente (la consulta les llega igual).
 - No inventes citas de la clase, normas ni fallos. Si no estás seguro de una norma, señalalo.
 - Estructura en Markdown: una respuesta directa en 1–2 párrafos, luego "**Dónde lo vimos en clase**" (si aplica) y, si sirve, "**Para seguir**" con 1–3 sugerencias concretas (repasar placas, releer una sección, preguntar al docente).
-- Extensión: entre 120 y 350 palabras. Sin encabezados de nivel 1.`;
+- Extensión: entre 120 y 350 palabras. Sin encabezados de nivel 1.
+
+${UNTRUSTED_CONTENT_RULE}`;
 
 function formatTimestamp(seconds: number): string {
   const s = Math.max(0, Math.round(seconds));
@@ -176,7 +179,7 @@ export async function POST(_req: Request, ctx: { params: Promise<{ questionId: s
     transcriptBlock
       ? `\nFRAGMENTOS DE LA TRANSCRIPCIÓN (con minuto):\n${transcriptBlock}`
       : "\nTRANSCRIPCIÓN: no disponible (no cites minutos de la clase).",
-    `\nCONSULTA DEL ESTUDIANTE:\n${question.question.trim()}`,
+    `\nCONSULTA DEL ESTUDIANTE:\n${fenceUntrusted(question.question)}`,
   ]
     .filter((p): p is string => Boolean(p))
     .join("\n");
@@ -191,12 +194,14 @@ export async function POST(_req: Request, ctx: { params: Promise<{ questionId: s
     });
     const answerMd = result.data.trim();
 
-    // Sólo se actualiza si sigue abierta: no pisar una respuesta docente que llegó mientras tanto.
+    // Escritura condicional: sólo si sigue abierta y sin respuesta IA, para no pisar
+    // una respuesta docente ni la de otro request concurrente (doble POST).
     const { data: updated, error: updErr } = await admin
       .from("student_questions")
       .update({ ai_answer_md: answerMd, status: "respondida_ia" })
       .eq("id", questionId)
       .eq("status", "abierta")
+      .is("ai_answer_md", null)
       .select("id")
       .maybeSingle();
     if (updErr) {
@@ -204,8 +209,26 @@ export async function POST(_req: Request, ctx: { params: Promise<{ questionId: s
       return NextResponse.json({ error: "Se generó la respuesta pero no se pudo guardar." }, { status: 500 });
     }
     if (!updated) {
-      // Cambió de estado en el medio (docente respondió): guardamos la IA sin tocar el estado.
-      await admin.from("student_questions").update({ ai_answer_md: answerMd }).eq("id", questionId);
+      // Cambió de estado en el medio (docente respondió): guardamos la IA sin tocar el estado,
+      // siempre que otro request no haya guardado ya la suya.
+      const { data: fallback } = await admin
+        .from("student_questions")
+        .update({ ai_answer_md: answerMd })
+        .eq("id", questionId)
+        .is("ai_answer_md", null)
+        .select("id")
+        .maybeSingle();
+      if (!fallback) {
+        // Otro request concurrente ganó: devolvemos la respuesta ya guardada.
+        const { data: existing } = await admin
+          .from("student_questions")
+          .select("ai_answer_md")
+          .eq("id", questionId)
+          .maybeSingle();
+        if (existing?.ai_answer_md) {
+          return NextResponse.json({ answer_md: existing.ai_answer_md, cached: true });
+        }
+      }
     }
 
     return NextResponse.json({ answer_md: answerMd, model: result.model, usage: result.usage });

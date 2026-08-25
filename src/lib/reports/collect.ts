@@ -159,7 +159,13 @@ async function loadContext(admin: Admin, courseId: string, filters: ReportFilter
 }
 
 async function enrolledIds(admin: Admin, courseId: string): Promise<string[]> {
-  const { data, error } = await admin.from("enrollments").select("student_id").eq("course_id", courseId);
+  // Sólo inscripciones activas: el mismo universo que usa loadContext para `enrolled`,
+  // así numeradores y denominadores (inactividad, engagement) son comparables.
+  const { data, error } = await admin
+    .from("enrollments")
+    .select("student_id")
+    .eq("course_id", courseId)
+    .eq("status", "active");
   if (error) fail("inscriptos", error);
   return (data ?? []).map((r) => r.student_id);
 }
@@ -395,7 +401,17 @@ async function activitiesBlock(
   const assignments = assignRes.data ?? [];
   const subs = subRes.data ?? [];
 
-  return acts.map((a) => {
+  // Con studentId, sólo cuentan las actividades dirigidas a ese estudiante:
+  // target "todos" o presencia en activity_assignments. Las demás se excluyen.
+  const relevant = opts.studentId
+    ? acts.filter(
+        (a) =>
+          a.target === "todos" ||
+          assignments.some((x) => x.activity_id === a.id && x.student_id === opts.studentId),
+      )
+    : acts;
+
+  return relevant.map((a) => {
     const assigned = opts.studentId
       ? 1
       : a.target === "todos"

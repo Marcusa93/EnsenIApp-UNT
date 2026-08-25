@@ -4,7 +4,11 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 
-/** Transición sutil entre rutas (fade + 6px de subida). Respeta prefers-reduced-motion vía CSS global. */
+/**
+ * Transición sutil entre rutas (fade + 6px de subida). prefers-reduced-motion se respeta
+ * vía el <MotionConfig reducedMotion="user"> global (MotionProvider en el root layout),
+ * que desactiva los transforms y deja sólo el fade.
+ */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (

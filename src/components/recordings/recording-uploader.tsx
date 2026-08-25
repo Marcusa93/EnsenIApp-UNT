@@ -42,7 +42,10 @@ type FailedAt = "prepare" | "upload" | "process";
 
 const BUCKET = "class-recordings";
 const ACCEPT = "audio/*,video/mp4,video/webm,.mp3,.m4a,.aac,.wav,.webm,.ogg,.opus,.mp4,.mov,.flac";
-const MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB: más no cabe en memoria del navegador.
+// 500 MB de archivo comprimido. El límite real de memoria lo pone el PCM decodificado
+// (duración × canales × sample rate, validado en prepare-upload): este tope filtra los
+// formatos sin comprimir (WAV de horas) que reventarían la pestaña.
+const MAX_FILE_BYTES = 500 * 1024 * 1024;
 
 function defaultTitle(file: File): string {
   return file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim().slice(0, 160) || "Grabación de la clase";
@@ -119,7 +122,9 @@ export function RecordingUploader({ classId, userId, onFinished }: RecordingUplo
       return;
     }
     if (f.size > MAX_FILE_BYTES) {
-      setError(`El archivo pesa ${formatBytes(f.size)}. El máximo es ${formatBytes(MAX_FILE_BYTES)}.`);
+      setError(
+        `El archivo pesa ${formatBytes(f.size)}. El máximo es ${formatBytes(MAX_FILE_BYTES)}: convertilo a MP3 o M4A (por ejemplo con VLC) y volvé a intentar.`,
+      );
       return;
     }
     setFile(f);

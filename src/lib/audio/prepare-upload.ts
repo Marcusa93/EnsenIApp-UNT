@@ -105,6 +105,35 @@ async function decodeFile(file: File, signal?: AbortSignal): Promise<AudioBuffer
   }
 }
 
+/**
+ * Presupuesto de memoria para el PCM decodificado (duración × canales × sample rate × 4 bytes).
+ * Por encima de esto la pestaña casi seguro muere durante el resample/compresión, incluso en desktop.
+ */
+const MAX_DECODED_BYTES = 3 * 1024 * 1024 * 1024;
+
+/**
+ * Decodifica y convierte a mono 16 kHz en un solo paso, sin exponer el AudioBuffer
+ * al scope llamador: así el PCM decodificado (que para una clase de 2-3 h puede ocupar
+ * varios GB) queda colectable por el GC antes de la fase de compresión.
+ */
+async function decodeToMono16k(file: File, opts: PrepareOptions): Promise<Float32Array> {
+  const { onProgress, signal } = opts;
+  onProgress?.({ phase: "decoding", percent: 0 });
+  const decoded = await decodeFile(file, signal);
+
+  const decodedBytes = decoded.length * decoded.numberOfChannels * 4;
+  if (decodedBytes > MAX_DECODED_BYTES) {
+    const gb = (decodedBytes / 1024 ** 3).toFixed(1);
+    const hours = (decoded.duration / 3600).toFixed(1);
+    throw new AudioPrepareError(
+      `El audio decodificado ocupa ~${gb} GB en memoria (${hours} h, ${decoded.numberOfChannels === 1 ? "1 canal" : `${decoded.numberOfChannels} canales`} a ${Math.round(decoded.sampleRate / 100) / 10} kHz): es demasiado para procesarlo en el navegador. Convertí el archivo a MP3 mono (por ejemplo con VLC o un conversor online) o partilo en dos y subí cada parte.`,
+    );
+  }
+
+  onProgress?.({ phase: "resampling", percent: 0 });
+  return toMono16k(decoded, signal);
+}
+
 /** Downmix a mono + resample a 16 kHz con OfflineAudioContext. */
 async function toMono16k(buffer: AudioBuffer, signal?: AbortSignal): Promise<Float32Array> {
   throwIfAborted(signal);
@@ -160,12 +189,42 @@ function createWorkerEncoder(): Encoder | null {
     for (const job of pending.values()) job.reject(err);
     pending.clear();
   });
+  worker.addEventListener("messageerror", () => {
+    const err = new Error("El Web Worker de compresión envió un mensaje ilegible.");
+    for (const job of pending.values()) job.reject(err);
+    pending.clear();
+  });
+
+  /** Si el SO mata el worker (OOM) puede no llegar ningún evento: sin watchdog la promesa queda colgada. */
+  const WATCHDOG_MS = 30_000;
 
   return {
     usedWorker: true,
     encode(id, samples, onProgress) {
       return new Promise<Uint8Array>((resolve, reject) => {
-        pending.set(id, { resolve, reject, onProgress });
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const arm = () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            pending.delete(id);
+            reject(new Error("El Web Worker de compresión dejó de responder (posible falta de memoria)."));
+          }, WATCHDOG_MS);
+        };
+        pending.set(id, {
+          resolve: (b) => {
+            clearTimeout(timer);
+            resolve(b);
+          },
+          reject: (e) => {
+            clearTimeout(timer);
+            reject(e);
+          },
+          onProgress: (p, t) => {
+            arm();
+            onProgress(p, t);
+          },
+        });
+        arm();
         // Copiamos para transferir sin invalidar el buffer original (que puede ser una vista del AudioBuffer).
         const copy = new Float32Array(samples);
         const req: EncodeRequest = { type: "encode", id, samples: copy, sampleRate: TARGET_SAMPLE_RATE, kbps: TARGET_BITRATE_KBPS };
@@ -203,11 +262,9 @@ export async function prepareAudioChunks(file: File, opts: PrepareOptions = {}):
   const { onProgress, signal } = opts;
   const chunkSeconds = opts.chunkSeconds ?? MAX_CHUNK_SECONDS;
 
-  onProgress?.({ phase: "decoding", percent: 0 });
-  const decoded = await decodeFile(file, signal);
-
-  onProgress?.({ phase: "resampling", percent: 0 });
-  const mono = await toMono16k(decoded, signal);
+  // Decode + resample en una función aparte: el AudioBuffer gigante no queda
+  // referenciado en este scope durante toda la compresión.
+  const mono = await decodeToMono16k(file, opts);
 
   const plans: ChunkPlan[] = planChunks(mono.length, TARGET_SAMPLE_RATE, chunkSeconds);
   const totalSamples = mono.length;

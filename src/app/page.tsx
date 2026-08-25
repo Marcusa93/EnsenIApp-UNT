@@ -120,15 +120,36 @@ async function loadData(): Promise<{ description: string; faculty: Faculty[] }> 
   }
 }
 
-function groupFaculty(faculty: Faculty[]) {
-  const groups = new Map<string, Faculty[]>();
+/**
+ * Cargos conocidos de `faculty.position` → clave canónica (unifica variantes de género)
+ * y encabezado plural curado. Cargos no mapeados caen al texto original sin modificar.
+ */
+const POSITION_GROUPS: Record<string, { key: string; label: string }> = {
+  "Profesor Titular": { key: "profesor-titular", label: "Profesores Titulares" },
+  "Profesora Titular": { key: "profesor-titular", label: "Profesores Titulares" },
+  "Profesor Asociado": { key: "profesor-asociado", label: "Profesores Asociados" },
+  "Profesora Asociada": { key: "profesor-asociado", label: "Profesores Asociados" },
+  "Profesor Adjunto": { key: "profesor-adjunto", label: "Profesores Adjuntos" },
+  "Profesora Adjunta": { key: "profesor-adjunto", label: "Profesores Adjuntos" },
+  "Jefe de Trabajos Prácticos": { key: "jtp", label: "Jefes de Trabajos Prácticos" },
+  "Jefa de Trabajos Prácticos": { key: "jtp", label: "Jefes de Trabajos Prácticos" },
+  "Docente Auxiliar": { key: "docente-auxiliar", label: "Docentes Auxiliares" },
+  "Aspirante Graduado": { key: "aspirante-graduado", label: "Aspirantes Graduados/as" },
+  "Aspirante Graduada": { key: "aspirante-graduado", label: "Aspirantes Graduados/as" },
+  "Aspirante Estudiante": { key: "aspirante-estudiante", label: "Aspirantes Estudiantes" },
+};
+
+function groupFaculty(faculty: Faculty[]): { label: string; people: Faculty[] }[] {
+  const groups = new Map<string, { label: string; people: Faculty[] }>();
   for (const f of faculty) {
-    const key = f.position.replace(/a$/i, "").replace(/Profesora/i, "Profesor");
-    const list = groups.get(key) ?? [];
-    list.push(f);
-    groups.set(key, list);
+    const known = POSITION_GROUPS[f.position];
+    const key = known?.key ?? f.position;
+    const entry = groups.get(key) ?? { label: known?.label ?? f.position, people: [] };
+    entry.people.push(f);
+    groups.set(key, entry);
   }
-  return Array.from(groups.entries());
+  // Map preserva el orden de inserción → se respeta el orden por rank de la consulta.
+  return Array.from(groups.values());
 }
 
 export default async function Home() {
@@ -136,7 +157,7 @@ export default async function Home() {
   const groups = groupFaculty(faculty);
 
   return (
-    <main className="relative flex-1 overflow-hidden">
+    <main id="contenido" tabIndex={-1} className="relative flex-1 overflow-hidden outline-none">
       {/* Fondo: grilla + auroras */}
       <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-x-0 top-0 h-[900px]" aria-hidden />
       <div
@@ -392,10 +413,10 @@ export default async function Home() {
           <p className="mt-8 text-sm text-muted">El listado del equipo docente no está disponible en este momento.</p>
         ) : (
           <div className="mt-10 flex flex-col gap-8">
-            {groups.map(([position, people]) => (
-              <Reveal key={position}>
+            {groups.map(({ label, people }) => (
+              <Reveal key={label}>
                 <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-                  <h3 className="eyebrow pt-2">{position}</h3>
+                  <h3 className="eyebrow pt-2">{label}</h3>
                   <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {people.map((p) => (
                       <li

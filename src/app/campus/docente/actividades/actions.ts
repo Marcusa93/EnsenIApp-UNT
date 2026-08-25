@@ -173,7 +173,7 @@ export async function saveActivity(
   }
 }
 
-const statusSchema = z.object({ activityId: z.uuid(), status: z.enum(["draft", "published", "closed"]) });
+const statusSchema = z.object({ activityId: z.guid(), status: z.enum(["draft", "published", "closed"]) });
 
 /** Cambia el estado (draft → published setea published_at la primera vez). */
 export async function setActivityStatus(activityId: string, status: ActivityStatus): Promise<ActionResult<void>> {
@@ -196,7 +196,7 @@ export async function setActivityStatus(activityId: string, status: ActivityStat
 
 /** Elimina una actividad (sólo borradores o sin entregas). */
 export async function deleteActivity(activityId: string): Promise<ActionResult<void>> {
-  if (!z.uuid().safeParse(activityId).success) return { ok: false, error: "Identificador inválido." };
+  if (!z.guid().safeParse(activityId).success) return { ok: false, error: "Identificador inválido." };
   try {
     const { activity, supabase } = await loadOwnedActivity(activityId);
     const { count, error: countErr } = await supabase
@@ -218,7 +218,7 @@ export async function deleteActivity(activityId: string): Promise<ActionResult<v
 }
 
 const gradeSchema = z.object({
-  submissionId: z.uuid(),
+  submissionId: z.guid(),
   score: z.number().min(0).nullable(),
   teacher_feedback_md: z.string().max(20_000),
   markGraded: z.boolean(),
@@ -266,7 +266,7 @@ export async function gradeSubmission(raw: GradeInput): Promise<ActionResult<voi
 
 /** Reabre una entrega para que el estudiante la edite y vuelva a entregar. */
 export async function reopenSubmission(submissionId: string): Promise<ActionResult<void>> {
-  if (!z.uuid().safeParse(submissionId).success) return { ok: false, error: "Identificador inválido." };
+  if (!z.guid().safeParse(submissionId).success) return { ok: false, error: "Identificador inválido." };
   try {
     const supabase = await createClient();
     const { data: sub, error } = await supabase
@@ -293,7 +293,7 @@ export async function reopenSubmission(submissionId: string): Promise<ActionResu
 
 /** CSV de entregas (el cliente lo descarga como archivo). */
 export async function exportSubmissionsCsv(activityId: string): Promise<ActionResult<{ csv: string; filename: string }>> {
-  if (!z.uuid().safeParse(activityId).success) return { ok: false, error: "Identificador inválido." };
+  if (!z.guid().safeParse(activityId).success) return { ok: false, error: "Identificador inválido." };
   try {
     const { activity, supabase } = await loadOwnedActivity(activityId);
     const rows = await getSubmissionsForActivity(supabase, activityId);

@@ -7,7 +7,7 @@ import { requireTeacherOf } from "@/components/docente/teacher-guard";
 import { fail, type ActionResult } from "@/components/docente/types";
 import { errorMessage } from "@/lib/utils";
 
-const schema = z.object({ course_id: z.uuid(), student_id: z.uuid() });
+const schema = z.object({ course_id: z.guid(), student_id: z.guid() });
 
 /** Crea un report_requests scope='estudiante' y redirige al informe (que se genera solo). */
 export async function createStudentReport(input: z.input<typeof schema>): Promise<ActionResult> {

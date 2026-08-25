@@ -33,7 +33,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   }
 
   return (
-    <main className="relative flex min-h-dvh flex-col overflow-hidden">
+    <main id="contenido" tabIndex={-1} className="relative flex min-h-dvh flex-col overflow-hidden outline-none">
       <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <div
         className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full opacity-40 blur-3xl"

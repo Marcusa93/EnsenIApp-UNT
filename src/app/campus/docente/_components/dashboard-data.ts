@@ -126,7 +126,9 @@ export async function getDashboardData(supabase: DbClient, courseId: string): Pr
       .from("student_questions")
       .select("id, question, created_at, is_anonymous, student:profiles!student_questions_student_id_fkey(full_name)")
       .eq("course_id", courseId)
-      .eq("status", "abierta")
+      // "respondida_ia" sigue pendiente de respuesta docente: el flujo normal pasa a ese
+      // estado apenas la IA contesta, así que también cuenta como consulta abierta.
+      .in("status", ["abierta", "respondida_ia"])
       .order("created_at", { ascending: false })
       .limit(6),
     classIds.length

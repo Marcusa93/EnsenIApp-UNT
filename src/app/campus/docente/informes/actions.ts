@@ -15,7 +15,7 @@ export interface ActionState {
 
 const createSchema = z
   .object({
-    course_id: z.uuid(),
+    course_id: z.guid(),
     scope: z.enum(REPORT_SCOPES),
     from: z.string().trim().optional(),
     to: z.string().trim().optional(),
@@ -95,7 +95,7 @@ export async function createReport(_prev: ActionState, formData: FormData): Prom
 
 export async function deleteReport(reportId: string): Promise<ActionState> {
   const { user, profile } = await requireRole("docente", "admin");
-  const id = z.uuid().safeParse(reportId);
+  const id = z.guid().safeParse(reportId);
   if (!id.success) return { error: "Identificador inválido." };
 
   const supabase = await createClient();

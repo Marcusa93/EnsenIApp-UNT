@@ -4,13 +4,14 @@ import { z } from "zod";
 import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { chatText, LLMError } from "@/lib/ai/llm";
+import { fenceUntrusted, inlineUntrusted, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/untrusted";
 import { MODELS } from "@/lib/openrouter";
 import { STANCE_META } from "@/components/debates/stance";
 import { canModerateCourse, getVisibleArgumentsForSynthesis } from "@/app/campus/debates/_lib/data";
 
 export const maxDuration = 300;
 
-const paramsSchema = z.object({ debateId: z.string().uuid() });
+const paramsSchema = z.object({ debateId: z.string().guid() });
 
 /**
  * POST /api/debates/[debateId]/synthesize
@@ -61,15 +62,36 @@ export async function POST(_req: Request, ctx: { params: Promise<{ debateId: str
     classSummary = summary?.summary_md?.slice(0, 12_000) ?? null;
   }
 
+  // Cotas de entrada al modelo: cada argumento se trunca y, si el total excede el
+  // presupuesto, se priorizan los más apoyados (el resto se omite y se loguea).
+  const MAX_ARG_CHARS = 1500;
+  const MAX_TOTAL_CHARS = 120_000;
+  let includedArgs = args;
+  {
+    let total = 0;
+    const keep = new Set<string>();
+    for (const a of [...args].sort((x, y) => y.supports - x.supports)) {
+      const cost = Math.min(a.content.length, MAX_ARG_CHARS) + 120;
+      if (total + cost > MAX_TOTAL_CHARS) continue;
+      total += cost;
+      keep.add(a.id);
+    }
+    if (keep.size < args.length) {
+      console.warn("[debates] synthesize: entrada recortada", { debateId, total: args.length, included: keep.size });
+      includedArgs = args.filter((a) => keep.has(a.id));
+    }
+  }
+  const clip = (text: string) => (text.length > MAX_ARG_CHARS ? `${text.slice(0, MAX_ARG_CHARS - 1)}…` : text);
+
   // Agrupar por postura, con hilos aplanados a "respuesta a #id".
   const byId = new Map(args.map((a) => [a.id, a]));
   const grouped = (["a_favor", "en_contra", "neutral"] as const).map((s) => {
-    const items = args
+    const items = includedArgs
       .filter((a) => a.stance === s)
       .map((a) => {
         const parent = a.parent_id ? byId.get(a.parent_id) : null;
-        const head = `[#${a.id.slice(0, 6)}] ${a.author} · ${a.supports} ${a.supports === 1 ? "apoyo" : "apoyos"}${parent ? ` · responde a #${parent.id.slice(0, 6)}` : ""}`;
-        return `${head}\n${a.content.trim()}`;
+        const head = `[#${a.id.slice(0, 6)}] ${inlineUntrusted(a.author)} · ${a.supports} ${a.supports === 1 ? "apoyo" : "apoyos"}${parent ? ` · responde a #${parent.id.slice(0, 6)}` : ""}`;
+        return `${head}\n${fenceUntrusted(clip(a.content))}`;
       });
     return `## ${STANCE_META[s].label} (${items.length})\n\n${items.length ? items.join("\n\n---\n\n") : "(sin argumentos)"}`;
   });
@@ -97,7 +119,9 @@ Escribí en español rioplatense (voseo), en Markdown, con estas secciones (usá
 3. **Falacias y puntos débiles** — argumentos circulares, de autoridad, apelaciones emocionales, afirmaciones sin fuente, confusiones conceptuales. Señalá el patrón con tono constructivo.
 4. **Preguntas para seguir** — 3 a 5 preguntas que quedaron abiertas y valen para una próxima clase o trabajo.
 5. **Conexión con la clase** — cómo se relaciona lo discutido con los contenidos de la clase vinculada (si hay material, citalo; si no, con los conceptos del contexto).
-Cerrá con una frase breve que reconozca la participación. No inventes argumentos que no estén en el material. No declares ganador. Máximo ~900 palabras.`,
+Cerrá con una frase breve que reconozca la participación. No inventes argumentos que no estén en el material. No declares ganador. Máximo ~900 palabras.
+
+${UNTRUSTED_CONTENT_RULE}`,
       user,
     });
 

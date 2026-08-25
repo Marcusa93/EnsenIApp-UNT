@@ -114,13 +114,18 @@ export async function importClasses(
     );
     const byEmail = new Map<string, string>();
     if (emails.length) {
+      // Los emails del CSV ya vienen en minúsculas; el perfil puede estar guardado con otra
+      // capitalización (p. ej. OAuth). Traemos el staff visible y matcheamos por lower(email).
       const { data: staff, error } = await supabase
         .from("profiles")
         .select("id, email, role")
-        .in("email", emails)
         .in("role", ["docente", "admin"]);
       if (error) throw error;
-      for (const p of staff ?? []) byEmail.set(p.email.toLowerCase(), p.id);
+      const wanted = new Set(emails);
+      for (const p of staff ?? []) {
+        const key = p.email.toLowerCase();
+        if (wanted.has(key)) byEmail.set(key, p.id);
+      }
       // El propio docente siempre se puede asignar, aunque RLS oculte otros perfiles.
       const own = ctx.profile.email?.toLowerCase();
       if (own && emails.includes(own)) byEmail.set(own, ctx.user.id);
