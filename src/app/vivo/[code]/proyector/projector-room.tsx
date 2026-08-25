@@ -117,18 +117,39 @@ export function ProjectorRoom({ initial, initialWords }: ProjectorRoomProps) {
   return (
     <main className="relative flex min-h-dvh flex-col bg-[#06070f]">
       <LabBadge size={56} className="absolute left-[2vw] top-[2vh] z-20" />
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {status === "ended" ? (
-          <motion.div key="ended" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 flex-col items-center justify-center gap-4 text-white/80">
+          <motion.div
+            key="ended"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-1 flex-col items-center justify-center gap-4 text-white/80"
+          >
             <p className="text-sm uppercase tracking-[0.4em] text-accent-2">Sesión finalizada</p>
             <p className="text-3xl font-semibold">Gracias por participar</p>
           </motion.div>
         ) : activePrompt ? (
-          <motion.div key={activePrompt.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex min-h-0 flex-1 flex-col">
+          <motion.div
+            key={activePrompt.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <ProjectorWordCloud question={activePrompt.question} words={words} />
           </motion.div>
         ) : (
-          <motion.div key="waiting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 flex-col items-center justify-center gap-3 text-white/60">
+          <motion.div
+            key="waiting"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-1 flex-col items-center justify-center gap-3 text-white/60"
+          >
             <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="text-2xl font-medium">
               Esperando la próxima disparadora…
             </motion.p>
