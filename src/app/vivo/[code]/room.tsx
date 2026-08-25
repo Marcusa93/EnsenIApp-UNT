@@ -26,9 +26,52 @@ export function LiveRoom({ initial, userId, fullName, initialSubmittedWord }: Li
   const [error, setError] = React.useState<string | null>(null);
   const firstName = fullName.split(" ")[0] ?? fullName;
 
-  // Toda transición de "disparadora activa" en el estudiante llega por Realtime
-  // (nunca la dispara el propio estudiante): resolvemos ahí mismo la nueva
-  // pregunta, reseteamos el formulario y chequeamos si ya la respondió.
+  // Toda transición de "disparadora activa" llega por dos vías en paralelo:
+  // Realtime (instantáneo cuando la red lo permite) y un polling cada 2.5 s
+  // (funciona igual si el WiFi del aula bloquea WebSockets). `applying` evita
+  // que el poll y el evento de Realtime se pisen si llegan casi juntos.
+  const stateRef = React.useRef({ status: initial.session.status, activePromptId: initial.activePrompt?.id ?? null });
+  const applyingRef = React.useRef(false);
+
+  const applyState = React.useCallback(
+    async (next: { status: SessionStatus; active_prompt_id: string | null }) => {
+      if (applyingRef.current) return;
+      if (next.status === stateRef.current.status && next.active_prompt_id === stateRef.current.activePromptId) return;
+      applyingRef.current = true;
+      try {
+        const supabase = createClient();
+        stateRef.current = { status: next.status, activePromptId: next.active_prompt_id };
+        setStatus(next.status);
+        setWord("");
+        setError(null);
+
+        if (!next.active_prompt_id) {
+          setActivePrompt(null);
+          setSubmittedWord(null);
+          return;
+        }
+        const { data: prompt } = await supabase
+          .from("live_prompts")
+          .select("id, question, type")
+          .eq("id", next.active_prompt_id)
+          .maybeSingle();
+        setActivePrompt(prompt ?? null);
+
+        const { data: response } = await supabase
+          .from("live_responses")
+          .select("word")
+          .eq("prompt_id", next.active_prompt_id)
+          .eq("participant_id", userId)
+          .maybeSingle();
+        setSubmittedWord(response?.word ?? null);
+      } finally {
+        applyingRef.current = false;
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userId],
+  );
+
   React.useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -36,38 +79,28 @@ export function LiveRoom({ initial, userId, fullName, initialSubmittedWord }: Li
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "live_sessions", filter: `id=eq.${initial.session.id}` },
-        async (payload) => {
+        (payload) => {
           const next = payload.new as { status: SessionStatus; active_prompt_id: string | null };
-          setStatus(next.status);
-          setWord("");
-          setError(null);
-
-          if (!next.active_prompt_id) {
-            setActivePrompt(null);
-            setSubmittedWord(null);
-            return;
-          }
-          const { data: prompt } = await supabase
-            .from("live_prompts")
-            .select("id, question, type")
-            .eq("id", next.active_prompt_id)
-            .maybeSingle();
-          setActivePrompt(prompt ?? null);
-
-          const { data: response } = await supabase
-            .from("live_responses")
-            .select("word")
-            .eq("prompt_id", next.active_prompt_id)
-            .eq("participant_id", userId)
-            .maybeSingle();
-          setSubmittedWord(response?.word ?? null);
+          applyState(next);
         },
       )
       .subscribe();
+
+    async function poll() {
+      const { data } = await supabase
+        .from("live_sessions")
+        .select("status, active_prompt_id")
+        .eq("id", initial.session.id)
+        .maybeSingle();
+      if (data) applyState(data);
+    }
+    const interval = window.setInterval(poll, 2500);
+
     return () => {
       supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [initial.session.id, userId]);
+  }, [initial.session.id, applyState]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

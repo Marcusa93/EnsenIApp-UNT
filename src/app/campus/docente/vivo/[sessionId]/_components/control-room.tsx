@@ -82,6 +82,17 @@ export function ControlRoom({ session, prompts, joinUrl, projectorUrl }: Control
     };
   }, [session.id]);
 
+  // Respaldo sin Realtime: si el WiFi del aula bloquea WebSockets, el conteo
+  // igual se actualiza solo (cada 2.5 s) mientras haya una pregunta activa.
+  React.useEffect(() => {
+    if (!activeId) return;
+    const id = activeId;
+    const interval = window.setInterval(() => {
+      fetchCount(id).then(setCount);
+    }, 2500);
+    return () => window.clearInterval(interval);
+  }, [activeId]);
+
   function copyLink() {
     navigator.clipboard
       .writeText(joinUrl)
