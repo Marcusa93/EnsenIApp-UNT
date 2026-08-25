@@ -48,6 +48,8 @@ export interface ActivityFormProps {
   materials: MaterialOption[];
   students: EnrolledStudent[];
   recording?: RecordingContext | null;
+  /** Preselección de clase (llega por ?classId= desde la página de la clase). */
+  initialClassId?: string | null;
   initial?: { activity: Activity; assigned: string[] } | null;
 }
 
@@ -105,7 +107,7 @@ function initialState(props: ActivityFormProps): FormState {
     type,
     title: a?.title ?? "",
     instructions: a?.instructions_md ?? "",
-    classId: a?.class_id ?? props.recording?.class_id ?? "",
+    classId: a?.class_id ?? props.recording?.class_id ?? props.initialClassId ?? "",
     questions: quiz.questions.length > 0 ? quiz.questions : [emptyQuestion()],
     bodyMd: text.body_md ?? "",
     materialIds: text.material_ids ?? [],

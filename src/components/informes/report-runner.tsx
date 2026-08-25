@@ -63,12 +63,13 @@ export function ReportRunner({ reportId, status, autoRun = false, resultMd }: Re
   }, [reportId, router]);
 
   // Auto-ejecución (una sola vez) si viene del formulario o quedó pendiente.
+  // Se difiere con setTimeout para no disparar setState sincrónico dentro del efecto.
   React.useEffect(() => {
     if (started.current) return;
-    if (autoRun || status === "pending") {
-      started.current = true;
-      void run();
-    }
+    if (!(autoRun || status === "pending")) return;
+    started.current = true;
+    const id = window.setTimeout(() => void run(), 0);
+    return () => window.clearTimeout(id);
   }, [autoRun, status, run]);
 
   // Pasos orientativos mientras corre.

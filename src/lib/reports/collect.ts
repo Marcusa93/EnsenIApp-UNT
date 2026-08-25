@@ -174,13 +174,6 @@ async function courseClasses(admin: Admin, courseId: string) {
   return data ?? [];
 }
 
-async function studentNames(admin: Admin, ids: string[]): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
-  const { data, error } = await admin.from("profiles").select("id, full_name, last_seen_at").in("id", ids);
-  if (error) fail("perfiles", error);
-  return new Map((data ?? []).map((p) => [p.id, p.full_name]));
-}
-
 /* ------------------------------------------------------------------------- */
 /* Bloques reutilizables                                                      */
 /* ------------------------------------------------------------------------- */

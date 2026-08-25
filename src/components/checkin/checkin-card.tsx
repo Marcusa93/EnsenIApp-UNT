@@ -94,15 +94,27 @@ export function CheckinCard({ classId, studentId, classTopic, onSubmitted, class
         comment: comment.trim() || null,
       };
       let queued = false;
+      // Unique (student_id, class_id) en DB: upsert ignorando duplicados para que
+      // un check-in repetido desde otro dispositivo sea un éxito silencioso.
+      const queueItem = {
+        table: "student_checkins",
+        op: "upsert",
+        payload: row,
+        key: `checkin:${classId}`,
+        onConflict: "student_id,class_id",
+        ignoreDuplicates: true,
+      } as const;
       if (!isOnline()) {
-        enqueue({ table: "student_checkins", op: "insert", payload: row, key: `checkin:${classId}` });
+        enqueue(queueItem);
         queued = true;
       } else {
         const supabase = createClient();
-        const { error: insertError } = await supabase.from("student_checkins").insert(row);
+        const { error: insertError } = await supabase
+          .from("student_checkins")
+          .upsert(row, { onConflict: "student_id,class_id", ignoreDuplicates: true });
         if (insertError) {
           if (looksLikeNetworkError(insertError) || !insertError.code) {
-            enqueue({ table: "student_checkins", op: "insert", payload: row, key: `checkin:${classId}` });
+            enqueue(queueItem);
             queued = true;
           } else {
             console.error("[checkin] insert rechazado", { classId, error: insertError });

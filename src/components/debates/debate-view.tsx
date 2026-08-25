@@ -200,6 +200,27 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
           void upsertFromServer(row.id, false);
         },
       )
+      // Apoyos en vivo (004: debate_supports en supabase_realtime con replica
+      // identity full). No hay debate_id en la tabla: refrescamos el argumento
+      // y fetchArgument descarta los de otros debates.
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "debate_supports" },
+        (payload) => {
+          const row = payload.new as { argument_id: string; user_id: string };
+          if (row.user_id === currentUserId) return; // ya aplicado en forma optimista
+          void upsertFromServer(row.argument_id, false);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "debate_supports" },
+        (payload) => {
+          const row = payload.old as Partial<{ argument_id: string; user_id: string }>;
+          if (!row.argument_id || row.user_id === currentUserId) return;
+          void upsertFromServer(row.argument_id, false);
+        },
+      )
       .subscribe((state) => setLive(state === "SUBSCRIBED"));
     return () => {
       void supabase.removeChannel(channel);

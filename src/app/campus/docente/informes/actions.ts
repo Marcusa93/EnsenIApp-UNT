@@ -99,16 +99,13 @@ export async function deleteReport(reportId: string): Promise<ActionState> {
   if (!id.success) return { error: "Identificador inválido." };
 
   const supabase = await createClient();
-  // RLS no expone delete: marcamos como error con mensaje para no perder trazabilidad.
-  let q = supabase
-    .from("report_requests")
-    .update({ status: "error", result_md: "Descartado por el docente." })
-    .eq("id", id.data);
+  // Policy "report_requests: own delete" (004): borra de verdad el informe propio (o cualquiera si es admin).
+  let q = supabase.from("report_requests").delete().eq("id", id.data);
   if (profile.role !== "admin") q = q.eq("requested_by", user.id);
   const { error } = await q;
   if (error) {
     console.error("[informes] deleteReport", { error });
-    return { error: "No se pudo descartar el informe." };
+    return { error: "No se pudo eliminar el informe." };
   }
   revalidatePath("/campus/docente/informes");
   return { error: null };

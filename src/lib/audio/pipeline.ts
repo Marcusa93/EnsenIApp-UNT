@@ -146,7 +146,7 @@ export async function runPipeline(recordingId: string, opts: RunPipelineOptions 
         headers: { "Content-Type": "application/json" },
         signal,
       });
-    } catch (err) {
+    } catch {
       if (signal?.aborted) throw new PipelineStepError("Proceso cancelado.", null, last);
       consecutiveFailures++;
       if (consecutiveFailures > maxRetries) {

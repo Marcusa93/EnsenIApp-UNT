@@ -37,7 +37,7 @@ export default async function DebatesPage() {
         }
         actions={
           teacher ? (
-            <Button asChild leftIcon={<Plus />}>
+            <Button asChild>
               <Link href="/campus/debates/nuevo">
                 <Plus className="size-4" aria-hidden />
                 Nuevo debate

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, MoreHorizontal, Pencil, Play, RefreshCw, Trash2, ScanSearch, Wand2 } from "lucide-react";
+import { ClipboardList, Eye, EyeOff, MoreHorizontal, Pencil, Play, RefreshCw, Swords, Trash2, ScanSearch, Wand2 } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -216,7 +216,7 @@ export function RecordingRow({ recording, ordinal }: { recording: RecordingRowDa
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="truncate text-sm font-semibold">{title}</h4>
-              <Badge size="sm" tone={meta.tone} dot live={running || (inProgress && !running ? false : running)}>
+              <Badge size="sm" tone={meta.tone} dot live={running}>
                 {meta.label}
               </Badge>
               {state.published && (
@@ -254,6 +254,20 @@ export function RecordingRow({ recording, ordinal }: { recording: RecordingRowDa
             >
               <MenuItem icon={<Pencil />} onClick={() => { setMenuOpen(false); setTitleDraft(state.title ?? ""); setRenaming(true); }}>
                 Renombrar
+              </MenuItem>
+              <MenuItem
+                icon={<ClipboardList />}
+                disabled={!recording.has_transcript}
+                onClick={() => { setMenuOpen(false); router.push(`/campus/docente/actividades/nueva?recordingId=${recording.id}`); }}
+              >
+                Crear actividad desde esta grabación
+              </MenuItem>
+              <MenuItem
+                icon={<Swords />}
+                disabled={!recording.has_transcript}
+                onClick={() => { setMenuOpen(false); router.push(`/campus/debates/nuevo?recordingId=${recording.id}`); }}
+              >
+                Proponer debate desde esta grabación
               </MenuItem>
               <MenuItem
                 icon={<Wand2 />}

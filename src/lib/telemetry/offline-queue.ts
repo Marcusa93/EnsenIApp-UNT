@@ -27,6 +27,8 @@ export interface QueueItemInput {
   key?: string;
   /** Columnas de conflicto para upsert (ej. "student_id,recording_id,card_index"). */
   onConflict?: string;
+  /** Con upsert: ON CONFLICT DO NOTHING en vez de DO UPDATE (duplicado = éxito silencioso). */
+  ignoreDuplicates?: boolean;
 }
 
 export interface QueueItem extends QueueItemInput {
@@ -137,7 +139,10 @@ async function send(item: QueueItem): Promise<{ ok: true } | { ok: false; perman
   const table = supabase.from(item.table);
   const res =
     item.op === "upsert"
-      ? await table.upsert(item.payload as never, item.onConflict ? { onConflict: item.onConflict } : undefined)
+      ? await table.upsert(
+          item.payload as never,
+          item.onConflict ? { onConflict: item.onConflict, ignoreDuplicates: item.ignoreDuplicates } : undefined,
+        )
       : await table.insert(item.payload as never);
   if (!res.error) return { ok: true };
   const permanent = !looksLikeNetworkError(res.error) && Boolean(res.error.code);

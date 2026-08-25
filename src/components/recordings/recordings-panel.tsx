@@ -33,14 +33,6 @@ export async function RecordingsPanel({ classId, courseId }: RecordingsPanelProp
     .eq("class_id", classId)
     .order("created_at", { ascending: false });
 
-  // La vista no expone error_message: lo traemos aparte para las filas con error.
-  const errorIds = (data ?? []).filter((r) => r.status === "error" && r.id).map((r) => r.id as string);
-  const errors = new Map<string, string | null>();
-  if (errorIds.length > 0) {
-    const { data: errRows } = await supabase.from("class_recordings").select("id, error_message").in("id", errorIds);
-    for (const r of errRows ?? []) errors.set(r.id, r.error_message);
-  }
-
   const rows: RecordingRowData[] = (data ?? []).flatMap((r) =>
     r.id && r.status
       ? [
@@ -55,7 +47,7 @@ export async function RecordingsPanel({ classId, courseId }: RecordingsPanelProp
             published: r.published ?? false,
             duration_seconds: r.duration_seconds,
             created_at: r.created_at ?? new Date().toISOString(),
-            error_message: errors.get(r.id) ?? null,
+            error_message: r.error_message ?? null,
             has_transcript: r.has_transcript ?? false,
             has_summary: r.has_summary ?? false,
             has_cards: r.has_cards ?? false,

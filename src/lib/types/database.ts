@@ -970,6 +970,226 @@ export type Database = {
           },
         ]
       }
+      notification_campaigns: {
+        Row: {
+          body: string
+          channels: Database["public"]["Enums"]["delivery_channel"][]
+          completed_at: string | null
+          course_id: string | null
+          created_at: string
+          created_by: string
+          failed_count: number
+          id: string
+          recipient_ids: string[]
+          recipients_count: number
+          sent_count: number
+          target: Database["public"]["Enums"]["activity_target"]
+          title: string
+          url: string | null
+        }
+        Insert: {
+          body: string
+          channels?: Database["public"]["Enums"]["delivery_channel"][]
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by: string
+          failed_count?: number
+          id?: string
+          recipient_ids?: string[]
+          recipients_count?: number
+          sent_count?: number
+          target?: Database["public"]["Enums"]["activity_target"]
+          title: string
+          url?: string | null
+        }
+        Update: {
+          body?: string
+          channels?: Database["public"]["Enums"]["delivery_channel"][]
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by?: string
+          failed_count?: number
+          id?: string
+          recipient_ids?: string[]
+          recipients_count?: number
+          sent_count?: number
+          target?: Database["public"]["Enums"]["activity_target"]
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_campaigns_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_campaigns_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "notification_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          created_at: string
+          error: string | null
+          id: string
+          notification_id: string
+          provider_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["delivery_status"]
+        }
+        Insert: {
+          attempts?: number
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          created_at?: string
+          error?: string | null
+          id?: string
+          notification_id: string
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Update: {
+          attempts?: number
+          channel?: Database["public"]["Enums"]["delivery_channel"]
+          created_at?: string
+          error?: string | null
+          id?: string
+          notification_id?: string
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          email_enabled: boolean
+          muted_kinds: Database["public"]["Enums"]["notification_kind"][]
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean
+          muted_kinds?: Database["public"]["Enums"]["notification_kind"][]
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean
+          muted_kinds?: Database["public"]["Enums"]["notification_kind"][]
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read_at: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read_at?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          read_at?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "notifications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_responses: {
         Row: {
           created_at: string
@@ -1115,6 +1335,50 @@ export type Database = {
           status?: Database["public"]["Enums"]["profile_status"]
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          failed_count: number
+          id: string
+          last_used_at: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          failed_count?: number
+          id?: string
+          last_used_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          failed_count?: number
+          id?: string
+          last_used_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recording_chunks: {
         Row: {
@@ -1708,6 +1972,7 @@ export type Database = {
           created_at: string | null
           current_step: string | null
           duration_seconds: number | null
+          error_message: string | null
           has_cards: boolean | null
           has_simplified: boolean | null
           has_summary: boolean | null
@@ -1725,6 +1990,7 @@ export type Database = {
           created_at?: string | null
           current_step?: string | null
           duration_seconds?: number | null
+          error_message?: string | null
           has_cards?: never
           has_simplified?: never
           has_summary?: never
@@ -1742,6 +2008,7 @@ export type Database = {
           created_at?: string | null
           current_step?: string | null
           duration_seconds?: number | null
+          error_message?: string | null
           has_cards?: never
           has_simplified?: never
           has_summary?: never
@@ -1771,6 +2038,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      unread_notifications_count: { Args: never; Returns: number }
     }
     Enums: {
       activity_status: "draft" | "published" | "closed"
@@ -1790,7 +2058,20 @@ export type Database = {
       argument_status: "visible" | "hidden"
       debate_stance: "a_favor" | "en_contra" | "neutral"
       debate_status: "open" | "closed" | "archived"
+      delivery_channel: "email" | "push"
+      delivery_status: "pending" | "sent" | "failed" | "skipped"
       material_kind: "pdf" | "link" | "video" | "doc" | "otro"
+      notification_kind:
+        | "aviso"
+        | "actividad_publicada"
+        | "actividad_corregida"
+        | "consulta_respondida"
+        | "grabacion_publicada"
+        | "debate"
+        | "encuesta"
+        | "alerta_docente"
+        | "manual"
+        | "sistema"
       poll_status: "draft" | "open" | "closed"
       profile_status: "pendiente" | "validado" | "bloqueado"
       question_status:
@@ -1955,7 +2236,21 @@ export const Constants = {
       argument_status: ["visible", "hidden"],
       debate_stance: ["a_favor", "en_contra", "neutral"],
       debate_status: ["open", "closed", "archived"],
+      delivery_channel: ["email", "push"],
+      delivery_status: ["pending", "sent", "failed", "skipped"],
       material_kind: ["pdf", "link", "video", "doc", "otro"],
+      notification_kind: [
+        "aviso",
+        "actividad_publicada",
+        "actividad_corregida",
+        "consulta_respondida",
+        "grabacion_publicada",
+        "debate",
+        "encuesta",
+        "alerta_docente",
+        "manual",
+        "sistema",
+      ],
       poll_status: ["draft", "open", "closed"],
       profile_status: ["pendiente", "validado", "bloqueado"],
       question_status: [

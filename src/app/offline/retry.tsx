@@ -29,7 +29,7 @@ export function OfflineRetry() {
     setBusy(true);
     // Si hay historial, volvemos a la página que falló; si no, al campus.
     if (window.history.length > 1) window.history.back();
-    else window.location.assign("/campus");
+    else window.location.assign(new URL("/campus", window.location.origin).toString());
     // Si history.back() no navegó (p. ej. la entrada anterior es externa), recargamos.
     window.setTimeout(() => window.location.reload(), 800);
   }, []);

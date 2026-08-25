@@ -40,9 +40,13 @@ export function AlertsPanel({ courseId, initialAlerts }: AlertsPanelProps) {
   const [error, setError] = React.useState<string | null>(null);
   const [live, setLive] = React.useState(false);
 
-  React.useEffect(() => {
+  // Sincroniza con los datos del servidor tras un router.refresh()
+  // (patrón "ajustar estado durante el render", sin efecto).
+  const [prevInitial, setPrevInitial] = React.useState(initialAlerts);
+  if (prevInitial !== initialAlerts) {
+    setPrevInitial(initialAlerts);
     setAlerts(initialAlerts);
-  }, [initialAlerts]);
+  }
 
   React.useEffect(() => {
     const supabase = createClient();

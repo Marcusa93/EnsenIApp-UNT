@@ -6,6 +6,7 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseCards, parseGlossary, parseKeyPoints, parseSections, parseSegments, type IndexedCard } from "@/components/class-content/parse";
+import type { Json } from "@/lib/types/database";
 import type { GlossaryTerm, SummarySection, TranscriptSegment } from "@/lib/types/helpers";
 import type { ProcessingLogEntry } from "@/lib/audio/pipeline";
 import { errorMessage } from "@/lib/utils";
@@ -145,7 +146,7 @@ export async function reprocessRecording(recordingId: string, mode: ReprocessMod
         published: false,
         generation_model: null,
         ...(mode === "full" ? { transcription_model: null } : {}),
-        processing_log: [log],
+        processing_log: [log] as unknown as Json,
       })
       .eq("id", rec.id);
     if (error) throw new Error(`No se pudo reiniciar la grabación: ${error.message}`);

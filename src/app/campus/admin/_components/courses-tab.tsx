@@ -21,14 +21,17 @@ import { useAction } from "./use-action";
 import { Feedback } from "./feedback";
 
 export function CoursesTab({ subjects, courses }: { subjects: AdminSubject[]; courses: AdminCourse[] }) {
-  const [subjectDialog, setSubjectDialog] = React.useState<{ open: boolean; subject: AdminSubject | null }>({
-    open: false,
-    subject: null,
-  });
-  const [courseDialog, setCourseDialog] = React.useState<{ open: boolean; course: AdminCourse | null }>({
-    open: false,
-    course: null,
-  });
+  // `session` remonta el diálogo en cada apertura: el formulario arranca limpio sin efectos de sincronización.
+  const [subjectDialog, setSubjectDialog] = React.useState<{ open: boolean; subject: AdminSubject | null; session: number }>(
+    { open: false, subject: null, session: 0 },
+  );
+  const [courseDialog, setCourseDialog] = React.useState<{ open: boolean; course: AdminCourse | null; session: number }>(
+    { open: false, course: null, session: 0 },
+  );
+  const openSubjectDialog = (subject: AdminSubject | null) =>
+    setSubjectDialog((s) => ({ open: true, subject, session: s.session + 1 }));
+  const openCourseDialog = (course: AdminCourse | null) =>
+    setCourseDialog((s) => ({ open: true, course, session: s.session + 1 }));
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
@@ -38,7 +41,7 @@ export function CoursesTab({ subjects, courses }: { subjects: AdminSubject[]; co
           <h2 id="subjects-heading" className="eyebrow">
             Materias · {subjects.length}
           </h2>
-          <Button size="sm" variant="secondary" leftIcon={<Plus />} onClick={() => setSubjectDialog({ open: true, subject: null })}>
+          <Button size="sm" variant="secondary" leftIcon={<Plus />} onClick={() => openSubjectDialog(null)}>
             Nueva materia
           </Button>
         </div>
@@ -56,7 +59,7 @@ export function CoursesTab({ subjects, courses }: { subjects: AdminSubject[]; co
                 key={s.id}
                 subject={s}
                 courseCount={courses.filter((c) => c.subject_id === s.id).length}
-                onEdit={() => setSubjectDialog({ open: true, subject: s })}
+                onEdit={() => openSubjectDialog(s)}
               />
             ))}
           </ul>
@@ -73,7 +76,7 @@ export function CoursesTab({ subjects, courses }: { subjects: AdminSubject[]; co
             size="sm"
             leftIcon={<Plus />}
             disabled={subjects.length === 0}
-            onClick={() => setCourseDialog({ open: true, course: null })}
+            onClick={() => openCourseDialog(null)}
           >
             Nuevo curso
           </Button>
@@ -93,18 +96,20 @@ export function CoursesTab({ subjects, courses }: { subjects: AdminSubject[]; co
         ) : (
           <ul className="flex flex-col gap-2">
             {courses.map((c) => (
-              <CourseRow key={c.id} course={c} onEdit={() => setCourseDialog({ open: true, course: c })} />
+              <CourseRow key={c.id} course={c} onEdit={() => openCourseDialog(c)} />
             ))}
           </ul>
         )}
       </section>
 
       <SubjectDialog
+        key={subjectDialog.session}
         open={subjectDialog.open}
         subject={subjectDialog.subject}
         onOpenChange={(open) => setSubjectDialog((s) => ({ ...s, open }))}
       />
       <CourseDialog
+        key={courseDialog.session}
         open={courseDialog.open}
         course={courseDialog.course}
         subjects={subjects}
@@ -181,17 +186,11 @@ function SubjectDialog({
   subject: AdminSubject | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { pending, error, run, reset } = useAction();
-  const [name, setName] = React.useState("");
-  const [description, setDescription] = React.useState("");
+  // El componente se remonta en cada apertura (prop `key` del padre): el estado inicial ya viene de las props.
+  const { pending, error, run } = useAction();
+  const [name, setName] = React.useState(subject?.name ?? "");
+  const [description, setDescription] = React.useState(subject?.description ?? "");
   const formId = React.useId();
-
-  React.useEffect(() => {
-    if (!open) return;
-    setName(subject?.name ?? "");
-    setDescription(subject?.description ?? "");
-    reset();
-  }, [open, subject, reset]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -359,19 +358,12 @@ function CourseDialog({
   subjects: AdminSubject[];
   onOpenChange: (open: boolean) => void;
 }) {
-  const { pending, error, run, reset } = useAction();
-  const [subjectId, setSubjectId] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [term, setTerm] = React.useState("");
+  // El componente se remonta en cada apertura (prop `key` del padre): el estado inicial ya viene de las props.
+  const { pending, error, run } = useAction();
+  const [subjectId, setSubjectId] = React.useState(course?.subject_id ?? subjects[0]?.id ?? "");
+  const [name, setName] = React.useState(course?.name ?? "");
+  const [term, setTerm] = React.useState(course?.term ?? String(new Date().getFullYear()));
   const formId = React.useId();
-
-  React.useEffect(() => {
-    if (!open) return;
-    setSubjectId(course?.subject_id ?? subjects[0]?.id ?? "");
-    setName(course?.name ?? "");
-    setTerm(course?.term ?? String(new Date().getFullYear()));
-    reset();
-  }, [open, course, subjects, reset]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

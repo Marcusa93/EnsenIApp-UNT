@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Json } from "@/lib/types/database";
+import type { TablesUpdate } from "@/lib/types/helpers";
 import { createClient } from "@/lib/supabase/server";
 import { requireTeacherOf } from "@/components/docente/teacher-guard";
 import { errorMessage } from "@/lib/utils";
@@ -141,7 +142,7 @@ export async function saveActivity(
     let id = opts.activityId;
     if (id) {
       const { activity } = await loadOwnedActivity(id);
-      const patch: Record<string, unknown> = { ...base };
+      const patch: TablesUpdate<"activities"> = { ...base };
       if (opts.publish && activity.status !== "published") {
         patch.status = "published";
         patch.published_at = activity.published_at ?? new Date().toISOString();
@@ -243,7 +244,7 @@ export async function gradeSubmission(raw: GradeInput): Promise<ActionResult<voi
     if (input.score != null && input.score > max) {
       return { ok: false, error: `El puntaje no puede superar el máximo (${max}).` };
     }
-    const patch: Record<string, unknown> = {
+    const patch: TablesUpdate<"activity_submissions"> = {
       score: input.score,
       teacher_feedback_md: input.teacher_feedback_md.trim() || null,
     };

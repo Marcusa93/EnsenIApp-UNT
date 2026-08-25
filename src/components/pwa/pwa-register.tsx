@@ -58,6 +58,15 @@ function dismissedRecently(): boolean {
   }
 }
 
+// Store minúsculo para "descartado": permite leerlo con useSyncExternalStore sin setState en efectos.
+const dismissedListeners = new Set<() => void>();
+function subscribeDismissed(listener: () => void) {
+  dismissedListeners.add(listener);
+  return () => {
+    dismissedListeners.delete(listener);
+  };
+}
+
 /** Snapshot para useSyncExternalStore: "puede instalarse" */
 function getCanInstall(): boolean {
   return deferredPrompt !== null && !installed && !isStandalone();
@@ -83,10 +92,8 @@ function bindInstallListeners() {
 export function useInstallPrompt() {
   React.useEffect(bindInstallListeners, []);
   const canInstall = React.useSyncExternalStore(subscribeInstall, getCanInstall, () => false);
-  const [dismissed, setDismissed] = React.useState(true);
-  React.useEffect(() => {
-    setDismissed(dismissedRecently());
-  }, []);
+  // En el server se asume descartado (no se muestra nada); en el cliente se lee localStorage.
+  const dismissed = React.useSyncExternalStore(subscribeDismissed, dismissedRecently, () => true);
 
   const install = React.useCallback(async () => {
     const evt = deferredPrompt;
@@ -110,7 +117,7 @@ export function useInstallPrompt() {
     } catch {
       /* storage no disponible */
     }
-    setDismissed(true);
+    dismissedListeners.forEach((l) => l());
   }, []);
 
   return { canInstall: canInstall && !dismissed, install, dismiss };

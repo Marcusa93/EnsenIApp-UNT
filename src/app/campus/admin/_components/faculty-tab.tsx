@@ -17,7 +17,13 @@ export function FacultyTab({
   subjects: AdminSubject[];
   profiles: AdminProfile[];
 }) {
-  const [dialog, setDialog] = React.useState<{ open: boolean; member: AdminFaculty | null }>({ open: false, member: null });
+  // `session` remonta el diálogo en cada apertura: el formulario arranca limpio sin efectos de sincronización.
+  const [dialog, setDialog] = React.useState<{ open: boolean; member: AdminFaculty | null; session: number }>({
+    open: false,
+    member: null,
+    session: 0,
+  });
+  const openDialog = (member: AdminFaculty | null) => setDialog((d) => ({ open: true, member, session: d.session + 1 }));
 
   const bySubject = React.useMemo(() => {
     const map = new Map<string, AdminFaculty[]>();
@@ -40,7 +46,7 @@ export function FacultyTab({
           size="sm"
           leftIcon={<Plus />}
           disabled={subjects.length === 0}
-          onClick={() => setDialog({ open: true, member: null })}
+          onClick={() => openDialog(null)}
         >
           Agregar integrante
         </Button>
@@ -59,7 +65,7 @@ export function FacultyTab({
           title="El cuerpo docente está vacío"
           description="Agregá titulares, adjuntos y auxiliares con su cargo para que aparezcan en la landing."
           action={
-            <Button leftIcon={<Plus />} onClick={() => setDialog({ open: true, member: null })}>
+            <Button leftIcon={<Plus />} onClick={() => openDialog(null)}>
               Agregar integrante
             </Button>
           }
@@ -75,7 +81,7 @@ export function FacultyTab({
               </h2>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {members.map((m) => (
-                  <FacultyRow key={m.id} member={m} onEdit={() => setDialog({ open: true, member: m })} />
+                  <FacultyRow key={m.id} member={m} onEdit={() => openDialog(m)} />
                 ))}
               </ul>
             </section>
@@ -84,6 +90,7 @@ export function FacultyTab({
       )}
 
       <FacultyDialog
+        key={dialog.session}
         open={dialog.open}
         member={dialog.member}
         subjects={subjects}
@@ -173,12 +180,13 @@ function FacultyDialog({
   profiles: AdminProfile[];
   onOpenChange: (open: boolean) => void;
 }) {
-  const { pending, error, run, reset } = useAction();
-  const [subjectId, setSubjectId] = React.useState("");
-  const [fullName, setFullName] = React.useState("");
-  const [position, setPosition] = React.useState("");
-  const [rank, setRank] = React.useState("99");
-  const [profileId, setProfileId] = React.useState("");
+  // El componente se remonta en cada apertura (prop `key` del padre): el estado inicial ya viene de las props.
+  const { pending, error, run } = useAction();
+  const [subjectId, setSubjectId] = React.useState(member?.subject_id ?? subjects[0]?.id ?? "");
+  const [fullName, setFullName] = React.useState(member?.full_name ?? "");
+  const [position, setPosition] = React.useState(member?.position ?? "");
+  const [rank, setRank] = React.useState(String(member?.rank ?? 99));
+  const [profileId, setProfileId] = React.useState(member?.profile_id ?? "");
   const formId = React.useId();
 
   const linkable = React.useMemo(
@@ -188,16 +196,6 @@ function FacultyDialog({
         .sort((a, b) => a.full_name.localeCompare(b.full_name, "es")),
     [profiles],
   );
-
-  React.useEffect(() => {
-    if (!open) return;
-    setSubjectId(member?.subject_id ?? subjects[0]?.id ?? "");
-    setFullName(member?.full_name ?? "");
-    setPosition(member?.position ?? "");
-    setRank(String(member?.rank ?? 99));
-    setProfileId(member?.profile_id ?? "");
-    reset();
-  }, [open, member, subjects, reset]);
 
   const onProfileChange = (id: string) => {
     setProfileId(id);

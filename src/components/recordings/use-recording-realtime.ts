@@ -36,11 +36,16 @@ export function toLiveState(r: Partial<ClassRecording> & { status: ClassRecordin
  */
 export function useRecordingRealtime(recordingId: string | null, initial: RecordingLiveState | null) {
   const [state, setState] = React.useState<RecordingLiveState | null>(initial);
+  const [prevInitial, setPrevInitial] = React.useState<RecordingLiveState | null>(initial);
 
   // Sincroniza si el padre pasa un estado más nuevo (p. ej. tras router.refresh()).
-  React.useEffect(() => {
-    if (initial) setState((prev) => (prev && prev.progress > initial.progress && prev.status === initial.status ? prev : initial));
-  }, [initial]);
+  // Patrón "adjust state during render" (React docs) en vez de un efecto con setState sincrónico.
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
+    if (initial && !(state && state.progress > initial.progress && state.status === initial.status)) {
+      setState(initial);
+    }
+  }
 
   React.useEffect(() => {
     if (!recordingId) return;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FileBarChart, ChevronRight } from "lucide-react";
 import type { Json } from "@/lib/types/database";
-import { Badge, Card, CardHeader, CardTitle, CardDescription, EmptyState } from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardDescription, EmptyState } from "@/components/ui";
 import { REPORT_SCOPE_LABEL, isReportScope, parseReportFilters } from "@/lib/reports/types";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { ReportStatusBadge } from "./report-status-badge";

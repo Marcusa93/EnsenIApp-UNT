@@ -20,15 +20,26 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default async function NuevaActividadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ course?: string; recordingId?: string }>;
+  searchParams: Promise<{ course?: string; recordingId?: string; classId?: string }>;
 }) {
   const { user, profile } = await requireRole("docente", "admin");
   const supabase = await createClient();
-  const { course: c, recordingId } = await searchParams;
+  const { course: c, recordingId, classId } = await searchParams;
 
   // Si viene una grabación, el curso activo es el de esa grabación.
   const recording = recordingId && UUID_RE.test(recordingId) ? await getRecordingContext(supabase, recordingId) : null;
-  const { course } = await getActiveCourse(supabase, user.id, profile.role, recording?.course_id ?? c);
+  // Si viene una clase (link "crear actividad" desde la página de la clase),
+  // preseleccionamos esa clase y su curso.
+  const linkedClass =
+    !recording && classId && UUID_RE.test(classId)
+      ? (await supabase.from("classes").select("id, course_id").eq("id", classId).maybeSingle()).data
+      : null;
+  const { course } = await getActiveCourse(
+    supabase,
+    user.id,
+    profile.role,
+    recording?.course_id ?? linkedClass?.course_id ?? c,
+  );
 
   if (!course) {
     return (
@@ -79,6 +90,7 @@ export default async function NuevaActividadPage({
         materials={materials}
         students={students}
         recording={recording}
+        initialClassId={linkedClass && linkedClass.course_id === course.id ? linkedClass.id : null}
       />
     </>
   );

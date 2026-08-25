@@ -29,25 +29,28 @@ export interface RecordingPreviewProps {
 export function RecordingPreview({ recordingId, title, open, onOpenChange }: RecordingPreviewProps) {
   const [data, setData] = React.useState<RecordingPreviewData | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(false);
 
+  // Carga al abrir; si se reabre, muestra lo anterior mientras refresca en segundo plano.
   React.useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     getRecordingPreview(recordingId)
       .then((res) => {
         if (cancelled) return;
-        if (res.ok) setData(res.data);
-        else setError(res.error);
+        if (res.ok) {
+          setData(res.data);
+          setError(null);
+        } else {
+          setError(res.error);
+        }
       })
-      .catch((err: unknown) => !cancelled && setError(err instanceof Error ? err.message : "No se pudo cargar la vista previa."))
-      .finally(() => !cancelled && setLoading(false));
+      .catch((err: unknown) => !cancelled && setError(err instanceof Error ? err.message : "No se pudo cargar la vista previa."));
     return () => {
       cancelled = true;
     };
   }, [open, recordingId]);
+
+  const loading = data === null && error === null;
 
   return (
     <Dialog

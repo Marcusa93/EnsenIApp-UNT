@@ -58,13 +58,16 @@ Nunca importar `admin.ts` desde un componente cliente.
 | Voz del estudiante | `student_checkins` (difficulty 1-5 + comentario por clase), `student_questions` (consultas; ai_answer_md, teacher_answer_md, status), `polls` + `poll_responses`, `card_progress` |
 | Debate | `debates`, `debate_arguments` (stance, parent_id, status visible/hidden), `debate_supports` |
 | Seguimiento | `usage_events` (telemetría; ver taxonomía en `src/lib/types/helpers.ts`), `teacher_alerts` (triggers automáticos), `report_requests` (informes a demanda: scope, filters, result_md) |
-| Vistas | `v_course_engagement`, `v_recording_status` |
+| Notificaciones | `notifications` (bandeja in-app), `notification_preferences`, `notification_deliveries`, `notification_campaigns`, `push_subscriptions` — esquema listo (004) con RLS; la UI/envíos son un módulo futuro |
+| Vistas | `v_course_engagement`, `v_recording_status` (incluye `error_message` desde 004) |
 
 Tipos: `import type { Tables, Enums } from "@/lib/types/helpers"` → `Tables<"activities">`. Los JSONB llegan como `Json`;
 castear en el borde con las interfaces de `helpers.ts` (`InteractiveCardItem[]`, `TranscriptSegment[]`, etc.).
 
-**Prohibido en la fase paralela**: aplicar migraciones. Si un módulo necesita un cambio de esquema, escribirlo en
-`supabase/migrations/pending/<modulo>.sql` y reportarlo; la fase de integración lo consolida y aplica con `scripts/db.sh`.
+Migraciones aplicadas: `001_init` → `004_integration` (esta última consolidó los pendientes de la fase
+paralela: constraints del pipeline, policies de storage para entregas y borrado, visibilidad de perfiles
+docentes, esquema de notificaciones, delete de informes, realtime de `debate_supports` y unicidad de
+check-ins). Cambios de esquema nuevos: `supabase/migrations/NNN_*.sql` + `scripts/db.sh` + `scripts/gen-types.sh`.
 
 ## 5. Mapa de rutas (única fuente de verdad: `src/lib/nav.ts`)
 
@@ -157,6 +160,9 @@ scripts/gen-types.sh        # regenerar src/lib/types/database.ts
 Variables (`.env.local`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`.
 
 ## 10. Propiedad de archivos en la fase paralela
+
+> La fase paralela terminó: la integración (migración `004_integration`) consolidó los pendientes y el
+> cableado cruzado. La regla queda como referencia para futuras rondas de desarrollo en paralelo.
 
 Cada módulo **sólo** crea/edita archivos dentro de sus directorios asignados. Archivos compartidos (`globals.css`, `layout.tsx`,
 `src/components/ui/*`, `src/lib/nav.ts`, `src/lib/types/*`, `src/lib/supabase/*`, `src/lib/openrouter.ts`, `middleware.ts`) son de la

@@ -111,8 +111,13 @@ function UserRow({ profile }: { profile: AdminProfile }) {
   const [role, setRole] = React.useState<UserRole>(profile.role);
   const [status, setStatus] = React.useState<ProfileStatus>(profile.status);
 
-  React.useEffect(() => setRole(profile.role), [profile.role]);
-  React.useEffect(() => setStatus(profile.status), [profile.status]);
+  // Re-sincroniza el estado optimista cuando el server component revalida (ajuste durante render, sin efecto).
+  const [synced, setSynced] = React.useState({ role: profile.role, status: profile.status });
+  if (synced.role !== profile.role || synced.status !== profile.status) {
+    setSynced({ role: profile.role, status: profile.status });
+    setRole(profile.role);
+    setStatus(profile.status);
+  }
 
   const changeRole = async (next: UserRole) => {
     const prev = role;

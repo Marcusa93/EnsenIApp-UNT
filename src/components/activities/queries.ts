@@ -174,6 +174,20 @@ export async function getMaterialsForClasses(supabase: DbClient, classIds: strin
   return data ?? [];
 }
 
+/** Materiales puntuales vinculados a una actividad (content.material_ids). */
+export async function getMaterialsByIds(supabase: DbClient, materialIds: string[]): Promise<MaterialOption[]> {
+  if (materialIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("class_materials")
+    .select("id, class_id, title, kind, url, storage_path")
+    .in("id", materialIds);
+  if (error) {
+    console.error("[activities] getMaterialsByIds", { materialIds, error });
+    throw new Error("No se pudieron cargar los materiales de la actividad.");
+  }
+  return data ?? [];
+}
+
 export async function getAssignedStudentIds(supabase: DbClient, activityId: string): Promise<string[]> {
   const { data, error } = await supabase.from("activity_assignments").select("student_id").eq("activity_id", activityId);
   if (error) {
