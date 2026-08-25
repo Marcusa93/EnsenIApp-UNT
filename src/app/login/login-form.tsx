@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
+import { ChevronDown, KeyRound, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { errorMessage, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -44,8 +44,17 @@ function humanizeAuthError(err: unknown): string {
   if (/invalid email|valid email/i.test(msg)) return "Ese email no parece válido. Revisalo.";
   if (/signups not allowed|not allowed/i.test(msg)) return "Este email no está habilitado para ingresar.";
   if (/anonymous sign-ins are disabled/i.test(msg)) return "El acceso rápido no está habilitado. Probá con Google o tu email.";
+  if (/invalid login credentials/i.test(msg)) return "Usuario o contraseña incorrectos.";
   if (/fetch|network/i.test(msg)) return "Sin conexión. Revisá tu red e intentá de nuevo.";
   return msg || "No pudimos ingresar. Intentá de nuevo.";
+}
+
+/** Dominio interno para cuentas docente/admin con usuario+contraseña (sin email real). */
+const INTERNAL_EMAIL_DOMAIN = "ensenia-unt.local";
+
+function resolveLoginEmail(usernameOrEmail: string): string {
+  const value = usernameOrEmail.trim().toLowerCase();
+  return value.includes("@") ? value : `${value}@${INTERNAL_EMAIL_DOMAIN}`;
 }
 
 /** "María López" → "María López"; colapsa espacios, exige nombre y apellido. */
@@ -70,6 +79,11 @@ export function LoginForm({ next, initialError }: LoginFormProps) {
   const [error, setError] = React.useState<string | null>(initialError);
   const [loadingEmail, setLoadingEmail] = React.useState(false);
   const [loadingGoogle, setLoadingGoogle] = React.useState(false);
+
+  const [showPasswordAccess, setShowPasswordAccess] = React.useState(false);
+  const [username, setUsername] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [loadingPassword, setLoadingPassword] = React.useState(false);
 
   const callbackUrl = React.useCallback(() => {
     const url = new URL("/auth/callback", window.location.origin);
@@ -115,6 +129,27 @@ export function LoginForm({ next, initialError }: LoginFormProps) {
       console.error("[login] google", err);
       setError(humanizeAuthError(err));
       setLoadingGoogle(false);
+    }
+  }
+
+  async function signInWithPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!username.trim() || !password) return;
+    setError(null);
+    setLoadingPassword(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: resolveLoginEmail(username),
+        password,
+      });
+      if (error) throw error;
+      router.push(next);
+      router.refresh();
+    } catch (err) {
+      console.error("[login] usuario y contraseña", err);
+      setError(humanizeAuthError(err));
+      setLoadingPassword(false);
     }
   }
 
@@ -278,6 +313,67 @@ export function LoginForm({ next, initialError }: LoginFormProps) {
                     </Button>
                   </form>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordAccess((v) => !v)}
+                  className="mt-1 flex items-center gap-1.5 self-center text-xs text-muted underline underline-offset-4 transition hover:text-foreground"
+                  aria-expanded={showPasswordAccess}
+                >
+                  <KeyRound className="size-3" aria-hidden />
+                  Prefiero usuario y contraseña
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {showPasswordAccess && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <form onSubmit={signInWithPassword} className="flex flex-col gap-3 pt-1">
+                        <Field label="Usuario" htmlFor="username">
+                          <Input
+                            id="username"
+                            name="username"
+                            type="text"
+                            autoComplete="username"
+                            required
+                            placeholder="usuario"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            leftIcon={<User />}
+                          />
+                        </Field>
+                        <Field label="Contraseña" htmlFor="password">
+                          <Input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autoComplete="current-password"
+                            required
+                            placeholder="••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            leftIcon={<KeyRound />}
+                          />
+                        </Field>
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          size="lg"
+                          className="w-full"
+                          loading={loadingPassword}
+                          disabled={!username.trim() || !password}
+                        >
+                          Ingresar
+                        </Button>
+                      </form>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
