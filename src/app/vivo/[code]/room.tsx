@@ -127,15 +127,29 @@ export function LiveRoom({ initial, userId, fullName, initialSubmittedWord }: Li
       <span className="eyebrow">Hola, {firstName}</span>
       <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{initial.className}</h1>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {status === "ended" ? (
-          <motion.div key="ended" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
+          <motion.div
+            key="ended"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="mt-6"
+          >
             <p className="rounded-2xl border border-border bg-surface-2 p-5 text-sm text-muted">
               La sesión terminó. Gracias por participar 🎉
             </p>
           </motion.div>
         ) : !activePrompt ? (
-          <motion.div key="waiting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
+          <motion.div
+            key="waiting"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="mt-6"
+          >
             <motion.p
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -149,6 +163,8 @@ export function LiveRoom({ initial, userId, fullName, initialSubmittedWord }: Li
             key="submitted"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="mt-6 rounded-2xl border border-accent-2/30 bg-accent-2/10 p-5"
           >
             <div className="flex items-center gap-2 text-accent-2">
@@ -159,7 +175,15 @@ export function LiveRoom({ initial, userId, fullName, initialSubmittedWord }: Li
             <p className="mt-2 text-sm text-muted">Mirá la pantalla ✨</p>
           </motion.div>
         ) : (
-          <motion.form key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit} className="mt-6 flex flex-col gap-3">
+          <motion.form
+            key="form"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onSubmit={submit}
+            className="mt-6 flex flex-col gap-3"
+          >
             <p className="text-lg font-medium leading-snug">{activePrompt.question}</p>
             <div className="flex gap-2">
               <Input
