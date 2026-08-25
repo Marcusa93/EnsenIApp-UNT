@@ -37,8 +37,17 @@ y **síntesis con IA** al cierre.
 
 `user_role = estudiante | docente | admin`. `profiles.status = pendiente | validado | bloqueado`.
 
-- **Estudiante**: entra con Google o email institucional (magic link). Si su email está en el `roster` (padrón) queda
-  `validado` y auto-inscripto en el curso; si no, entra como `pendiente` (puede usar el campus, pero el docente lo ve marcado para revisar).
+- **Estudiante (acceso por defecto, MVP)**: entra sólo con **nombre y apellido**, vía `supabase.auth.signInAnonymously({ options: { data: { full_name } } })`
+  (`src/app/login/login-form.tsx`). Sesión anónima real de Supabase (`auth.users.is_anonymous = true`): tiene `auth.uid()`,
+  respeta RLS igual que cualquier usuario. El trigger `handle_new_user` (005) crea el `profiles` con `email = null`,
+  `role = 'estudiante'`, `status = 'validado'` de entrada (sin padrón que validar todavía). "Vincular todo" más adelante =
+  `supabase.auth.linkIdentity()` (Google) o convertir a email real desde la sesión anónima existente: el trigger
+  `handle_user_linked` detecta `is_anonymous → false`, copia el email real a `profiles` y recién ahí corre el matching
+  contra `roster`. Mismo `auth.users.id`/`profiles.id` de antes → no se pierde nada (placas, entregas, consultas, feedback).
+- **Docente/Admin**: entran con Google o email institucional (magic link) — opción secundaria, colapsada, en el mismo
+  `/login` ("¿Ya tenés una cuenta del equipo docente?"). Si el email está en el `roster` (padrón) el estudiante que entra
+  así queda auto-inscripto; si no, `pendiente` (el docente lo ve marcado para revisar). Este camino sigue existiendo
+  para cuando se retome la validación por padrón/roles reales.
 - **Docente**: ve/edita sólo los cursos donde está en `teacher_assignments`. Helpers SQL: `auth_role()`, `auth_is_teacher_of(course_id)`, `auth_is_enrolled(course_id)`, `auth_can_see_activity(activity_id)`.
 - **Admin**: todo. Gestiona roles, cursos, asignación de docentes, cuerpo docente.
 

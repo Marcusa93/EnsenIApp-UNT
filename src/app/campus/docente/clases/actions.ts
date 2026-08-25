@@ -123,6 +123,7 @@ export async function importClasses(
       if (error) throw error;
       const wanted = new Set(emails);
       for (const p of staff ?? []) {
+        if (!p.email) continue;
         const key = p.email.toLowerCase();
         if (wanted.has(key)) byEmail.set(key, p.id);
       }

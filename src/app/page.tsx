@@ -445,10 +445,11 @@ export default async function Home() {
             <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-0 opacity-60" aria-hidden />
             <BrandMark size={44} className="relative mx-auto" />
             <h2 className="relative mt-5 text-2xl font-semibold tracking-tight sm:text-4xl">
-              Entrá con tu cuenta de Google o tu email institucional.
+              Entrá con tu nombre y apellido.
             </h2>
             <p className="relative mx-auto mt-3 max-w-md text-sm text-muted sm:text-base">
-              Si estás en el padrón de la materia, quedás inscripto automáticamente. Si no, igual podés entrar y el equipo docente te valida.
+              Sin contraseñas, sin trámite. Más adelante vas a poder vincular tu cuenta institucional sin perder nada de lo que
+              hiciste.
             </p>
             <div className="relative mt-8">
               <Button asChild size="lg">

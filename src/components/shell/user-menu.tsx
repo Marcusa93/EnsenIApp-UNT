@@ -67,7 +67,7 @@ export function UserMenu({ profile, className }: { profile: Profile; className?:
           >
             <div className="px-3 py-2.5">
               <p className="truncate text-sm font-semibold">{profile.full_name}</p>
-              <p className="truncate text-xs text-muted">{profile.email}</p>
+              <p className="truncate text-xs text-muted">{profile.email ?? "Acceso por nombre"}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <Badge tone={roleTone(profile.role)} size="sm">
                   {ROLE_LABEL[profile.role]}

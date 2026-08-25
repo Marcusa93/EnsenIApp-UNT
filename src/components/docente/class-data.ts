@@ -148,7 +148,9 @@ export async function getTeachingStaff(supabase: DbClient): Promise<StaffOption[
     .in("role", ["docente", "admin"])
     .order("full_name", { ascending: true });
   if (error) logAndThrow("staff", error, "No se pudo cargar el cuerpo docente.");
-  return data ?? [];
+  // Docentes/admin siempre ingresan con cuenta real (Google/email); el acceso
+  // por nombre (sesión anónima, sin email) sólo crea perfiles 'estudiante'.
+  return (data ?? []).filter((p): p is StaffOption => p.email != null);
 }
 
 interface RawClassRow {

@@ -52,7 +52,7 @@ export function UsersTab({ profiles }: { profiles: AdminProfile[] }) {
       if (roleFilter !== "todos" && p.role !== roleFilter) return false;
       if (statusFilter !== "todos" && p.status !== statusFilter) return false;
       if (!deferredQuery) return true;
-      return p.full_name.toLowerCase().includes(deferredQuery) || p.email.toLowerCase().includes(deferredQuery);
+      return p.full_name.toLowerCase().includes(deferredQuery) || (p.email?.toLowerCase().includes(deferredQuery) ?? false);
     });
   }, [profiles, roleFilter, statusFilter, deferredQuery]);
 
