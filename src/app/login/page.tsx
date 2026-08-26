@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Ingresar" };
 const ERROR_MESSAGES: Record<string, string> = {
   auth: "No pudimos validar tu acceso. El link puede haber vencido: pedí uno nuevo.",
   bloqueado: "Tu cuenta está bloqueada. Escribile al equipo docente para más información.",
-  oauth: "Google no completó el ingreso. Probá de nuevo o usá tu email institucional.",
+  oauth: "No se completó el ingreso. Probá de nuevo con tu email y contraseña.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -55,7 +55,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
       </header>
 
       <div className="relative z-10 flex flex-1 items-center justify-center px-5 pb-16 pt-6 sm:px-8">
-        <LoginForm next={next} initialError={errorParam ? (ERROR_MESSAGES[errorParam] ?? ERROR_MESSAGES.auth) : null} />
+        <LoginForm
+          next={next}
+          initialError={errorParam ? (ERROR_MESSAGES[errorParam] ?? ERROR_MESSAGES.auth) : null}
+          liveJoin={next.startsWith("/vivo/")}
+        />
       </div>
 
       <footer className="relative z-10 px-5 pb-6 text-center text-xs text-muted">

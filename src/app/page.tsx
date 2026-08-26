@@ -445,11 +445,11 @@ export default async function Home() {
             <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-0 opacity-60" aria-hidden />
             <BrandMark size={44} className="relative mx-auto" />
             <h2 className="relative mt-5 text-2xl font-semibold tracking-tight sm:text-4xl">
-              Entrá con tu nombre y apellido.
+              Tu cuenta te la da la cátedra.
             </h2>
             <p className="relative mx-auto mt-3 max-w-md text-sm text-muted sm:text-base">
-              Sin contraseñas, sin trámite. Más adelante vas a poder vincular tu cuenta institucional sin perder nada de lo que
-              hiciste.
+              Pasale tu email al equipo docente, entrá con la contraseña inicial y cambiala desde tu perfil. Para las clases en
+              vivo alcanza con tu nombre.
             </p>
             <div className="relative mt-8">
               <Button asChild size="lg">

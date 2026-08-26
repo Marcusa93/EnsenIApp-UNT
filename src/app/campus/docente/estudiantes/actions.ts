@@ -131,3 +131,77 @@ export async function deleteRosterEntry(input: z.input<typeof deleteSchema>): Pr
     return fail(errorMessage(err));
   }
 }
+
+/** Contraseña inicial de las cuentas creadas por la cátedra; el estudiante la cambia desde su perfil. */
+const INITIAL_PASSWORD = "123456";
+const PROVISION_MAX = 200;
+
+export interface ProvisionResult {
+  created: number;
+  existing: number;
+  failed: { email: string; error: string }[];
+}
+
+const provisionSchema = z.object({ course_id: z.guid() });
+
+/**
+ * Crea cuentas (email + contraseña inicial) para todas las filas del padrón que
+ * todavía no tienen usuario. El trigger de alta valida contra el padrón, marca
+ * el perfil como validado y lo inscribe en la comisión.
+ */
+export async function provisionAccounts(input: z.input<typeof provisionSchema>): Promise<ActionResult<ProvisionResult>> {
+  const parsed = provisionSchema.safeParse(input);
+  if (!parsed.success) return fail("Datos inválidos.");
+  const { course_id } = parsed.data;
+
+  try {
+    const { supabase } = await requireTeacherOf(course_id);
+
+    const { data: rows, error } = await supabase
+      .from("roster")
+      .select("email, full_name")
+      .eq("course_id", course_id)
+      .is("matched_profile_id", null)
+      .limit(PROVISION_MAX);
+    if (error) {
+      console.error("[estudiantes] provisionAccounts roster", { course_id, error });
+      return fail("No se pudo leer el padrón.");
+    }
+    if (!rows || rows.length === 0) return succeed({ created: 0, existing: 0, failed: [] });
+
+    const admin = createAdminClient();
+    const result: ProvisionResult = { created: 0, existing: 0, failed: [] };
+
+    // De a 5 en paralelo: rápido sin golpear el rate limit de la Admin API.
+    const queue = [...rows];
+    const workers = Array.from({ length: Math.min(5, queue.length) }, async () => {
+      for (;;) {
+        const row = queue.shift();
+        if (!row) return;
+        const { error: createError } = await admin.auth.admin.createUser({
+          email: row.email,
+          password: INITIAL_PASSWORD,
+          email_confirm: true,
+          user_metadata: {
+            full_name: row.full_name ?? row.email.split("@")[0],
+            role: "estudiante",
+          },
+        });
+        if (!createError) {
+          result.created++;
+        } else if (/already|registered|exists/i.test(createError.message)) {
+          result.existing++;
+        } else {
+          console.error("[estudiantes] provisionAccounts createUser", { email: row.email, createError });
+          result.failed.push({ email: row.email, error: createError.message });
+        }
+      }
+    });
+    await Promise.all(workers);
+
+    revalidatePath(PATH);
+    return succeed(result);
+  } catch (err) {
+    return fail(errorMessage(err));
+  }
+}

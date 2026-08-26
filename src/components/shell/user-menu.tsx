@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, LogOut, Home } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Home } from "lucide-react";
 import Link from "next/link";
 import type { Profile } from "@/lib/types/helpers";
 import { Avatar } from "@/components/ui/avatar";
@@ -85,6 +85,17 @@ export function UserMenu({ profile, className }: { profile: Profile; className?:
               </div>
             </div>
             <div className="my-1 h-px bg-border" />
+            {profile.email && (
+              <Link
+                href="/campus/cuenta"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-foreground"
+              >
+                <KeyRound className="size-4" aria-hidden />
+                Cambiar contraseña
+              </Link>
+            )}
             <Link
               href="/"
               role="menuitem"

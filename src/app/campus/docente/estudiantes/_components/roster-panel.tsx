@@ -3,11 +3,11 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Papa from "papaparse";
-import { CheckCircle2, Download, FileUp, Plus, Trash2, UserPlus } from "lucide-react";
+import { CheckCircle2, Download, FileUp, KeyRound, Plus, Trash2, UserPlus } from "lucide-react";
 import { Badge, Button, Card, CardDescription, CardHeader, CardTitle, Dialog, EmptyState, Field, Input } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { deleteRosterEntry, upsertRoster } from "../actions";
+import { deleteRosterEntry, provisionAccounts, upsertRoster } from "../actions";
 import { rosterEntrySchema, type RosterEntryInput } from "./roster-schema";
 import type { RosterRow } from "./students-data";
 import { downloadCsv } from "./csv";
@@ -90,6 +90,31 @@ export function RosterPanel({ courseId, courseName, roster }: RosterPanelProps) 
   const fileRef = React.useRef<HTMLInputElement>(null);
 
   const matched = roster.filter((r) => r.matched_profile_id).length;
+  const withoutAccount = roster.length - matched;
+
+  const provision = () => {
+    if (
+      !window.confirm(
+        `Se van a crear ${withoutAccount} cuentas con la contraseña inicial 123456 (cada estudiante la cambia después desde su perfil). ¿Continuar?`,
+      )
+    )
+      return;
+    setError(null);
+    setNotice(null);
+    startTransition(async () => {
+      const res = await provisionAccounts({ course_id: courseId });
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      const { created, existing, failed } = res.data;
+      const parts = [`${created} ${created === 1 ? "cuenta creada" : "cuentas creadas"} con contraseña 123456`];
+      if (existing > 0) parts.push(`${existing} ya existían`);
+      if (failed.length > 0) parts.push(`${failed.length} fallaron (${failed.map((f) => f.email).join(", ")})`);
+      setNotice(parts.join(" · "));
+      router.refresh();
+    });
+  };
 
   const onFile = async (file: File | null) => {
     setError(null);
@@ -294,10 +319,15 @@ export function RosterPanel({ courseId, courseName, roster }: RosterPanelProps) 
               {matched} ya se {matched === 1 ? "registró" : "registraron"} en el campus.
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="secondary" size="sm" leftIcon={<Download />} onClick={exportCsv} disabled={roster.length === 0}>
               Exportar
             </Button>
+            {withoutAccount > 0 && (
+              <Button size="sm" variant="secondary" leftIcon={<KeyRound />} onClick={provision} loading={pending && !deleting}>
+                Crear {withoutAccount} {withoutAccount === 1 ? "cuenta" : "cuentas"}
+              </Button>
+            )}
             <Button size="sm" leftIcon={<Plus />} onClick={() => setAddOpen(true)}>
               Agregar
             </Button>
@@ -310,7 +340,7 @@ export function RosterPanel({ courseId, courseName, roster }: RosterPanelProps) 
             icon={UserPlus}
             tone="accent-2"
             title="El padrón está vacío"
-            description="Importá un CSV o agregá estudiantes de a uno. Al entrar con ese email quedan validados e inscriptos."
+            description="Importá un CSV o agregá estudiantes de a uno, y después creá sus cuentas con un clic (contraseña inicial 123456)."
           />
         ) : (
           <div className="overflow-x-auto">
