@@ -7,6 +7,7 @@ import { RevealGroup, RevealItem } from "@/components/shell";
 import { getActiveCourse } from "@/components/docente/active-course";
 import { CourseSwitcher } from "@/components/docente/course-switcher";
 import { getConsultasData } from "./_components/consultas-data";
+import { AlberdiPanel, getAlberdiData } from "./_components/alberdi-panel";
 import { ConsultasTabs, type ConsultasTab } from "./_components/consultas-tabs";
 import { QuestionsPanel } from "./_components/questions-panel";
 import { PollsPanel } from "./_components/polls-panel";
@@ -36,8 +37,12 @@ export default async function ConsultasPage({
     );
   }
 
-  const data = await getConsultasData(supabase, course.id);
-  const initialTab: ConsultasTab = sp.tab === "encuestas" ? "encuestas" : "consultas";
+  const [data, alberdi] = await Promise.all([
+    getConsultasData(supabase, course.id),
+    getAlberdiData(supabase, course.id),
+  ]);
+  const initialTab: ConsultasTab =
+    sp.tab === "encuestas" ? "encuestas" : sp.tab === "alberdi" ? "alberdi" : "consultas";
   const open = data.questions.filter((q) => q.status === "abierta").length;
   const aiAnswered = data.questions.filter((q) => q.status === "respondida_ia").length;
   const teacherAnswered = data.questions.filter((q) => q.status === "respondida_docente").length;
@@ -87,7 +92,7 @@ export default async function ConsultasPage({
 
       <ConsultasTabs
         initial={initialTab}
-        counts={{ consultas: data.questions.length, encuestas: data.polls.length }}
+        counts={{ consultas: data.questions.length, encuestas: data.polls.length, alberdi: alberdi.stats.questions }}
         consultas={<QuestionsPanel questions={data.questions} />}
         encuestas={
           <PollsPanel
@@ -98,6 +103,7 @@ export default async function ConsultasPage({
             initialClassId={sp.classId}
           />
         }
+        alberdi={<AlberdiPanel data={alberdi} />}
       />
     </>
   );

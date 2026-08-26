@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -275,6 +275,106 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alberdi_conversations: {
+        Row: {
+          class_id: string | null
+          course_id: string
+          created_at: string
+          id: string
+          student_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          student_id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          student_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alberdi_conversations_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alberdi_conversations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alberdi_conversations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "alberdi_conversations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alberdi_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          model: string | null
+          refused: boolean
+          role: Database["public"]["Enums"]["alberdi_role"]
+          sources: Json
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          refused?: boolean
+          role: Database["public"]["Enums"]["alberdi_role"]
+          sources?: Json
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          refused?: boolean
+          role?: Database["public"]["Enums"]["alberdi_role"]
+          sources?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alberdi_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "alberdi_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -627,6 +727,7 @@ export type Database = {
           created_at: string
           enrollment_code: string
           id: string
+          is_default: boolean
           name: string
           subject_id: string
           term: string
@@ -635,6 +736,7 @@ export type Database = {
           created_at?: string
           enrollment_code?: string
           id?: string
+          is_default?: boolean
           name: string
           subject_id: string
           term: string
@@ -643,6 +745,7 @@ export type Database = {
           created_at?: string
           enrollment_code?: string
           id?: string
+          is_default?: boolean
           name?: string
           subject_id?: string
           term?: string
@@ -2114,6 +2217,32 @@ export type Database = {
       }
     }
     Views: {
+      v_alberdi_stats: {
+        Row: {
+          conversations: number | null
+          course_id: string | null
+          last_at: string | null
+          questions: number | null
+          refused: number | null
+          students: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alberdi_conversations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alberdi_conversations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+        ]
+      }
       v_course_engagement: {
         Row: {
           active_7d: number | null
@@ -2228,6 +2357,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      default_course_id: { Args: never; Returns: string }
       try_uuid: { Args: { v: string }; Returns: string }
       unread_notifications_count: { Args: never; Returns: number }
     }
@@ -2241,6 +2371,7 @@ export type Database = {
         | "entrega"
         | "debate"
         | "encuesta"
+      alberdi_role: "user" | "assistant"
       alert_kind:
         | "dificultad_reiterada"
         | "bajo_desempeno"
@@ -2420,6 +2551,7 @@ export const Constants = {
         "debate",
         "encuesta",
       ],
+      alberdi_role: ["user", "assistant"],
       alert_kind: [
         "dificultad_reiterada",
         "bajo_desempeno",

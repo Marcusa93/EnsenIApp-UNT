@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Bell, CalendarDays, Check, Clock, MessageCircleQuestion, Paperclip, UserRound } from "lucide-react";
+import { ArrowLeft, Bell, CalendarDays, Check, Clock, Feather, MessageCircleQuestion, Paperclip, UserRound } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Button, Card, CardDescription, CardTitle, EmptyState, PageHeader } from "@/components/ui";
@@ -79,9 +79,14 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
           </span>
         }
         actions={
-          <Button asChild variant="secondary" leftIcon={<MessageCircleQuestion />}>
-            <Link href={askHref}>Preguntar sobre esta clase</Link>
-          </Button>
+          <>
+            <Button asChild leftIcon={<Feather />}>
+              <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntarle a Alberdi</Link>
+            </Button>
+            <Button asChild variant="secondary" leftIcon={<MessageCircleQuestion />}>
+              <Link href={askHref}>Consultar al docente</Link>
+            </Button>
+          </>
         }
       />
 

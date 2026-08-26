@@ -2,6 +2,7 @@ import {
   Bell,
   CalendarDays,
   ClipboardList,
+  Feather,
   FileChartColumn,
   LayoutDashboard,
   Layers,
@@ -30,6 +31,7 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   FileBarChart: FileChartColumn,
   Shield,
   Bell,
+  Feather,
 };
 
 export function NavIcon({ name, className }: { name: NavItem["icon"]; className?: string }) {

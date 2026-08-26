@@ -15,7 +15,8 @@ export interface NavItem {
     | "Users"
     | "FileBarChart"
     | "Shield"
-    | "Bell";
+    | "Bell"
+    | "Feather";
   roles: UserRole[];
 }
 
@@ -27,6 +28,8 @@ export const NAV: NavItem[] = [
   // Estudiante
   { href: "/campus/estudiante", label: "Hoy", icon: "LayoutDashboard", roles: ["estudiante"] },
   { href: "/campus/estudiante/clases", label: "Clases", icon: "CalendarDays", roles: ["estudiante"] },
+  // Alberdi va temprano a propósito: la bottom nav mobile muestra sólo los primeros 5.
+  { href: "/campus/estudiante/alberdi", label: "Alberdi", icon: "Feather", roles: ["estudiante"] },
   { href: "/campus/estudiante/actividades", label: "Actividades", icon: "ClipboardList", roles: ["estudiante"] },
   { href: "/campus/estudiante/consultas", label: "Consultas", icon: "MessageCircleQuestion", roles: ["estudiante"] },
   // Debates es compartida pero se declara por rol para controlar el orden:

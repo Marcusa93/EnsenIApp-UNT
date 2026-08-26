@@ -2,20 +2,21 @@
 
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { BarChart3, MessageCircleQuestion } from "lucide-react";
+import { BarChart3, Feather, MessageCircleQuestion } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 
-export type ConsultasTab = "consultas" | "encuestas";
+export type ConsultasTab = "consultas" | "encuestas" | "alberdi";
 
 export interface ConsultasTabsProps {
   initial: ConsultasTab;
   counts: Record<ConsultasTab, number>;
   consultas: React.ReactNode;
   encuestas: React.ReactNode;
+  alberdi: React.ReactNode;
 }
 
 /** Tabs sincronizadas con ?tab= para poder linkear directo (p. ej. ?tab=encuestas&classId=…). */
-export function ConsultasTabs({ initial, counts, consultas, encuestas }: ConsultasTabsProps) {
+export function ConsultasTabs({ initial, counts, consultas, encuestas, alberdi }: ConsultasTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -38,9 +39,13 @@ export function ConsultasTabs({ initial, counts, consultas, encuestas }: Consult
         <TabsTrigger value="encuestas" icon={<BarChart3 />} count={counts.encuestas}>
           Encuestas
         </TabsTrigger>
+        <TabsTrigger value="alberdi" icon={<Feather />} count={counts.alberdi}>
+          Alberdi
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="consultas">{consultas}</TabsContent>
       <TabsContent value="encuestas">{encuestas}</TabsContent>
+      <TabsContent value="alberdi">{alberdi}</TabsContent>
     </Tabs>
   );
 }
