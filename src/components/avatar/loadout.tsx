@@ -11,6 +11,7 @@ import { OperatorForge } from "./operator-forge";
 import { equipItem, markItemsSeen } from "@/app/campus/estudiante/juegos/avatar-actions";
 import { EmoteBar } from "./emote-bar";
 import { ShareStory } from "./share-story";
+import { SetPanel } from "./set-panel";
 import { EMOTE_BY_ID, type EmoteProgress } from "@/lib/games/emotes";
 
 /**
@@ -143,6 +144,16 @@ export function Loadout({
 
   // Cambiar de ranura corta la prueba: probar es algo puntual de un ítem.
   React.useEffect(() => setTrying(null), [slot]);
+
+  /** Desde el panel de conjuntos: ir a esa ranura y probar lo que falta. */
+  const focusItem = React.useCallback((item: LoadoutItem) => {
+    setSlot(item.slot);
+    // El efecto que limpia `trying` al cambiar de ranura corre primero, así que
+    // la prueba se agenda para después de ese ciclo.
+    setTimeout(() => {
+      if (!item.unlocked) setTrying(item);
+    }, 0);
+  }, []);
 
   const slotItems = bySlot.get(slot) ?? [];
 
@@ -330,6 +341,8 @@ export function Loadout({
               })}
             </motion.ul>
           </AnimatePresence>
+
+          <SetPanel equipped={config.equipped} items={items} onFocusItem={focusItem} />
         </div>
       </div>
 

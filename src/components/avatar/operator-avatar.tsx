@@ -8,6 +8,7 @@ import { INSTRUMENTOS } from "./parts/instrumento";
 import { COMPANIONS } from "./parts/companion";
 import { AURAS, FONDOS } from "./parts/ambiente";
 import { TEMATICOS } from "./parts/tematicos";
+import { activeSetClasses } from "@/lib/games/sets";
 import { cn } from "@/lib/utils";
 
 /**
@@ -113,7 +114,7 @@ export function OperatorAvatar({
         </clipPath>
       </defs>
 
-      <g clipPath={bust ? undefined : `url(#${clipId})`} className={emoteClass ?? undefined}>
+      <g clipPath={bust ? undefined : `url(#${clipId})`} className={cn(emoteClass, !bust && activeSetClasses(eq)) || undefined}>
         {Fondo ? <Fondo p={p} rig={rig} /> : !bust && <circle cx="120" cy="120" r="118" fill="#12151f" />}
         {Aura && wrap("aura", <Aura p={p} rig={rig} />)}
 

@@ -472,3 +472,40 @@ dialog[open] {
 .em-victoria .av-arm-l { animation: em-open-l 2.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .em-victoria .av-arm-r { animation: em-open-r 2.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .em-victoria { animation: em-surge 2.6s ease-in-out; transform-origin: 120px 140px; }
+
+/* ---------------------------------------------------------------------------
+   Efectos de conjunto (src/lib/games/sets.ts)
+   Se activan cuando el operador lleva varias piezas del mismo bloque temático.
+--------------------------------------------------------------------------- */
+@keyframes set-trail {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(6px 0 10px rgba(120, 170, 255, 0.45)); }
+}
+.set-forense { animation: set-trail 3.2s ease-in-out infinite; }
+
+@keyframes set-vital {
+  0%, 100% { filter: brightness(1); }
+  8% { filter: brightness(1.28); }
+  16% { filter: brightness(1); }
+  26% { filter: brightness(1.18); }
+  36% { filter: brightness(1); }
+}
+.set-bio { animation: set-vital 2.6s ease-in-out infinite; }
+
+@keyframes set-chain {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 200, 90, 0.35)); }
+  50% { filter: drop-shadow(0 0 12px rgba(255, 200, 90, 0.6)); }
+}
+.set-cripto { animation: set-chain 4s ease-in-out infinite; }
+
+@keyframes set-shield {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(90, 220, 190, 0.4)); }
+  50% { filter: drop-shadow(0 0 14px rgba(90, 220, 190, 0.65)); }
+}
+.set-datos { animation: set-shield 3.4s ease-in-out infinite; }
+
+@keyframes set-court {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 215, 140, 0.5)) saturate(1.05); }
+  50% { filter: drop-shadow(0 0 20px rgba(255, 215, 140, 0.8)) saturate(1.2); }
+}
+.set-corte { animation: set-court 3.8s ease-in-out infinite; }
