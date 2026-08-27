@@ -102,7 +102,7 @@ export function OperatorAvatar({
       viewBox={viewBox}
       width={size}
       height={size}
-      className={cn("select-none", className)}
+      className={cn("select-none", emoteClass, !bust && activeSetClasses(eq), className)}
       role="img"
       aria-label={title ?? "Avatar del operador"}
     >
@@ -114,7 +114,7 @@ export function OperatorAvatar({
         </clipPath>
       </defs>
 
-      <g clipPath={bust ? undefined : `url(#${clipId})`} className={cn(emoteClass, !bust && activeSetClasses(eq)) || undefined}>
+      <g clipPath={bust ? undefined : `url(#${clipId})`}>
         {Fondo ? <Fondo p={p} rig={rig} /> : !bust && <circle cx="120" cy="120" r="118" fill="#12151f" />}
         {Aura && wrap("aura", <Aura p={p} rig={rig} />)}
 
