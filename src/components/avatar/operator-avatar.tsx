@@ -100,8 +100,10 @@ export function OperatorAvatar({
   // uno (cuelgan levemente hacia adelante, no sobre el eje).
   const leftArmInFront = depthAt(rig, -33, 7) >= depthAt(rig, 33, 7);
 
-  // El busto encuadra la cabeza; el cuerpo entero, la figura completa.
-  const viewBox = bust ? "72 26 96 96" : "0 0 240 240";
+  // El busto encuadra la cabeza. El recuadro es holgado a propósito: los chasis
+  // con rodete se salen por arriba y los de melena o trenza por abajo, y con el
+  // encuadre justo desaparecían de las miniaturas.
+  const viewBox = bust ? "62 2 116 128" : "0 0 240 240";
 
   return (
     <svg

@@ -254,14 +254,25 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
           {/* Paneles largos que caen sobre los hombros. Van por detrás del
               cráneo para que se lean como volumen y no como orejas pegadas. */}
           {[-1, 1].map((side) => (
-            <path
-              key={side}
-              d={`M${place(rig, side * (rx * 0.72))} ${Y.headCy - Y.headRy * 0.55}
-                  Q${place(rig, side * (rx * 1.24))} ${Y.headCy + 6} ${place(rig, side * (rx * 1.06))} ${Y.shoulder + 22}
-                  Q${place(rig, side * (rx * 0.9))} ${Y.shoulder + 30} ${place(rig, side * (rx * 0.6))} ${Y.shoulder + 16}
-                  Q${place(rig, side * (rx * 0.78))} ${Y.headCy + 4} ${place(rig, side * (rx * 0.5))} ${Y.headCy - Y.headRy * 0.5} Z`}
-              fill={p.shellDark}
-            />
+            <g key={side}>
+              <path
+                d={`M${place(rig, side * (rx * 0.78))} ${Y.headCy - Y.headRy * 0.62}
+                    Q${place(rig, side * (rx * 1.46))} ${Y.headCy + 8} ${place(rig, side * (rx * 1.22))} ${Y.shoulder + 24}
+                    Q${place(rig, side * (rx * 0.96))} ${Y.shoulder + 34} ${place(rig, side * (rx * 0.54))} ${Y.shoulder + 14}
+                    Q${place(rig, side * (rx * 0.82))} ${Y.headCy + 4} ${place(rig, side * (rx * 0.52))} ${Y.headCy - Y.headRy * 0.55} Z`}
+                fill={p.shellDark}
+              />
+              {/* Reflejo: sin esto los paneles se funden con la toga oscura */}
+              <path
+                d={`M${place(rig, side * (rx * 0.86))} ${Y.headCy - Y.headRy * 0.4}
+                    Q${place(rig, side * (rx * 1.24))} ${Y.headCy + 10} ${place(rig, side * (rx * 1.06))} ${Y.shoulder + 12}`}
+                fill="none"
+                stroke={p.shell}
+                strokeWidth="3.5"
+                opacity="0.75"
+                strokeLinecap="round"
+              />
+            </g>
           ))}
           <ellipse cx={cx + shift} cy={Y.headCy} rx={rx * 0.94} ry={Y.headRy} fill={p.shell} />
           {/* Raya al medio: una línea fina alcanza para sugerir el peinado */}
@@ -279,8 +290,9 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
       ) : chassis === "rodete" ? (
         <g>
           {/* Módulo recogido en lo alto: despeja el rostro y alarga la silueta */}
-          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 10} r={rx * 0.42} fill={p.shellDark} />
-          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 10} r={rx * 0.3} fill={p.shell} opacity="0.75" />
+          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 12} r={rx * 0.56} fill={p.shellDark} />
+          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 13} r={rx * 0.4} fill={p.shell} opacity="0.8" />
+          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 16} r={rx * 0.18} fill={p.shellLight} opacity="0.55" />
           <path
             d={`M${place(rig, -rx * 0.28, -4)} ${Y.headTop - 2} Q${place(rig, 0, -10)} ${Y.headTop - 14} ${place(rig, rx * 0.28, -4)} ${Y.headTop - 2}`}
             fill="none"
@@ -309,11 +321,11 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
             const t = i / 4;
             const bx = place(rig, rx * (0.86 + t * 0.16));
             const by = Y.headCy + Y.headRy * 0.3 + i * 15;
-            const r = 7.5 - i * 0.9;
+            const r = 9.5 - i * 0.9;
             return (
               <g key={i}>
                 <ellipse cx={bx} cy={by} rx={r} ry={r * 0.82} fill={p.shellDark} />
-                <ellipse cx={bx} cy={by - 1} rx={r * 0.6} ry={r * 0.45} fill={p.shell} opacity="0.6" />
+                <ellipse cx={bx} cy={by - 1} rx={r * 0.62} ry={r * 0.46} fill={p.shell} opacity="0.8" />
               </g>
             );
           })}
