@@ -104,7 +104,12 @@ export function OperatorAvatar({
       viewBox={viewBox}
       width={size}
       height={size}
-      className={cn("select-none", emoteClass, !bust && activeSetClasses(eq), className)}
+      // Las clases de emote y de conjunto se concatenan a mano: twMerge (dentro
+      // de cn) puede descartar clases que no reconoce, y acá se necesita que
+      // lleguen intactas para que enganchen las animaciones.
+      className={[cn("select-none", className), emoteClass, bust ? "" : activeSetClasses(eq)]
+        .filter(Boolean)
+        .join(" ")}
       role="img"
       aria-label={title ?? "Avatar del operador"}
     >
