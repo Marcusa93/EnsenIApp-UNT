@@ -26,8 +26,8 @@ export const Y = {
 export const DIM = {
   head: [66, 60] as const,
   neck: [17, 16] as const,
-  shoulders: [64, 46] as const,
-  waist: [46, 38] as const,
+  shoulders: [64, 54] as const,
+  waist: [46, 42] as const,
   leg: [17, 16] as const,
   arm: [13, 13] as const,
 } as const;
@@ -69,7 +69,16 @@ export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
       <ellipse cx={cx} cy={Y.shoulder + 1} rx={armW * 0.82} ry={armW * 0.7} fill={p.shellDark} />
       <ellipse cx={cx - armW * 0.12} cy={Y.shoulder - 1} rx={armW * 0.6} ry={armW * 0.48} fill={p.shell} opacity="0.7" />
       {/* Brazo hasta la muñeca */}
-      <rect x={cx - armW / 2} y={Y.shoulder + 4} width={armW} height={Y.hip - Y.shoulder - 6} rx={armW / 2} fill={p.cloth} />
+      <rect
+        x={cx - armW / 2}
+        y={Y.shoulder + 4}
+        width={armW}
+        height={Y.hip - Y.shoulder - 6}
+        rx={armW / 2}
+        fill={p.cloth}
+        stroke={p.shellDark}
+        strokeWidth="1.6"
+      />
       {/* Puño técnico */}
       <rect x={cx - armW / 2} y={Y.hip - 16} width={armW} height="11" rx={armW / 2.6} fill={p.shellDark} />
       <rect x={cx - armW / 2 + 1.5} y={Y.hip - 13} width={Math.max(2, armW - 3)} height="2.4" rx="1.2" fill={p.glow} opacity="0.85" />
@@ -158,7 +167,7 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
   const cx = rig.cx;
   const alpha = faceAlpha(rig);
   // De perfil la cabeza se corre un poco hacia adelante: da sensación de mirada.
-  const shift = 4 * rig.s;
+  const shift = 2 * rig.s;
 
   return (
     <g>

@@ -12,11 +12,11 @@ import type { PartProps } from "./visor";
 /** Silueta de la prenda: hombros → cintura → vuelo de la falda. */
 function robePath(rig: Rig, shoulder: number, hem: number, bottom: number) {
   // La prenda es un volumen: de perfil conserva cuerpo en vez de aplastarse.
-  const sh = proj(rig, shoulder, shoulder * 0.72) / 2;
-  const wa = proj(rig, shoulder * 0.74, shoulder * 0.62) / 2;
-  const he = proj(rig, hem, hem * 0.78) / 2;
+  const sh = proj(rig, shoulder, shoulder * 0.9) / 2;
+  const wa = proj(rig, shoulder * 0.74, shoulder * 0.72) / 2;
+  const he = proj(rig, hem, hem * 0.9) / 2;
   const c = rig.cx;
-  return `M${c - sh} ${Y.shoulder} Q${c} ${Y.shoulder - 8} ${c + sh} ${Y.shoulder}
+  return `M${c - sh} ${Y.shoulder - 2} Q${c} ${Y.shoulder - 12} ${c + sh} ${Y.shoulder - 2}
           L${c + wa} ${Y.hip} L${c + he} ${bottom} Q${c} ${bottom + 6} ${c - he} ${bottom} L${c - wa} ${Y.hip} Z`;
 }
 
