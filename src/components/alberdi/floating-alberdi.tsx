@@ -3,6 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Expand, Feather, Loader2, Send, X } from "lucide-react";
 import { Button, Textarea } from "@/components/ui";
@@ -12,9 +13,10 @@ import { track } from "@/lib/telemetry/track";
 
 export interface FloatingAlberdiProps {
   courseId: string;
-  classId: string;
-  classTopic: string;
 }
+
+/** Si estamos mirando una clase puntual, Alberdi se enfoca en ella (transcripción minutada incluida). */
+const CLASS_ROUTE = /\/campus\/estudiante\/clases\/([0-9a-f-]{36})/i;
 
 interface Msg {
   id: string;
@@ -48,11 +50,15 @@ function clampPos(p: { x: number; y: number }) {
 }
 
 /**
- * Alberdi flotante en la página de la clase: un botón arrastrable (la pluma)
- * que abre un chat anclado sobre ESTA clase — con la transcripción minutada,
- * así responde "¿en qué momento se dijo tal cosa?" citando [mm:ss].
+ * Alberdi flotante: un botón arrastrable (la pluma), disponible en cualquier
+ * pantalla del campus del estudiante, para consultar en cualquier momento sobre
+ * cualquier cosa cargada (cronograma, resúmenes, materiales). Si en ese momento
+ * se está mirando una clase puntual, se enfoca en ella — transcripción minutada
+ * incluida, para poder responder "¿en qué momento se dijo tal cosa?".
  */
-export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlberdiProps) {
+export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
+  const pathname = usePathname();
+  const classId = pathname.match(CLASS_ROUTE)?.[1] ?? null;
   const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null);
   const [open, setOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<Msg[]>([]);
@@ -140,7 +146,7 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
         acc += decoder.decode(value, { stream: true });
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: acc } : m)));
       }
-      track("question_asked", { entity_type: "alberdi_flotante", entity_id: classId, metadata: { chars: clean.length } });
+      track("question_asked", { entity_type: "alberdi_flotante", entity_id: classId ?? undefined, metadata: { chars: clean.length } });
     } catch (err) {
       console.error("[alberdi flotante]", err);
       setError(err instanceof Error ? err.message : "No pudimos conectar con Alberdi.");
@@ -181,7 +187,7 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
               [panelBottom ? "bottom" : "top"]: 12,
             }}
             role="dialog"
-            aria-label={`Alberdi — consultas sobre ${classTopic}`}
+            aria-label={classId ? "Alberdi — consultas sobre esta clase" : "Alberdi — consultas sobre la materia"}
           >
             <header className="flex items-center gap-2.5 border-b border-border px-4 py-3">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-accent-2/30 bg-accent-2/10 text-accent-2">
@@ -189,10 +195,10 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold leading-tight">Alberdi</p>
-                <p className="truncate text-[11px] text-muted">{classTopic}</p>
+                <p className="truncate text-[11px] text-muted">{classId ? "Sobre esta clase" : "Sobre toda la materia"}</p>
               </div>
               <Link
-                href={`/campus/estudiante/alberdi?classId=${classId}`}
+                href={classId ? `/campus/estudiante/alberdi?classId=${classId}` : "/campus/estudiante/alberdi"}
                 aria-label="Abrir Alberdi en pantalla completa"
                 className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-foreground"
               >
@@ -212,14 +218,23 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
               {messages.length === 0 ? (
                 <div className="flex flex-col gap-2 pt-2">
                   <p className="text-sm leading-relaxed text-muted">
-                    Preguntame sobre esta clase: qué se dijo, qué significa algo, o <em>en qué momento</em> se habló de un
-                    tema — te contesto con el minuto exacto.
+                    {classId ? (
+                      <>
+                        Preguntame sobre esta clase: qué se dijo, qué significa algo, o <em>en qué momento</em> se habló de
+                        un tema — te contesto con el minuto exacto.
+                      </>
+                    ) : (
+                      "Preguntame lo que necesites de la materia: cronograma, resúmenes de clases, materiales — lo que el equipo docente haya cargado."
+                    )}
                   </p>
-                  {[
-                    "¿En qué momento se habló de la promoción?",
-                    "¿Cuáles son las 3 ideas más importantes de la clase?",
-                    "Explicame lo más difícil en fácil",
-                  ].map((s) => (
+                  {(classId
+                    ? [
+                        "¿En qué momento se habló de la promoción?",
+                        "¿Cuáles son las 3 ideas más importantes de la clase?",
+                        "Explicame lo más difícil en fácil",
+                      ]
+                    : ["¿Qué temas vamos a ver en la materia?", "¿De qué trató la última clase?", "¿Qué tengo pendiente para repasar?"]
+                  ).map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -298,7 +313,7 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        aria-label={open ? "Cerrar Alberdi" : "Preguntarle a Alberdi sobre esta clase"}
+        aria-label={open ? "Cerrar Alberdi" : "Preguntarle a Alberdi"}
         title="Alberdi — arrastrame o tocá para consultar"
         className={cn(
           "glow-2 fixed z-[81] flex size-14 touch-none items-center justify-center rounded-full border border-accent-2/40 bg-surface text-accent-2 shadow-xl transition-colors hover:bg-accent-2/10",

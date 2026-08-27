@@ -19,6 +19,14 @@ import { ROLE_LABEL, UserMenu, roleTone } from "./user-menu";
 export interface CampusShellProps {
   profile: Profile;
   children: React.ReactNode;
+  /**
+   * Overlays persistentes (Alberdi flotante, celebración de medallas): van FUERA de
+   * <PageTransition> a propósito. Ese motion.div tiene key={pathname}, así que todo
+   * lo que entra como `children` se desmonta y remonta en cada navegación — un overlay
+   * "disponible en todo momento" perdería su estado (conversación abierta, posición
+   * arrastrada) con cada cambio de pantalla si viviera ahí adentro.
+   */
+  overlays?: React.ReactNode;
 }
 
 /** Ítem activo: coincidencia exacta o prefijo más largo (para que /clases no marque /). */
@@ -34,7 +42,7 @@ function useActiveHref(items: NavItem[]) {
   }, [items, pathname]);
 }
 
-export function CampusShell({ profile, children }: CampusShellProps) {
+export function CampusShell({ profile, children, overlays }: CampusShellProps) {
   const items = React.useMemo(() => navForRole(profile.role), [profile.role]);
   const active = useActiveHref(items);
   const pending = profile.status === "pendiente";
@@ -130,6 +138,8 @@ export function CampusShell({ profile, children }: CampusShellProps) {
             <PageTransition>{children}</PageTransition>
           </div>
         </main>
+
+        {overlays}
 
         {/* Bottom nav (mobile) */}
         <nav
