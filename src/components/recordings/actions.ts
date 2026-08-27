@@ -9,6 +9,7 @@ import { parseCards, parseGlossary, parseKeyPoints, parseSections, parseSegments
 import type { Json } from "@/lib/types/database";
 import type { GlossaryTerm, SummarySection, TranscriptSegment } from "@/lib/types/helpers";
 import type { ProcessingLogEntry } from "@/lib/audio/pipeline";
+import { notifyCourse } from "@/lib/push/send";
 import { errorMessage } from "@/lib/utils";
 
 const BUCKET = "class-recordings";
@@ -77,6 +78,18 @@ export async function setRecordingPublished(recordingId: string, published: bool
     const { error } = await supabase.from("class_recordings").update({ published }).eq("id", rec.id);
     if (error) throw new Error(`No se pudo ${published ? "publicar" : "despublicar"}: ${error.message}`);
     revalidateClass(rec.class_id);
+
+    if (published) {
+      // Avisar es accesorio: si falla, la grabación ya quedó publicada igual.
+      const { data: cls } = await supabase.from("classes").select("topic").eq("id", rec.class_id).maybeSingle();
+      await notifyCourse(rec.course_id, {
+        kind: "grabacion_publicada",
+        title: "Ya está la grabación de la clase",
+        body: cls?.topic ?? "Tenés el resumen, las placas y la transcripción disponibles.",
+        url: `/campus/estudiante/clases/${rec.class_id}`,
+      }).catch((err) => console.error("[recordings] aviso de publicación", err));
+    }
+
     return { ok: true, data: undefined };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };

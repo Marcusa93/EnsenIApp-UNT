@@ -93,4 +93,6 @@ export type UsageEventType =
   | "focus_lost"
   | "focus_gained"
   | "offline_queued"
-  | "offline_flushed";
+  | "offline_flushed"
+  | "game_started"
+  | "game_finished";

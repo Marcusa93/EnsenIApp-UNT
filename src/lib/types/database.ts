@@ -749,6 +749,42 @@ export type Database = {
           },
         ]
       }
+      course_games: {
+        Row: {
+          course_id: string
+          enabled: boolean
+          game: Database["public"]["Enums"]["game_key"]
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          enabled?: boolean
+          game: Database["public"]["Enums"]["game_key"]
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          enabled?: boolean
+          game?: Database["public"]["Enums"]["game_key"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_games_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_games_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -1057,6 +1093,158 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_challenges: {
+        Row: {
+          class_id: string | null
+          correct_index: number
+          course_id: string
+          created_at: string
+          difficulty: number
+          explanation: string | null
+          game: Database["public"]["Enums"]["game_key"]
+          id: string
+          options: Json
+          prompt: string
+          recording_id: string | null
+          source_quote: string | null
+          source_seconds: number | null
+        }
+        Insert: {
+          class_id?: string | null
+          correct_index: number
+          course_id: string
+          created_at?: string
+          difficulty?: number
+          explanation?: string | null
+          game: Database["public"]["Enums"]["game_key"]
+          id?: string
+          options?: Json
+          prompt: string
+          recording_id?: string | null
+          source_quote?: string | null
+          source_seconds?: number | null
+        }
+        Update: {
+          class_id?: string | null
+          correct_index?: number
+          course_id?: string
+          created_at?: string
+          difficulty?: number
+          explanation?: string | null
+          game?: Database["public"]["Enums"]["game_key"]
+          id?: string
+          options?: Json
+          prompt?: string
+          recording_id?: string | null
+          source_quote?: string | null
+          source_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_challenges_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_challenges_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_challenges_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "game_challenges_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "class_recordings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_challenges_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "v_recording_status"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_runs: {
+        Row: {
+          class_id: string | null
+          correct: number
+          course_id: string
+          created_at: string
+          duration_seconds: number | null
+          game: Database["public"]["Enums"]["game_key"]
+          id: string
+          student_id: string
+          total: number
+          xp: number
+        }
+        Insert: {
+          class_id?: string | null
+          correct?: number
+          course_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          game: Database["public"]["Enums"]["game_key"]
+          id?: string
+          student_id: string
+          total?: number
+          xp?: number
+        }
+        Update: {
+          class_id?: string | null
+          correct?: number
+          course_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          game?: Database["public"]["Enums"]["game_key"]
+          id?: string
+          student_id?: string
+          total?: number
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_runs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_runs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_runs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "game_runs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1971,6 +2159,67 @@ export type Database = {
           },
         ]
       }
+      student_game_stats: {
+        Row: {
+          answered: number
+          best_streak: number
+          correct: number
+          course_id: string
+          last_played_on: string | null
+          runs: number
+          streak_days: number
+          student_id: string
+          updated_at: string
+          xp: number
+        }
+        Insert: {
+          answered?: number
+          best_streak?: number
+          correct?: number
+          course_id: string
+          last_played_on?: string | null
+          runs?: number
+          streak_days?: number
+          student_id: string
+          updated_at?: string
+          xp?: number
+        }
+        Update: {
+          answered?: number
+          best_streak?: number
+          correct?: number
+          course_id?: string
+          last_played_on?: string | null
+          runs?: number
+          streak_days?: number
+          student_id?: string
+          updated_at?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_game_stats_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_game_stats_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "student_game_stats_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_questions: {
         Row: {
           ai_answer_md: string | null
@@ -2422,6 +2671,15 @@ export type Database = {
       }
       award_badges: { Args: { p_student: string }; Returns: undefined }
       default_course_id: { Args: never; Returns: string }
+      game_leaderboard: {
+        Args: { p_course: string; p_limit?: number }
+        Returns: {
+          nombre: string
+          streak_days: number
+          student_id: string
+          xp: number
+        }[]
+      }
       try_uuid: { Args: { v: string }; Returns: string }
       unread_notifications_count: { Args: never; Returns: number }
     }
@@ -2447,6 +2705,7 @@ export type Database = {
       debate_status: "open" | "closed" | "archived"
       delivery_channel: "email" | "push"
       delivery_status: "pending" | "sent" | "failed" | "skipped"
+      game_key: "duelo" | "momento" | "glosario"
       live_prompt_type: "nube"
       live_session_status: "draft" | "live" | "ended"
       material_kind: "pdf" | "link" | "video" | "doc" | "otro"
@@ -2629,6 +2888,7 @@ export const Constants = {
       debate_status: ["open", "closed", "archived"],
       delivery_channel: ["email", "push"],
       delivery_status: ["pending", "sent", "failed", "skipped"],
+      game_key: ["duelo", "momento", "glosario"],
       live_prompt_type: ["nube"],
       live_session_status: ["draft", "live", "ended"],
       material_kind: ["pdf", "link", "video", "doc", "otro"],

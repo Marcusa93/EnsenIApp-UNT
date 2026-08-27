@@ -6,13 +6,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Expand, Feather, Loader2, Send, X } from "lucide-react";
-import { Button, Textarea } from "@/components/ui";
+import { Button, Select, Textarea } from "@/components/ui";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/telemetry/track";
 
+export interface AlberdiClassOption {
+  id: string;
+  topic: string;
+  /** ISO (YYYY-MM-DD) — se muestra abreviada en el selector. */
+  date: string;
+}
+
 export interface FloatingAlberdiProps {
   courseId: string;
+  classes: AlberdiClassOption[];
 }
 
 /** Si estamos mirando una clase puntual, Alberdi se enfoca en ella (transcripción minutada incluida). */
@@ -56,9 +64,16 @@ function clampPos(p: { x: number; y: number }) {
  * se está mirando una clase puntual, se enfoca en ella — transcripción minutada
  * incluida, para poder responder "¿en qué momento se dijo tal cosa?".
  */
-export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
+export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
   const pathname = usePathname();
-  const classId = pathname.match(CLASS_ROUTE)?.[1] ?? null;
+  // La clase que se está mirando es sólo el valor POR DEFECTO: el estudiante puede
+  // cambiar el contexto con el selector sin moverse de donde está.
+  const routeClassId = pathname.match(CLASS_ROUTE)?.[1] ?? null;
+  const [chosenClassId, setChosenClassId] = React.useState<string | null>(null);
+  const [touched, setTouched] = React.useState(false);
+  const classId = touched ? chosenClassId : routeClassId;
+  const classTopic = classId ? (classes.find((c) => c.id === classId)?.topic ?? null) : null;
+
   const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null);
   const [open, setOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<Msg[]>([]);
@@ -82,6 +97,25 @@ export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
   React.useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // Al navegar, el contexto vuelve a seguir a la ruta: si el estudiante entra a una
+  // clase, Alberdi se enfoca en ella aunque antes hubiera elegido otra a mano.
+  React.useEffect(() => {
+    setTouched(false);
+  }, [routeClassId]);
+
+  /**
+   * Cambiar de clase abre conversación nueva. `alberdi_conversations.class_id` se
+   * graba al crearla y no se actualiza después, así que reutilizar el hilo dejaría
+   * la fila apuntando a la clase vieja — y de ahí hereda la escalada al docente.
+   */
+  function changeClass(next: string) {
+    setTouched(true);
+    setChosenClassId(next || null);
+    conversationId.current = null;
+    setMessages([]);
+    setError(null);
+  }
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!pos) return;
@@ -156,6 +190,9 @@ export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
     }
   }
 
+  // En la pantalla completa de Alberdi el botón sobra: ya estás adentro del chat.
+  if (pathname.startsWith("/campus/estudiante/alberdi")) return null;
+
   if (!pos) return null;
 
   // Clamp también en render: una posición guardada en una pantalla más grande
@@ -200,7 +237,9 @@ export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold leading-tight">Alberdi</p>
-                <p className="truncate text-[11px] text-muted">{classId ? "Sobre esta clase" : "Sobre toda la materia"}</p>
+                <p className="truncate text-[11px] text-muted">
+                  {classTopic ?? (classId ? "Sobre esta clase" : "Sobre toda la materia")}
+                </p>
               </div>
               <Link
                 href={classId ? `/campus/estudiante/alberdi?classId=${classId}` : "/campus/estudiante/alberdi"}
@@ -218,6 +257,26 @@ export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
                 <X className="size-4" />
               </button>
             </header>
+
+            {/* Selector de contexto: sobre qué querés preguntar. Con una clase
+                elegida, Alberdi recibe su transcripción minutada y puede citar minutos. */}
+            {classes.length > 0 && (
+              <div className="border-b border-border px-3.5 py-2.5">
+                <Select
+                  value={classId ?? ""}
+                  onChange={(e) => changeClass(e.target.value)}
+                  aria-label="Elegí sobre qué clase querés consultar"
+                  className="h-9 text-[13px]"
+                >
+                  <option value="">Toda la materia</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.date.slice(8, 10)}/{c.date.slice(5, 7)} · {c.topic}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
 
             <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3.5 py-3">
               {messages.length === 0 ? (

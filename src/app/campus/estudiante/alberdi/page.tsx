@@ -6,6 +6,7 @@ import { getPrimaryCourse } from "@/lib/courses";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Button, EmptyState, PageHeader } from "@/components/ui";
 import { AlberdiChat } from "./chat";
+import { ClassPicker } from "./_components/class-picker";
 
 export const metadata: Metadata = { title: "Alberdi · EnsenIA UNT" };
 
@@ -55,12 +56,13 @@ export default async function AlberdiPage({
   const { classId } = await searchParams;
   const focusId = classId && /^[0-9a-f-]{36}$/i.test(classId) ? classId : null;
 
+  // Sin límite: el selector tiene que ofrecer TODAS las clases, y antes un
+  // ?classId= de una clase vieja caía fuera de las 10 y se ignoraba sin aviso.
   const { data: classes } = await supabase
     .from("classes")
-    .select("id, topic")
+    .select("id, topic, class_date")
     .eq("course_id", course.id)
-    .order("class_date", { ascending: false })
-    .limit(10);
+    .order("class_date", { ascending: false });
 
   const classList = classes ?? [];
   const focus = focusId ? (classList.find((c) => c.id === focusId) ?? null) : null;
@@ -81,10 +83,11 @@ export default async function AlberdiPage({
         title="Alberdi"
         description="Consultá sobre los temas de la cursada. Responde con el material que carga la cátedra: clases, resúmenes y bibliografía."
         actions={
-          focus ? (
-            <Button asChild variant="secondary" size="sm">
-              <Link href="/campus/estudiante/alberdi">Consultar sobre toda la materia</Link>
-            </Button>
+          classList.length > 0 ? (
+            <ClassPicker
+              classes={classList.map((c) => ({ id: c.id, topic: c.topic, date: c.class_date }))}
+              activeId={focus?.id ?? null}
+            />
           ) : undefined
         }
       />

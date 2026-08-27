@@ -10,7 +10,7 @@
  * Subí VERSION en cada deploy que cambie el shell o las estrategias: activate limpia caches viejos.
  */
 
-const VERSION = "2026-08-21.1";
+const VERSION = "2026-08-27.1";
 const PREFIX = "ensenia";
 const SHELL_CACHE = `${PREFIX}-shell-${VERSION}`;
 const DATA_CACHE = `${PREFIX}-data-${VERSION}`;
@@ -291,6 +291,72 @@ async function cacheFirstAsset(request) {
   }
   return res;
 }
+
+// ---------------------------------------------------------------------------
+// Notificaciones push (VAPID)
+// ---------------------------------------------------------------------------
+
+/* El servidor manda JSON: {title, body, url, tag, renotify}. Si el payload viniera
+ * vacío o ilegible (algún push service manda pings sin cuerpo), mostramos un aviso
+ * genérico: una vez que el evento push llegó, el navegador EXIGE mostrar algo. */
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+
+  const title = data.title || "EnsenIA UNT";
+  const options = {
+    body: data.body || "Tenés una novedad en el campus.",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: data.tag || "ensenia",
+    renotify: Boolean(data.renotify),
+    data: { url: data.url || "/campus" },
+    timestamp: Date.now(),
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+/* Al tocar la notificación: si ya hay una ventana del campus abierta la enfocamos y
+ * navegamos ahí (evita abrir pestañas duplicadas); si no, abrimos una nueva. */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/campus";
+
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of clients) {
+        if (new URL(client.url).origin !== self.location.origin) continue;
+        await client.focus();
+        if ("navigate" in client) {
+          try {
+            await client.navigate(target);
+          } catch {
+            /* algunos navegadores no permiten navigate: queda enfocada igual */
+          }
+        }
+        return;
+      }
+      await self.clients.openWindow(target);
+    })(),
+  );
+});
+
+/* La suscripción puede rotar sola (el push service la renueva). Avisamos a la página
+ * abierta para que la re-registre; si no hay ninguna, PwaRegister lo corrige al volver. */
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of clients) client.postMessage({ type: "PUSH_RESUBSCRIBE" });
+    })(),
+  );
+});
 
 // ---------------------------------------------------------------------------
 // Fetch

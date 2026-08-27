@@ -8,8 +8,24 @@ import { FloatingAlberdi } from "@/components/alberdi/floating-alberdi";
 export default async function CampusLayout({ children }: { children: React.ReactNode }) {
   const { user, profile } = await requireUser("/campus");
   const isStudent = profile.role === "estudiante";
+
   // Sólo se resuelve para estudiante: es quien tiene a Alberdi como canal de consulta.
-  const course = isStudent ? await getPrimaryCourse(await createClient(), user.id, profile.role) : null;
+  const supabase = isStudent ? await createClient() : null;
+  const course = supabase ? await getPrimaryCourse(supabase, user.id, profile.role) : null;
+
+  // Las clases alimentan el selector de contexto de Alberdi ("¿sobre qué querés
+  // consultar?"). Van acá y no en cada página porque el panel flotante vive en el
+  // layout; son dos columnas de una tabla chica, así que el costo es despreciable.
+  const { data: classRows } = course
+    ? await supabase!
+        .from("classes")
+        .select("id, topic, class_date")
+        .eq("course_id", course.id)
+        .order("class_date", { ascending: false })
+    : { data: null };
+
+  const classes = (classRows ?? []).map((c) => ({ id: c.id, topic: c.topic, date: c.class_date }));
+
   return (
     <CampusShell
       profile={profile}
@@ -20,7 +36,7 @@ export default async function CampusLayout({ children }: { children: React.React
               no sólo dentro de una clase, para poder consultar sobre lo que sea en cualquier
               momento. Va en `overlays` (fuera de la transición entre páginas) para no perder
               la conversación abierta ni la posición cada vez que se navega. */}
-          {course && <FloatingAlberdi courseId={course.id} />}
+          {course && <FloatingAlberdi courseId={course.id} classes={classes} />}
         </>
       }
     >

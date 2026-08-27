@@ -16,7 +16,9 @@ export interface NavItem {
     | "FileBarChart"
     | "Shield"
     | "Bell"
-    | "Feather";
+    | "Feather"
+    | "Gamepad2"
+    | "Settings";
   roles: UserRole[];
 }
 
@@ -30,6 +32,9 @@ export const NAV: NavItem[] = [
   { href: "/campus/estudiante/clases", label: "Clases", icon: "CalendarDays", roles: ["estudiante"] },
   // Alberdi va temprano a propósito: la bottom nav mobile muestra sólo los primeros 5.
   { href: "/campus/estudiante/alberdi", label: "Alberdi", icon: "Feather", roles: ["estudiante"] },
+  // Juegos entra en la bottom nav mobile (5 primeros): es una función de uso
+  // frecuente y corto, justo lo que se abre desde el celular entre clase y clase.
+  { href: "/campus/estudiante/juegos", label: "Juegos", icon: "Gamepad2", roles: ["estudiante"] },
   { href: "/campus/estudiante/actividades", label: "Actividades", icon: "ClipboardList", roles: ["estudiante"] },
   { href: "/campus/estudiante/consultas", label: "Consultas", icon: "MessageCircleQuestion", roles: ["estudiante"] },
   // Debates es compartida pero se declara por rol para controlar el orden:
@@ -46,6 +51,7 @@ export const NAV: NavItem[] = [
   { href: "/campus/docente/consultas", label: "Consultas", icon: "MessageCircleQuestion", roles: ["docente", "admin"] },
   { href: "/campus/debates", label: "Debates", icon: "Swords", roles: ["docente", "admin"] },
   { href: "/campus/docente/informes", label: "Informes", icon: "FileBarChart", roles: ["docente", "admin"] },
+  { href: "/campus/docente/juegos", label: "Juegos", icon: "Gamepad2", roles: ["docente", "admin"] },
 
   // Admin
   { href: "/campus/admin", label: "Administración", icon: "Shield", roles: ["admin"] },

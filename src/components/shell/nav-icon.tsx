@@ -4,9 +4,11 @@ import {
   ClipboardList,
   Feather,
   FileChartColumn,
+  Gamepad2,
   LayoutDashboard,
   Layers,
   MessageCircleQuestionMark,
+  Settings,
   Shield,
   Swords,
   TrendingUp,
@@ -32,6 +34,8 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   Shield,
   Bell,
   Feather,
+  Gamepad2,
+  Settings,
 };
 
 export function NavIcon({ name, className }: { name: NavItem["icon"]; className?: string }) {
