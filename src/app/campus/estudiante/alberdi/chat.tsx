@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { Feather, Info, Loader2, Send, Sparkles } from "lucide-react";
+import { Check, Feather, Info, Loader2, Send, Share, Sparkles } from "lucide-react";
 import { Button, Textarea } from "@/components/ui";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/telemetry/track";
+import { escalateToTeacher } from "./actions";
 
 export interface AlberdiChatProps {
   courseId: string;
@@ -35,9 +37,25 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
   const [input, setInput] = React.useState("");
   const [streaming, setStreaming] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [escalating, setEscalating] = React.useState(false);
+  const [escalated, setEscalated] = React.useState(false);
   const conversationId = React.useRef<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const abortRef = React.useRef<AbortController | null>(null);
+
+  async function escalate() {
+    if (!conversationId.current || escalating || escalated) return;
+    setEscalating(true);
+    setError(null);
+    const res = await escalateToTeacher({ conversationId: conversationId.current });
+    setEscalating(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setEscalated(true);
+    track("question_asked", { entity_type: "consulta_escalada", entity_id: res.data.questionId });
+  }
 
   // Autoscroll al final mientras llega la respuesta.
   React.useEffect(() => {
@@ -91,6 +109,7 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: acc } : m)));
       }
 
+      setEscalated(false);
       track("question_asked", { entity_type: "alberdi", entity_id: focus?.id, metadata: { chars: clean.length } });
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
@@ -189,6 +208,33 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
               ))}
             </AnimatePresence>
           </ul>
+        )}
+
+        {!streaming && messages.some((m) => m.role === "assistant" && m.content) && (
+          <div className="mx-auto max-w-2xl px-1 pb-2">
+            {escalated ? (
+              <p className="flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
+                <Check className="size-4 shrink-0" aria-hidden />
+                <span>
+                  Enviado al equipo docente. Cuando te respondan lo vas a ver en{" "}
+                  <Link href="/campus/estudiante/consultas" className="underline underline-offset-4">
+                    tus consultas
+                  </Link>
+                  .
+                </span>
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={escalate}
+                disabled={escalating}
+                className="inline-flex items-center gap-1.5 text-xs text-muted underline underline-offset-4 transition hover:text-foreground disabled:opacity-60"
+              >
+                {escalating ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <Share className="size-3.5" aria-hidden />}
+                ¿No te alcanzó? Enviar esta consulta al equipo docente
+              </button>
+            )}
+          </div>
         )}
       </div>
 

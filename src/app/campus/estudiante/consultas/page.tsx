@@ -1,11 +1,12 @@
-import { GraduationCap, MessageCircleQuestion, Users } from "lucide-react";
+import Link from "next/link";
+import { Feather, GraduationCap, MessageCircleQuestion, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getPrimaryCourse } from "@/lib/courses";
 import { createClient } from "@/lib/supabase/server";
-import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, Button, EmptyState, PageHeader } from "@/components/ui";
 import { RevealGroup, RevealItem } from "@/components/shell";
 import { PageViewTracker } from "../_components/page-view-tracker";
-import { AskQuestionForm, type ClassOption } from "./_components/ask-question-form";
+import type { ClassOption } from "./_components/ask-question-form";
 import { QuestionCard, type QuestionItem } from "./_components/question-card";
 
 export const metadata = { title: "Consultas · EnsenIA UNT" };
@@ -48,8 +49,10 @@ export default async function ConsultasPage({
   const [{ user, profile }, params] = await Promise.all([requireRole("estudiante"), searchParams]);
   const supabase = await createClient();
   const course = await getPrimaryCourse(supabase, user.id, profile.role);
-  const initialClassId = uuidOrNull(params.classId);
-  const initialRecordingId = uuidOrNull(params.recordingId);
+  // La puerta de la duda es Alberdi: si llegan acá con una clase para preguntar,
+  // los mandamos directo al chat con esa clase enfocada.
+  const askClassId = uuidOrNull(params.classId);
+  const alberdiHref = askClassId ? `/campus/estudiante/alberdi?classId=${askClassId}` : "/campus/estudiante/alberdi";
 
   if (!course) {
     return (
@@ -69,7 +72,7 @@ export default async function ConsultasPage({
     );
   }
 
-  const [mineRes, publicRes, classesRes, facultyRes] = await Promise.all([
+  const [mineRes, publicRes, facultyRes] = await Promise.all([
     supabase
       .from("student_questions")
       .select(QUESTION_SELECT)
@@ -84,19 +87,12 @@ export default async function ConsultasPage({
       .neq("student_id", user.id)
       .order("created_at", { ascending: false })
       .limit(40),
-    supabase
-      .from("classes")
-      .select("id, topic, class_date")
-      .eq("course_id", course.id)
-      .order("class_date", { ascending: false })
-      .order("sort_order", { ascending: false }),
     supabase.from("faculty").select("profile_id, full_name").eq("subject_id", course.subject_id),
   ]);
 
   for (const [name, res] of [
     ["mine", mineRes],
     ["public", publicRes],
-    ["classes", classesRes],
   ] as const) {
     if (res.error) {
       console.error(`[consultas] ${name}`, res.error);
@@ -126,7 +122,6 @@ export default async function ConsultasPage({
 
   const mine = ((mineRes.data ?? []) as unknown as RawQuestion[]).map(toItem);
   const publicOnes = ((publicRes.data ?? []) as unknown as RawQuestion[]).map(toItem);
-  const classes: ClassOption[] = classesRes.data ?? [];
 
   const open = mine.filter((q) => q.status === "abierta").length;
   const byTeacher = mine.filter((q) => q.status === "respondida_docente").length;
@@ -136,34 +131,24 @@ export default async function ConsultasPage({
       <PageViewTracker entityType="student_questions" entityId={course.id} />
       <PageHeader
         eyebrow={`Estudiante · ${course.name}`}
-        title="Consultas"
-        description="Preguntá lo que no te cerró de una clase. La IA responde al instante con el material y el equipo docente puede ampliar o corregir."
+        title="Mis consultas al equipo docente"
+        description="Acá viven las consultas que escalaste desde Alberdi y las respuestas del equipo docente. Para preguntar, la puerta es siempre Alberdi."
         actions={
-          mine.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="muted">{mine.length} consultas</Badge>
-              {open > 0 && (
-                <Badge tone="warning" dot live>
-                  {open} abiertas
-                </Badge>
-              )}
-              {byTeacher > 0 && <Badge tone="success">{byTeacher} con respuesta docente</Badge>}
-            </div>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            {open > 0 && (
+              <Badge tone="warning" dot live>
+                {open} esperando respuesta
+              </Badge>
+            )}
+            {byTeacher > 0 && <Badge tone="success">{byTeacher} respondidas</Badge>}
+            <Button asChild leftIcon={<Feather />}>
+              <Link href={alberdiHref}>Preguntarle a Alberdi</Link>
+            </Button>
+          </div>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
-        <div className="lg:col-span-5 lg:sticky lg:top-24">
-          <AskQuestionForm
-            courseId={course.id}
-            classes={classes}
-            initialClassId={initialClassId}
-            initialRecordingId={initialRecordingId}
-          />
-        </div>
-
-        <div className="flex flex-col gap-8 lg:col-span-7">
+      <div className="mx-auto flex max-w-3xl flex-col gap-8">
           <section aria-labelledby="mis-consultas">
             <div className="mb-3 flex items-center gap-2">
               <MessageCircleQuestion className="size-4 text-accent" aria-hidden />
@@ -175,8 +160,13 @@ export default async function ConsultasPage({
               <EmptyState
                 compact
                 icon={MessageCircleQuestion}
-                title="Todavía no hiciste consultas"
-                description="Usá el formulario para preguntar sobre cualquier clase. Vas a ver acá la respuesta de la IA y, si el docente amplía, la suya."
+                title="Todavía no escalaste ninguna consulta"
+                description="Preguntale a Alberdi; si su respuesta no te alcanza, tocá “Enviar al equipo docente” y la vas a seguir desde acá."
+                action={
+                  <Button asChild variant="secondary" size="sm">
+                    <Link href={alberdiHref}>Abrir Alberdi</Link>
+                  </Button>
+                }
               />
             ) : (
               <RevealGroup className="flex flex-col gap-3" stagger={0.05}>
@@ -215,7 +205,6 @@ export default async function ConsultasPage({
               </RevealGroup>
             )}
           </section>
-        </div>
       </div>
     </>
   );

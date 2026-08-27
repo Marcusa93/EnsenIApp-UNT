@@ -36,7 +36,6 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
 
   const badge = STATE_BADGE[cls.state];
   const hasRecordings = cls.recordings.length > 0;
-  const askHref = `/campus/estudiante/consultas?classId=${cls.id}${hasRecordings ? `&recordingId=${cls.recordings[0].id}` : ""}`;
   const isPast = cls.state === "pasada";
 
   return (
@@ -79,14 +78,9 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
           </span>
         }
         actions={
-          <>
-            <Button asChild leftIcon={<Feather />}>
-              <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntarle a Alberdi</Link>
-            </Button>
-            <Button asChild variant="secondary" leftIcon={<MessageCircleQuestion />}>
-              <Link href={askHref}>Consultar al docente</Link>
-            </Button>
-          </>
+          <Button asChild leftIcon={<Feather />}>
+            <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntarle a Alberdi</Link>
+          </Button>
         }
       />
 
@@ -125,7 +119,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
                 }
                 action={
                   <Button asChild variant="secondary" size="sm" leftIcon={<MessageCircleQuestion />}>
-                    <Link href={askHref}>Dejar una consulta</Link>
+                    <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntale a Alberdi</Link>
                   </Button>
                 }
               />

@@ -105,9 +105,7 @@ export function LastClassCard({ data }: { data: LastClassData }) {
           <Link href={classHref}>Ir a la clase</Link>
         </Button>
         <Button asChild size="sm" variant="ghost" leftIcon={<MessageCircleQuestion />}>
-          <Link href={`/campus/estudiante/consultas?classId=${data.id}${rec ? `&recordingId=${rec.id}` : ""}`}>
-            Tengo una duda
-          </Link>
+          <Link href={`/campus/estudiante/alberdi?classId=${data.id}`}>Tengo una duda</Link>
         </Button>
       </div>
     </Card>
