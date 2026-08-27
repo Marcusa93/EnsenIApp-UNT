@@ -29,15 +29,17 @@ export interface Rig {
   facing: number;
   /** Eje vertical de la figura en el lienzo. */
   cx: number;
+  /** Escala de complexión: ensancha o afina todo el cuerpo. */
+  build: number;
 }
 
 export const CX = 120;
 
-export function makeRig(degrees: number): Rig {
+export function makeRig(degrees: number, build = 1): Rig {
   const a = (((degrees % 360) + 360) % 360) * (Math.PI / 180);
   const c = Math.cos(a);
   const s = Math.sin(a);
-  return { a, c, s, back: c < 0, facing: Math.max(0, c), cx: CX };
+  return { a, c, s, back: c < 0, facing: Math.max(0, c), cx: CX, build };
 }
 
 /**
@@ -46,7 +48,7 @@ export function makeRig(degrees: number): Rig {
  * @param forward cuánto sobresale hacia adelante (+ = hacia el espectador de frente)
  */
 export function place(rig: Rig, lateral: number, forward = 0): number {
-  return rig.cx + lateral * rig.c + forward * rig.s;
+  return rig.cx + (lateral * rig.c + forward * rig.s) * rig.build;
 }
 
 /**
@@ -56,7 +58,7 @@ export function place(rig: Rig, lateral: number, forward = 0): number {
 export function proj(rig: Rig, width: number, depth: number): number {
   const w = width * rig.c;
   const d = depth * rig.s;
-  return Math.sqrt(w * w + d * d);
+  return Math.sqrt(w * w + d * d) * rig.build;
 }
 
 /** Profundidad de un punto: mayor = más cerca del espectador. Ordena las capas. */

@@ -36,6 +36,7 @@ export interface LoadoutAvatar {
   chassis: string;
   tone: string;
   glow: string;
+  build: string;
   equipped: Record<string, string>;
 }
 

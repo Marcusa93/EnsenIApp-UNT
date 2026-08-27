@@ -43,7 +43,7 @@ export async function getAvatarData(supabase: DbClient, studentId: string): Prom
   const [avatarRes, catalogRes, ownedRes] = await Promise.all([
     supabase
       .from("student_avatars")
-      .select("callsign, chassis, tone, glow, equipped")
+      .select("callsign, chassis, tone, glow, build, equipped")
       .eq("student_id", studentId)
       .maybeSingle(),
     supabase
@@ -80,6 +80,7 @@ export async function getAvatarData(supabase: DbClient, studentId: string): Prom
           chassis: a.chassis,
           tone: a.tone,
           glow: a.glow,
+          build: a.build ?? "estandar",
           equipped: (a.equipped as Record<string, string>) ?? {},
         }
       : null,

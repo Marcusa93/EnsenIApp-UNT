@@ -6,7 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errorMessage } from "@/lib/utils";
-import { CHASSIS, GLOWS, TONES } from "@/components/avatar/palette";
+import { BUILDS, CHASSIS, GLOWS, TONES } from "@/components/avatar/palette";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -23,6 +23,7 @@ const baseSchema = z.object({
   chassis: z.enum(CHASSIS.map((c) => c.id) as [string, ...string[]]),
   tone: z.enum(TONES.map((t) => t.id) as [string, ...string[]]),
   glow: z.enum(GLOWS.map((g) => g.id) as [string, ...string[]]),
+  build: z.enum(BUILDS.map((b) => b.id) as [string, ...string[]]).default("estandar"),
 });
 
 /**
@@ -44,6 +45,7 @@ export async function createOperator(input: z.input<typeof baseSchema>): Promise
         chassis: parsed.data.chassis,
         tone: parsed.data.tone,
         glow: parsed.data.glow,
+        build: parsed.data.build,
         // Equipo de arranque: lo que todo operador tiene desde el día uno.
         equipped: {
           visor: "visor-basico",
@@ -88,6 +90,7 @@ export async function updateOperator(input: z.input<typeof baseSchema>): Promise
         chassis: parsed.data.chassis,
         tone: parsed.data.tone,
         glow: parsed.data.glow,
+        build: parsed.data.build,
       })
       .eq("student_id", user.id);
 

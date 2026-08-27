@@ -184,7 +184,7 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
         />
       )}
 
-      {/* Cráneo */}
+      {/* Cráneo: la silueta es lo que más distingue un modelo de otro */}
       {chassis === "angular" ? (
         <path
           d={`M${cx + shift} ${Y.headTop} L${cx + shift + rx} ${Y.headCy - 14} L${cx + shift + rx} ${Y.headCy + 14}
@@ -192,6 +192,80 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
               L${cx + shift - rx} ${Y.headCy + 14} L${cx + shift - rx} ${Y.headCy - 14} Z`}
           fill={p.shell}
         />
+      ) : chassis === "bloque" ? (
+        <rect
+          x={cx + shift - rx}
+          y={Y.headCy - Y.headRy}
+          width={rx * 2}
+          height={Y.headRy * 2}
+          rx={6}
+          fill={p.shell}
+        />
+      ) : chassis === "domo" ? (
+        <g>
+          {/* Base sólida y cúpula translúcida encima */}
+          <rect x={cx + shift - rx * 0.92} y={Y.headCy - 4} width={rx * 1.84} height={Y.headRy + 4} rx={8} fill={p.shell} />
+          <path
+            d={`M${cx + shift - rx} ${Y.headCy} A${rx} ${Y.headRy + 4} 0 0 1 ${cx + shift + rx} ${Y.headCy} Z`}
+            fill={p.shellLight}
+            opacity="0.42"
+          />
+          <path
+            d={`M${cx + shift - rx} ${Y.headCy} A${rx} ${Y.headRy + 4} 0 0 1 ${cx + shift + rx} ${Y.headCy}`}
+            fill="none"
+            stroke={p.shellLight}
+            strokeWidth="2.5"
+          />
+        </g>
+      ) : chassis === "antenas" ? (
+        <g>
+          <ellipse cx={cx + shift} cy={Y.headCy} rx={rx * 0.92} ry={Y.headRy} fill={p.shell} />
+          {/* Receptores laterales */}
+          {[-1, 1].map((side) => (
+            <g key={side}>
+              <path
+                d={`M${place(rig, side * 27)} ${Y.headCy - 12} L${place(rig, side * 41)} ${Y.headTop - 4}`}
+                stroke={p.shellDark}
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+              <circle cx={place(rig, side * 41)} cy={Y.headTop - 5} r="4" fill={p.glow} />
+              <circle cx={place(rig, side * 41)} cy={Y.headTop - 5} r="8" fill={p.glow} opacity="0.2" />
+            </g>
+          ))}
+        </g>
+      ) : chassis === "visorpleno" ? (
+        <g>
+          {/* Un solo cristal envolvente: casi no hay carcasa visible */}
+          <ellipse cx={cx + shift} cy={Y.headCy} rx={rx} ry={Y.headRy} fill={p.shellDark} />
+          <ellipse cx={cx + shift} cy={Y.headCy - 2} rx={rx * 0.88} ry={Y.headRy * 0.86} fill={p.glowDeep} />
+          <ellipse
+            cx={cx + shift - rx * 0.3}
+            cy={Y.headCy - Y.headRy * 0.42}
+            rx={rx * 0.34}
+            ry={Y.headRy * 0.2}
+            fill={p.shellLight}
+            opacity="0.5"
+          />
+        </g>
+      ) : chassis === "crestado" ? (
+        <g>
+          <ellipse cx={cx + shift} cy={Y.headCy} rx={rx} ry={Y.headRy} fill={p.shell} />
+          {/* Cresta dorsal alta */}
+          <path
+            d={`M${place(rig, 0, -4)} ${Y.headCy - Y.headRy + 2}
+                Q${place(rig, 0, -16)} ${Y.headTop - 18} ${place(rig, 0, 4)} ${Y.headTop - 2}
+                L${place(rig, 0, 6)} ${Y.headCy - Y.headRy + 6} Z`}
+            fill={p.shellDark}
+          />
+          <path
+            d={`M${place(rig, 0, -2)} ${Y.headCy - Y.headRy + 2} Q${place(rig, 0, -12)} ${Y.headTop - 14} ${place(rig, 0, 3)} ${Y.headTop}`}
+            fill="none"
+            stroke={p.glow}
+            strokeWidth="2"
+            opacity="0.8"
+          />
+        </g>
       ) : (
         <ellipse cx={cx + shift} cy={Y.headCy} rx={rx} ry={Y.headRy} fill={p.shell} />
       )}

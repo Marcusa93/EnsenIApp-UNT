@@ -29,8 +29,8 @@ export function VisorBasico({ p, rig }: PartProps) {
     <g opacity={faceAlpha(rig)}>
       <rect x={x} y={Y.headCy - 10} width={w} height="18" rx="9" fill={p.shellDark} />
       <rect x={x + w * 0.07} y={Y.headCy - 6} width={w * 0.86} height="10" rx="5" fill={p.glowDeep} />
-      <rect x={place(rig, -11, 26) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
-      <rect x={place(rig, 11, 26) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
+      <rect className="av-eye av-eye-l" x={place(rig, -11, 26) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
+      <rect className="av-eye av-eye-r" x={place(rig, 11, 26) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
       <g data-cx={cx} />
     </g>
   );
@@ -43,8 +43,8 @@ export function VisorLente({ p, rig }: PartProps) {
     <g opacity={faceAlpha(rig)}>
       <rect x={x} y={Y.headCy - 12} width={w} height="21" rx="10.5" fill={p.shellDark} />
       <rect x={x + w * 0.07} y={Y.headCy - 8} width={w * 0.86} height="13" rx="6.5" fill={p.glowDeep} />
-      <rect x={place(rig, -12, 26) - proj(rig, 15, 8) / 2} y={Y.headCy - 4} width={proj(rig, 15, 8)} height="6" rx="3" fill={p.glow} />
-      <rect x={place(rig, 12, 26) - proj(rig, 15, 8) / 2} y={Y.headCy - 4} width={proj(rig, 15, 8)} height="6" rx="3" fill={p.glow} />
+      <rect className="av-eye av-eye-l" x={place(rig, -12, 26) - proj(rig, 15, 8) / 2} y={Y.headCy - 4} width={proj(rig, 15, 8)} height="6" rx="3" fill={p.glow} />
+      <rect className="av-eye av-eye-r" x={place(rig, 12, 26) - proj(rig, 15, 8) / 2} y={Y.headCy - 4} width={proj(rig, 15, 8)} height="6" rx="3" fill={p.glow} />
       {/* Lente de aumento sobre un ojo */}
       <ellipse
         cx={place(rig, 16, 26)}
@@ -73,8 +73,8 @@ export function VisorTactico({ p, rig }: PartProps) {
         d={`M${x + 4} ${Y.headCy - 10} Q${cx} ${Y.headCy - 15} ${x + w - 4} ${Y.headCy - 10} L${x + w - 4} ${Y.headCy + 5} Q${cx} ${Y.headCy + 11} ${x + 4} ${Y.headCy + 5} Z`}
         fill={p.glowDeep}
       />
-      <rect x={place(rig, -13, 26) - proj(rig, 16, 8) / 2} y={Y.headCy - 5} width={proj(rig, 16, 8)} height="7" rx="3" fill={p.glow} />
-      <rect x={place(rig, 13, 26) - proj(rig, 16, 8) / 2} y={Y.headCy - 5} width={proj(rig, 16, 8)} height="7" rx="3" fill={p.glow} />
+      <rect className="av-eye av-eye-l" x={place(rig, -13, 26) - proj(rig, 16, 8) / 2} y={Y.headCy - 5} width={proj(rig, 16, 8)} height="7" rx="3" fill={p.glow} />
+      <rect className="av-eye av-eye-r" x={place(rig, 13, 26) - proj(rig, 16, 8) / 2} y={Y.headCy - 5} width={proj(rig, 16, 8)} height="7" rx="3" fill={p.glow} />
       {/* Antena lateral: se ve del lado que gira hacia nosotros */}
       <g transform={`translate(${place(rig, 30, 26)} ${Y.headCy - 12})`}>
         <path d="M0 0 L10 -12 L14 -8 L4 4 Z" fill={p.shell} />

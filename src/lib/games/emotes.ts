@@ -8,7 +8,12 @@
  * genéricos —saludar, pulgar arriba— no son de nadie y sí se pueden usar.
  *
  * Cada emote es una clase CSS que anima los grupos etiquetados del muñeco
- * (.av-arm-l, .av-arm-r, .av-head, .av-body). El rig no se toca.
+ * (.av-arm-l, .av-arm-r, .av-head, .av-eye). El rig no se toca.
+ *
+ * REGLA DE DISEÑO: ningún emote deja un brazo estirado en diagonal hacia arriba.
+ * Esa postura se lee como saludo nazi, y en una facultad de Derecho eso no puede
+ * pasar ni por accidente. Cuando hay que levantar un brazo, va vertical y con
+ * movimiento visible.
  */
 
 export interface Emote {
@@ -28,7 +33,7 @@ export const EMOTES: Emote[] = [
   {
     id: "saludo",
     name: "Saludo del estrado",
-    description: "El saludo de rigor antes de empezar.",
+    description: "La mano bien arriba, hamacando. El saludo de rigor antes de empezar.",
     className: "em-saludo",
     duration: 1600,
     req: { kind: "inicio", value: 0 },
@@ -37,7 +42,7 @@ export const EMOTES: Emote[] = [
   {
     id: "objecion",
     name: "¡Objeción!",
-    description: "El brazo al frente y la mirada firme. Un clásico de la profesión.",
+    description: "Mano levantada para pedir la palabra. Un clásico de la profesión.",
     className: "em-objecion",
     duration: 1400,
     req: { kind: "inicio", value: 0 },
@@ -69,6 +74,60 @@ export const EMOTES: Emote[] = [
     duration: 2000,
     req: { kind: "partidas", value: 8 },
     emoji: "🤷",
+  },
+  {
+    id: "guino",
+    name: "Guiño",
+    description: "Un ojo se cierra y el otro se agranda. Complicidad pura.",
+    className: "em-guino",
+    duration: 1300,
+    req: { kind: "inicio", value: 0 },
+    emoji: "😉",
+  },
+  {
+    id: "parpadeo",
+    name: "Ojitos",
+    description: "Dos parpadeos lentos. Para hacerse el inocente.",
+    className: "em-parpadeo",
+    duration: 1700,
+    req: { kind: "inicio", value: 0 },
+    emoji: "👀",
+  },
+  {
+    id: "robotito",
+    name: "Robotito",
+    description: "Movimientos mecánicos a los tirones. Ridículo y necesario.",
+    className: "em-robotito",
+    duration: 2500,
+    req: { kind: "partidas", value: 2 },
+    emoji: "🤖",
+  },
+  {
+    id: "pasito",
+    name: "El pasito",
+    description: "Hombros y caderas alternados. El baile de todo estudiante en época de finales.",
+    className: "em-pasito",
+    duration: 2500,
+    req: { kind: "partidas", value: 5 },
+    emoji: "🕺",
+  },
+  {
+    id: "gelatina",
+    name: "Gelatina",
+    description: "Se estira y se aplasta como un resorte. Sin dignidad alguna.",
+    className: "em-gelatina",
+    duration: 2300,
+    req: { kind: "aciertos", value: 12 },
+    emoji: "🫠",
+  },
+  {
+    id: "tembleque",
+    name: "Tembleque",
+    description: "Vibra entero. Así se entra a rendir sin haber leído.",
+    className: "em-tembleque",
+    duration: 1900,
+    req: { kind: "racha", value: 2 },
+    emoji: "😬",
   },
   {
     id: "toga",

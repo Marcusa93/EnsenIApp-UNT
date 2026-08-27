@@ -1,5 +1,5 @@
 import * as React from "react";
-import { buildPalette, type ChassisId, type Palette } from "./palette";
+import { BUILDS, buildPalette, type ChassisId, type Palette } from "./palette";
 import { depthAt, makeRig, type Rig } from "./rig";
 import { Arm, Body, Head, Legs } from "./parts/figure";
 import { VISORES } from "./parts/visor";
@@ -26,6 +26,8 @@ export interface AvatarConfig {
   chassis: string;
   tone: string;
   glow: string;
+  /** Complexión: id de BUILDS. Si falta, se asume estándar. */
+  build?: string;
   equipped: Record<string, string | undefined>;
 }
 
@@ -65,7 +67,7 @@ export function OperatorAvatar({
   title,
 }: OperatorAvatarProps) {
   const p = buildPalette(config.glow, config.tone);
-  const rig = makeRig(angle);
+  const rig = makeRig(angle, BUILDS.find((b) => b.id === config.build)?.scale ?? 1);
   const eq = config.equipped ?? {};
   const clipId = React.useId();
 

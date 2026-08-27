@@ -2163,6 +2163,7 @@ export type Database = {
       }
       student_avatars: {
         Row: {
+          build: string
           callsign: string
           chassis: string
           created_at: string
@@ -2173,6 +2174,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          build?: string
           callsign: string
           chassis?: string
           created_at?: string
@@ -2183,6 +2185,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          build?: string
           callsign?: string
           chassis?: string
           created_at?: string

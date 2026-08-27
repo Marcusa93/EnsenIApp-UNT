@@ -8,7 +8,7 @@ import { Button, Card, Input, Label } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { OperatorAvatar } from "./operator-avatar";
 import { Turntable } from "./turntable";
-import { CHASSIS, GLOWS, TONES } from "./palette";
+import { BUILDS, CHASSIS, GLOWS, TONES } from "./palette";
 import { createOperator, updateOperator } from "@/app/campus/estudiante/juegos/avatar-actions";
 
 /**
@@ -23,7 +23,7 @@ const ALIAS_SUGERIDOS = [
 
 export interface OperatorForgeProps {
   mode: "crear" | "editar";
-  initial?: { callsign: string; chassis: string; tone: string; glow: string; equipped: Record<string, string> };
+  initial?: { callsign: string; chassis: string; tone: string; glow: string; build?: string; equipped: Record<string, string> };
   onDone?: () => void;
 }
 
@@ -33,6 +33,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
   const [chassis, setChassis] = React.useState(initial?.chassis ?? "redondo");
   const [tone, setTone] = React.useState(initial?.tone ?? "acero");
   const [glow, setGlow] = React.useState(initial?.glow ?? "violeta");
+  const [build, setBuild] = React.useState(initial?.build ?? "estandar");
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -48,6 +49,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
     setChassis(CHASSIS[Math.floor(Math.random() * CHASSIS.length)].id);
     setTone(TONES[Math.floor(Math.random() * TONES.length)].id);
     setGlow(GLOWS[Math.floor(Math.random() * GLOWS.length)].id);
+    setBuild(BUILDS[Math.floor(Math.random() * BUILDS.length)].id);
     if (!callsign) setCallsign(ALIAS_SUGERIDOS[Math.floor(Math.random() * ALIAS_SUGERIDOS.length)]);
   }
 
@@ -55,7 +57,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
     setSaving(true);
     setError(null);
     const action = mode === "crear" ? createOperator : updateOperator;
-    const res = await action({ callsign, chassis, tone, glow });
+    const res = await action({ callsign, chassis, tone, glow, build });
     if (!res.ok) {
       setError(res.error);
       setSaving(false);
@@ -77,7 +79,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-[280px]"
         >
-          <Turntable config={{ chassis, tone, glow, equipped }} size={280} title={callsign || "Tu operador"} />
+          <Turntable config={{ chassis, tone, glow, build, equipped }} size={280} title={callsign || "Tu operador"} />
         </motion.div>
         <p className="font-mono text-sm uppercase tracking-[0.2em] text-muted">{callsign || "sin alias"}</p>
       </div>
@@ -105,7 +107,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
 
         <Card padding="sm">
           <p className="text-sm font-medium">Chasis</p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
+          <div className="mt-2 grid grid-cols-4 gap-2">
             {CHASSIS.map((c) => (
               <button
                 key={c.id}
@@ -120,7 +122,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
                 )}
               >
                 <OperatorAvatar
-                  config={{ chassis: c.id, tone, glow, equipped: { visor: equipped.visor } }}
+                  config={{ chassis: c.id, tone, glow, build, equipped: { visor: equipped.visor } }}
                   size={56}
                   bust
                 />
@@ -129,6 +131,31 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
             ))}
           </div>
           <p className="mt-2 text-[11px] text-muted">{CHASSIS.find((c) => c.id === chassis)?.hint}</p>
+        </Card>
+
+        <Card padding="sm">
+          <p className="text-sm font-medium">Complexión</p>
+          <div className="mt-2 grid grid-cols-4 gap-2">
+            {BUILDS.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => setBuild(b.id)}
+                aria-pressed={build === b.id}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 rounded-xl border p-2 transition",
+                  build === b.id ? "border-accent bg-accent/10" : "border-border bg-surface-2/50 hover:border-accent/40",
+                )}
+              >
+                <OperatorAvatar
+                  config={{ chassis, tone, glow, build: b.id, equipped }}
+                  size={54}
+                />
+                <span className="text-[11px] font-medium">{b.name}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] text-muted">{BUILDS.find((b) => b.id === build)?.hint}</p>
         </Card>
 
         <Card padding="sm">

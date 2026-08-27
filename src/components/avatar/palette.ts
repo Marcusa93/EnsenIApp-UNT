@@ -38,15 +38,31 @@ export const TONES = [
   { id: "bronce", name: "Bronce", shell: "#b5895c", dark: "#7d5c3a", light: "#d6ac7e" },
 ] as const;
 
+/** Modelos de chasis: la silueta de la cabeza es lo que más distingue un
+ *  operador de otro, así que conviene que haya variedad real y no sólo color. */
 export const CHASSIS = [
   { id: "redondo", name: "Curvo", hint: "Perfil clásico, lectura serena." },
   { id: "angular", name: "Angular", hint: "Aristas marcadas, presencia firme." },
   { id: "encapuchado", name: "Encapuchado", hint: "Capucha técnica sobre el chasis." },
+  { id: "bloque", name: "Bloque", hint: "Cabeza cuadrada, escuela vieja." },
+  { id: "domo", name: "Domo", hint: "Cúpula de cristal sobre el módulo." },
+  { id: "antenas", name: "Antenas", hint: "Dos receptores laterales siempre atentos." },
+  { id: "visorpleno", name: "Casco pleno", hint: "Un solo cristal envolvente, sin costuras." },
+  { id: "crestado", name: "Crestado", hint: "Cresta dorsal alta. Difícil pasar desapercibido." },
+] as const;
+
+/** Complexión: cambia el ancho y la profundidad del cuerpo entero. */
+export const BUILDS = [
+  { id: "estandar", name: "Estándar", scale: 1, hint: "Proporción equilibrada." },
+  { id: "compacto", name: "Compacto", scale: 0.86, hint: "Bajo y ágil." },
+  { id: "robusto", name: "Robusto", scale: 1.18, hint: "Ancho de hombros, presencia física." },
+  { id: "estilizado", name: "Estilizado", scale: 0.94, hint: "Alto y delgado." },
 ] as const;
 
 export type GlowId = (typeof GLOWS)[number]["id"];
 export type ToneId = (typeof TONES)[number]["id"];
 export type ChassisId = (typeof CHASSIS)[number]["id"];
+export type BuildId = (typeof BUILDS)[number]["id"];
 
 /** Mezcla hacia negro/blanco sin depender de CSS: los SVG se sirven inline. */
 function shade(hex: string, amount: number): string {
