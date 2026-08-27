@@ -293,7 +293,7 @@ export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Preguntá sobre esta clase…"
+                placeholder={classId ? "Preguntá sobre esta clase…" : "Preguntá sobre la materia…"}
                 rows={1}
                 maxLength={2000}
                 disabled={streaming}
