@@ -49,14 +49,24 @@ export const CHASSIS = [
   { id: "antenas", name: "Antenas", hint: "Dos receptores laterales siempre atentos." },
   { id: "visorpleno", name: "Casco pleno", hint: "Un solo cristal envolvente, sin costuras." },
   { id: "crestado", name: "Crestado", hint: "Cresta dorsal alta. Difícil pasar desapercibido." },
+  { id: "melena", name: "Melena", hint: "Paneles largos que caen sobre los hombros." },
+  { id: "rodete", name: "Rodete", hint: "Módulo recogido en lo alto, despejado." },
+  { id: "trenza", name: "Trenza", hint: "Cable trenzado que cae de un lado." },
 ] as const;
 
-/** Complexión: cambia el ancho y la profundidad del cuerpo entero. */
+/**
+ * Complexión. Cada una define proporciones por zona, no una escala única: la
+ * relación hombro/cintura/cadera es lo que hace que dos siluetas se lean
+ * distinto. Se mantienen como opciones libres, combinables con cualquier chasis
+ * — la idea es que cada uno arme el suyo, no elegir entre "modelo A" y "modelo B".
+ */
 export const BUILDS = [
-  { id: "estandar", name: "Estándar", scale: 1, hint: "Proporción equilibrada." },
-  { id: "compacto", name: "Compacto", scale: 0.86, hint: "Bajo y ágil." },
-  { id: "robusto", name: "Robusto", scale: 1.18, hint: "Ancho de hombros, presencia física." },
-  { id: "estilizado", name: "Estilizado", scale: 0.94, hint: "Alto y delgado." },
+  { id: "estandar", name: "Estándar", scale: 1, shoulders: 1, waist: 1, hint: "Proporción equilibrada." },
+  { id: "compacto", name: "Compacto", scale: 0.88, shoulders: 1, waist: 1.04, hint: "Bajo y ágil." },
+  { id: "robusto", name: "Robusto", scale: 1.14, shoulders: 1.12, waist: 1.06, hint: "Ancho de hombros, presencia física." },
+  { id: "estilizado", name: "Estilizado", scale: 0.96, shoulders: 0.94, waist: 0.92, hint: "Alto y delgado." },
+  { id: "gracil", name: "Grácil", scale: 0.95, shoulders: 0.84, waist: 0.8, hint: "Hombro angosto y talle marcado." },
+  { id: "atletico", name: "Atlético", scale: 1.02, shoulders: 1.02, waist: 0.86, hint: "Espalda firme, cintura definida." },
 ] as const;
 
 export type GlowId = (typeof GLOWS)[number]["id"];

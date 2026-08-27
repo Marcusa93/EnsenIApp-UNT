@@ -107,7 +107,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
 
         <Card padding="sm">
           <p className="text-sm font-medium">Chasis</p>
-          <div className="mt-2 grid grid-cols-4 gap-2">
+          <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-6">
             {CHASSIS.map((c) => (
               <button
                 key={c.id}
@@ -135,7 +135,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
 
         <Card padding="sm">
           <p className="text-sm font-medium">Complexión</p>
-          <div className="mt-2 grid grid-cols-4 gap-2">
+          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
             {BUILDS.map((b) => (
               <button
                 key={b.id}

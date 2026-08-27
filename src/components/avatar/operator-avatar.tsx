@@ -70,7 +70,8 @@ export function OperatorAvatar({
   title,
 }: OperatorAvatarProps) {
   const p = buildPalette(config.glow, config.tone);
-  const rig = makeRig(angle, BUILDS.find((b) => b.id === config.build)?.scale ?? 1);
+  const build = BUILDS.find((b) => b.id === config.build) ?? BUILDS[0];
+  const rig = makeRig(angle, build.scale, { shoulders: build.shoulders, waist: build.waist });
   const eq = config.equipped ?? {};
   const clipId = React.useId();
 

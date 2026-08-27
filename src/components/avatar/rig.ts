@@ -29,17 +29,23 @@ export interface Rig {
   facing: number;
   /** Eje vertical de la figura en el lienzo. */
   cx: number;
-  /** Escala de complexión: ensancha o afina todo el cuerpo. */
+  /** Escala general de la complexión. */
   build: number;
+  /** Proporciones por zona: la relación entre ellas define la silueta. */
+  shape: { shoulders: number; waist: number };
 }
 
 export const CX = 120;
 
-export function makeRig(degrees: number, build = 1): Rig {
+export function makeRig(
+  degrees: number,
+  build = 1,
+  shape: { shoulders: number; waist: number } = { shoulders: 1, waist: 1 },
+): Rig {
   const a = (((degrees % 360) + 360) % 360) * (Math.PI / 180);
   const c = Math.cos(a);
   const s = Math.sin(a);
-  return { a, c, s, back: c < 0, facing: Math.max(0, c), cx: CX, build };
+  return { a, c, s, back: c < 0, facing: Math.max(0, c), cx: CX, build, shape };
 }
 
 /**

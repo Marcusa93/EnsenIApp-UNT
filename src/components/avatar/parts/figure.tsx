@@ -58,7 +58,7 @@ export function Legs({ p, rig }: { p: Palette; rig: Rig }) {
 }
 
 export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
-  const lateral = 33 * side;
+  const lateral = 33 * side * rig.shape.shoulders;
   const forward = 7;
   const cx = place(rig, lateral, forward);
   const armW = proj(rig, DIM.arm[0], DIM.arm[1]);
@@ -92,8 +92,9 @@ export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
 }
 
 export function Body({ p, rig }: { p: Palette; rig: Rig }) {
-  const sh = proj(rig, DIM.shoulders[0], DIM.shoulders[1]) / 2;
-  const wa = proj(rig, DIM.waist[0], DIM.waist[1]) / 2;
+  // La silueta sale de la relación entre hombro y cintura, no de una escala única.
+  const sh = (proj(rig, DIM.shoulders[0], DIM.shoulders[1]) / 2) * rig.shape.shoulders;
+  const wa = (proj(rig, DIM.waist[0], DIM.waist[1]) / 2) * rig.shape.waist;
   const neckW = proj(rig, DIM.neck[0], DIM.neck[1]);
   const c = rig.cx;
   const alpha = faceAlpha(rig);
@@ -246,6 +247,84 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
             ry={Y.headRy * 0.2}
             fill={p.shellLight}
             opacity="0.5"
+          />
+        </g>
+      ) : chassis === "melena" ? (
+        <g>
+          {/* Paneles largos que caen sobre los hombros. Van por detrás del
+              cráneo para que se lean como volumen y no como orejas pegadas. */}
+          {[-1, 1].map((side) => (
+            <path
+              key={side}
+              d={`M${place(rig, side * (rx * 0.72))} ${Y.headCy - Y.headRy * 0.55}
+                  Q${place(rig, side * (rx * 1.24))} ${Y.headCy + 6} ${place(rig, side * (rx * 1.06))} ${Y.shoulder + 22}
+                  Q${place(rig, side * (rx * 0.9))} ${Y.shoulder + 30} ${place(rig, side * (rx * 0.6))} ${Y.shoulder + 16}
+                  Q${place(rig, side * (rx * 0.78))} ${Y.headCy + 4} ${place(rig, side * (rx * 0.5))} ${Y.headCy - Y.headRy * 0.5} Z`}
+              fill={p.shellDark}
+            />
+          ))}
+          <ellipse cx={cx + shift} cy={Y.headCy} rx={rx * 0.94} ry={Y.headRy} fill={p.shell} />
+          {/* Raya al medio: una línea fina alcanza para sugerir el peinado */}
+          <path
+            d={`M${place(rig, 0, 6)} ${Y.headCy - Y.headRy + 2} Q${place(rig, 0, 20)} ${Y.headCy - Y.headRy * 0.4} ${place(rig, 0, 14)} ${Y.headCy - Y.headRy * 0.15}`}
+            fill="none"
+            stroke={p.shellDark}
+            strokeWidth="2"
+            opacity="0.7"
+          />
+          {/* Broche luminoso */}
+          <circle cx={place(rig, rx * 0.66)} cy={Y.headCy - Y.headRy * 0.42} r="3.4" fill={p.glow} />
+          <circle cx={place(rig, rx * 0.66)} cy={Y.headCy - Y.headRy * 0.42} r="7" fill={p.glow} opacity="0.22" />
+        </g>
+      ) : chassis === "rodete" ? (
+        <g>
+          {/* Módulo recogido en lo alto: despeja el rostro y alarga la silueta */}
+          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 10} r={rx * 0.42} fill={p.shellDark} />
+          <circle cx={place(rig, 0, -10)} cy={Y.headTop - 10} r={rx * 0.3} fill={p.shell} opacity="0.75" />
+          <path
+            d={`M${place(rig, -rx * 0.28, -4)} ${Y.headTop - 2} Q${place(rig, 0, -10)} ${Y.headTop - 14} ${place(rig, rx * 0.28, -4)} ${Y.headTop - 2}`}
+            fill="none"
+            stroke={p.glow}
+            strokeWidth="2.4"
+            opacity="0.85"
+          />
+          <ellipse cx={cx + shift} cy={Y.headCy} rx={rx * 0.92} ry={Y.headRy * 0.98} fill={p.shell} />
+          {/* Mechones cortos al costado, para que no quede una cabeza pelada */}
+          {[-1, 1].map((side) => (
+            <path
+              key={side}
+              d={`M${place(rig, side * (rx * 0.78))} ${Y.headCy - Y.headRy * 0.4}
+                  Q${place(rig, side * (rx * 1.06))} ${Y.headCy + 8} ${place(rig, side * (rx * 0.82))} ${Y.headCy + Y.headRy * 0.72}
+                  Q${place(rig, side * (rx * 0.66))} ${Y.headCy + 6} ${place(rig, side * (rx * 0.6))} ${Y.headCy - Y.headRy * 0.35} Z`}
+              fill={p.shellDark}
+              opacity="0.9"
+            />
+          ))}
+        </g>
+      ) : chassis === "trenza" ? (
+        <g>
+          <ellipse cx={cx + shift} cy={Y.headCy} rx={rx * 0.94} ry={Y.headRy} fill={p.shell} />
+          {/* Cable trenzado que cae de un lado: segmentos que se van achicando */}
+          {[0, 1, 2, 3, 4].map((i) => {
+            const t = i / 4;
+            const bx = place(rig, rx * (0.86 + t * 0.16));
+            const by = Y.headCy + Y.headRy * 0.3 + i * 15;
+            const r = 7.5 - i * 0.9;
+            return (
+              <g key={i}>
+                <ellipse cx={bx} cy={by} rx={r} ry={r * 0.82} fill={p.shellDark} />
+                <ellipse cx={bx} cy={by - 1} rx={r * 0.6} ry={r * 0.45} fill={p.shell} opacity="0.6" />
+              </g>
+            );
+          })}
+          <circle cx={place(rig, rx * 1.02)} cy={Y.headCy + Y.headRy * 0.3 + 4 * 15 + 8} r="3" fill={p.glow} />
+          {/* Cinta sobre la sien */}
+          <path
+            d={`M${place(rig, -rx * 0.8, 8)} ${Y.headCy - Y.headRy * 0.34} Q${place(rig, 0, 22)} ${Y.headCy - Y.headRy * 0.62} ${place(rig, rx * 0.8, 8)} ${Y.headCy - Y.headRy * 0.34}`}
+            fill="none"
+            stroke={p.glow}
+            strokeWidth="2.6"
+            opacity="0.8"
           />
         </g>
       ) : chassis === "crestado" ? (
