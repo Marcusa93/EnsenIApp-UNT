@@ -1,4 +1,5 @@
 import type { Palette } from "../palette";
+import type { PartProps } from "./visor";
 
 /**
  * Auras (detrás del busto, delante del fondo) y fondos (el escenario).
@@ -7,7 +8,7 @@ import type { Palette } from "../palette";
 
 // ----------------------------------------------------------------- AURAS
 
-export function AuraPulso({ p }: { p: Palette }) {
+export function AuraPulso({ p }: PartProps) {
   return (
     <g className="av-pulse">
       <circle cx="120" cy="130" r="72" fill="none" stroke={p.glow} strokeWidth="1.5" opacity="0.35" />
@@ -16,10 +17,10 @@ export function AuraPulso({ p }: { p: Palette }) {
   );
 }
 
-export function AuraCampo({ p }: { p: Palette }) {
+export function AuraCampo({ p }: PartProps) {
   return (
     <g>
-      <g className="av-spin-slow" style={{ transformOrigin: "120px 130px" }}>
+      <g className="av-spin-slow" style={{ transformOrigin: "120px 128px" }}>
         <path
           d="M120 46 L188 88 L188 172 L120 214 L52 172 L52 88 Z"
           fill="none"
@@ -43,16 +44,16 @@ export function AuraCampo({ p }: { p: Palette }) {
   );
 }
 
-export function AuraTormenta({ p }: { p: Palette }) {
+export function AuraTormenta({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="130" r="96" fill={p.glow} opacity="0.07" />
-      <g className="av-spin" style={{ transformOrigin: "120px 130px" }}>
+      <g className="av-spin" style={{ transformOrigin: "120px 128px" }}>
         <ellipse cx="120" cy="130" rx="96" ry="34" fill="none" stroke={p.glow} strokeWidth="1.6" opacity="0.45" />
         <circle cx="216" cy="130" r="4" fill={p.glow} />
         <circle cx="24" cy="130" r="3" fill={p.glow} opacity="0.8" />
       </g>
-      <g className="av-spin-rev" style={{ transformOrigin: "120px 130px" }}>
+      <g className="av-spin-rev" style={{ transformOrigin: "120px 128px" }}>
         <ellipse
           cx="120"
           cy="130"
@@ -66,7 +67,7 @@ export function AuraTormenta({ p }: { p: Palette }) {
         />
         <circle cx="171" cy="49" r="3.5" fill={p.glow} opacity="0.9" />
       </g>
-      <g className="av-spin-slow" style={{ transformOrigin: "120px 130px" }}>
+      <g className="av-spin-slow" style={{ transformOrigin: "120px 128px" }}>
         <ellipse
           cx="120"
           cy="130"
@@ -83,13 +84,13 @@ export function AuraTormenta({ p }: { p: Palette }) {
   );
 }
 
-export function AuraCatedra({ p }: { p: Palette }) {
+export function AuraCatedra({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="130" r="100" fill={p.glow} opacity="0.09" />
       <circle cx="120" cy="130" r="76" fill={p.glow} opacity="0.07" />
       {/* Rayos radiales */}
-      <g className="av-spin-slow" style={{ transformOrigin: "120px 130px" }}>
+      <g className="av-spin-slow" style={{ transformOrigin: "120px 128px" }}>
         {Array.from({ length: 12 }, (_, i) => {
           const a = (i * Math.PI * 2) / 12;
           const x1 = 120 + Math.cos(a) * 66;
@@ -117,7 +118,7 @@ export const AURAS = {
 
 // ----------------------------------------------------------------- FONDOS
 
-export function FondoAula({ p }: { p: Palette }) {
+export function FondoAula({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="120" r="118" fill="#12151f" />
@@ -131,7 +132,7 @@ export function FondoAula({ p }: { p: Palette }) {
   );
 }
 
-export function FondoEstrado({ p }: { p: Palette }) {
+export function FondoEstrado({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="120" r="118" fill="#101420" />
@@ -153,7 +154,7 @@ export function FondoEstrado({ p }: { p: Palette }) {
   );
 }
 
-export function FondoServidor({ p }: { p: Palette }) {
+export function FondoServidor({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="120" r="118" fill="#0c111c" />
@@ -181,7 +182,7 @@ export function FondoServidor({ p }: { p: Palette }) {
   );
 }
 
-export function FondoCorte({ p }: { p: Palette }) {
+export function FondoCorte({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="120" r="118" fill="#0b0f1a" />
@@ -204,7 +205,7 @@ export function FondoCorte({ p }: { p: Palette }) {
   );
 }
 
-export function FondoCiber({ p }: { p: Palette }) {
+export function FondoCiber({ p }: PartProps) {
   return (
     <g>
       <circle cx="120" cy="120" r="118" fill="#0a0d16" />

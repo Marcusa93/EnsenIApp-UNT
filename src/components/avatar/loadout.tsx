@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Lock, Pencil, Sparkles } from "lucide-react";
 import { Badge, Button, Card, Dialog } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { OperatorAvatar } from "./operator-avatar";
+import { Turntable } from "./turntable";
 import { OperatorForge } from "./operator-forge";
 import { equipItem, markItemsSeen } from "@/app/campus/estudiante/juegos/avatar-actions";
 
@@ -112,9 +112,7 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         {/* Retrato */}
         <div className="flex min-w-0 flex-col items-center gap-3 lg:col-span-5">
-          <div className="w-full max-w-[300px]">
-            <OperatorAvatar config={config} size={300} className="h-auto w-full" title={config.callsign} />
-          </div>
+          <Turntable config={config} size={300} title={config.callsign} className="w-full" />
           <div className="text-center">
             <p className="font-mono text-sm uppercase tracking-[0.2em] text-foreground">{config.callsign}</p>
             <p className="mt-0.5 text-xs text-muted">

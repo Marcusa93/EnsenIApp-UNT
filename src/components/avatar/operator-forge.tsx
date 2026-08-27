@@ -7,6 +7,7 @@ import { Check, Loader2, Shuffle } from "lucide-react";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { OperatorAvatar } from "./operator-avatar";
+import { Turntable } from "./turntable";
 import { CHASSIS, GLOWS, TONES } from "./palette";
 import { createOperator, updateOperator } from "@/app/campus/estudiante/juegos/avatar-actions";
 
@@ -76,12 +77,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-[280px]"
         >
-          <OperatorAvatar
-            config={{ chassis, tone, glow, equipped }}
-            size={280}
-            className="h-auto w-full"
-            title={callsign || "Tu operador"}
-          />
+          <Turntable config={{ chassis, tone, glow, equipped }} size={280} title={callsign || "Tu operador"} />
         </motion.div>
         <p className="font-mono text-sm uppercase tracking-[0.2em] text-muted">{callsign || "sin alias"}</p>
       </div>

@@ -1,82 +1,181 @@
 import type { Palette } from "../palette";
+import { px, pw, type Rig } from "../rig";
+import { Y } from "./figure";
+import type { PartProps } from "./visor";
 
 /**
- * Togas: van por encima del torso base. Cada una agrega solapas, ribetes y, en
- * las de mayor rango, luz propia sobre la tela.
+ * Togas: prenda de cuerpo entero, desde los hombros hasta cerca de los pies.
+ * Se dibujan contra el rig para que la falda se angoste al girar; de espaldas
+ * cambian las solapas por la caída lisa de la tela.
  */
 
-export function TogaCursante({ p }: { p: Palette }) {
+/** Silueta de la prenda: hombros → cintura → vuelo de la falda. */
+function robePath(rig: Rig, shoulder: number, hem: number, bottom: number) {
+  const sh = pw(rig, shoulder, 0.42) / 2;
+  const wa = pw(rig, shoulder * 0.74, 0.5) / 2;
+  const he = pw(rig, hem, 0.46) / 2;
+  const c = rig.cx;
+  return `M${c - sh} ${Y.shoulder} Q${c} ${Y.shoulder - 8} ${c + sh} ${Y.shoulder}
+          L${c + wa} ${Y.hip} L${c + he} ${bottom} Q${c} ${bottom + 6} ${c - he} ${bottom} L${c - wa} ${Y.hip} Z`;
+}
+
+function Lapels({ p, rig, top, glowEdge }: PartProps & { top: number; glowEdge?: boolean }) {
+  if (rig.back) return null;
+  const w = pw(rig, 22, 0.3);
+  const vBottom = Y.hip - 4;
   return (
-    <g>
-      <path d="M120 132 L146 148 L138 214 L102 214 L94 148 Z" fill={p.cloth} />
-      <path d="M120 132 L146 148 L142 214 L120 214 Z" fill={p.clothDark} opacity="0.5" />
-      <path d="M104 142 L120 156 L136 142 L133 214 L107 214 Z" fill={p.clothDark} />
+    <g opacity={Math.min(1, Math.abs(rig.c) * 1.8)}>
+      <path
+        d={`M${px(rig, -18)} ${top} L${rig.cx} ${vBottom} L${px(rig, -10)} ${Y.foot - 8} L${px(rig, -26)} ${Y.foot - 8} Z`}
+        fill={p.clothDark}
+      />
+      <path
+        d={`M${px(rig, 18)} ${top} L${rig.cx} ${vBottom} L${px(rig, 10)} ${Y.foot - 8} L${px(rig, 26)} ${Y.foot - 8} Z`}
+        fill={p.clothDark}
+      />
+      {glowEdge && (
+        <path
+          d={`M${px(rig, -18)} ${top} L${rig.cx} ${vBottom} L${px(rig, 18)} ${top}`}
+          fill="none"
+          stroke={p.glow}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+        />
+      )}
+      <g data-w={w} />
     </g>
   );
 }
 
-export function TogaReforzada({ p }: { p: Palette }) {
+export function TogaCursante({ p, rig }: PartProps) {
   return (
     <g>
-      <path d="M120 130 L152 148 L144 214 L96 214 L88 148 Z" fill={p.cloth} />
-      <path d="M120 130 L152 148 L148 214 L120 214 Z" fill={p.clothDark} opacity="0.5" />
-      {/* Solapas con costura técnica */}
-      <path d="M98 140 L120 158 L142 140 L138 214 L102 214 Z" fill={p.clothDark} />
-      <path d="M104 148 L120 162 L136 148" fill="none" stroke={p.shellDark} strokeWidth="2" />
-      <path d="M96 176 L144 176 M96 192 L144 192" stroke={p.shellDark} strokeWidth="1.5" opacity="0.6" />
+      <path d={robePath(rig, 60, 74, Y.foot - 6)} fill={p.cloth} />
+      <path
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 60, 0.42) / 2} ${Y.shoulder} L${rig.cx + pw(rig, 74, 0.46) / 2} ${Y.foot - 6} L${rig.cx} ${Y.foot} Z`}
+        fill={p.clothDark}
+        opacity={0.18 + 0.28 * Math.max(0, rig.s)}
+      />
+      <Lapels p={p} rig={rig} top={Y.shoulder + 2} />
     </g>
   );
 }
 
-export function TogaFibra({ p }: { p: Palette }) {
+export function TogaReforzada({ p, rig }: PartProps) {
   return (
     <g>
-      <path d="M120 128 L154 148 L146 214 L94 214 L86 148 Z" fill={p.cloth} />
-      <path d="M120 128 L154 148 L150 214 L120 214 Z" fill={p.clothDark} opacity="0.5" />
-      <path d="M96 138 L120 158 L144 138 L140 214 L100 214 Z" fill={p.clothDark} />
-      {/* Ribetes de fibra: la luz corre por el borde de la solapa */}
-      <path d="M96 138 L120 158 L144 138" fill="none" stroke={p.glow} strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M104 168 L104 214 M136 168 L136 214" stroke={p.glow} strokeWidth="2" opacity="0.75" />
-      <circle cx="104" cy="168" r="3" fill={p.glow} />
-      <circle cx="136" cy="168" r="3" fill={p.glow} />
+      <path d={robePath(rig, 62, 78, Y.foot - 4)} fill={p.cloth} />
+      <path
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 62, 0.42) / 2} ${Y.shoulder} L${rig.cx + pw(rig, 78, 0.46) / 2} ${Y.foot - 4} L${rig.cx} ${Y.foot} Z`}
+        fill={p.clothDark}
+        opacity={0.18 + 0.28 * Math.max(0, rig.s)}
+      />
+      <Lapels p={p} rig={rig} top={Y.shoulder} />
+      {/* Costuras horizontales */}
+      <path
+        d={`M${rig.cx - pw(rig, 66, 0.46) / 2} ${Y.hip + 22} L${rig.cx + pw(rig, 66, 0.46) / 2} ${Y.hip + 22}`}
+        stroke={p.shellDark}
+        strokeWidth="1.6"
+        opacity="0.55"
+      />
     </g>
   );
 }
 
-export function TogaProcesal({ p }: { p: Palette }) {
+export function TogaFibra({ p, rig }: PartProps) {
+  const hem = pw(rig, 82, 0.46) / 2;
   return (
     <g>
-      <path d="M120 126 L158 148 L150 214 L90 214 L82 148 Z" fill={p.cloth} />
-      <path d="M120 126 L158 148 L154 214 L120 214 Z" fill={p.clothDark} opacity="0.55" />
-      {/* Placas de blindaje sobre la tela */}
-      <path d="M92 152 L112 160 L110 190 L90 182 Z" fill={p.shellDark} />
-      <path d="M148 152 L128 160 L130 190 L150 182 Z" fill={p.shellDark} />
-      <path d="M94 156 L110 163 L109 178 L93 172 Z" fill={p.shell} opacity="0.6" />
-      <path d="M146 156 L130 163 L131 178 L147 172 Z" fill={p.shell} opacity="0.6" />
-      <path d="M98 140 L120 160 L142 140 L138 214 L102 214 Z" fill={p.clothDark} />
-      <path d="M98 140 L120 160 L142 140" fill="none" stroke={p.glow} strokeWidth="3" strokeLinecap="round" />
-      <path d="M120 168 L128 180 L120 214 L112 180 Z" fill={p.glowDeep} />
-      <path d="M120 174 L124 181 L120 200 L116 181 Z" fill={p.glow} opacity="0.85" />
+      <path d={robePath(rig, 64, 82, Y.foot - 4)} fill={p.cloth} />
+      <path
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 64, 0.42) / 2} ${Y.shoulder} L${rig.cx + hem} ${Y.foot - 4} L${rig.cx} ${Y.foot} Z`}
+        fill={p.clothDark}
+        opacity={0.18 + 0.28 * Math.max(0, rig.s)}
+      />
+      <Lapels p={p} rig={rig} top={Y.shoulder - 2} glowEdge />
+      {/* Fibra que corre por el ruedo y los costados */}
+      <path
+        d={`M${rig.cx - hem} ${Y.foot - 6} Q${rig.cx} ${Y.foot} ${rig.cx + hem} ${Y.foot - 6}`}
+        fill="none"
+        stroke={p.glow}
+        strokeWidth="2.2"
+        opacity="0.8"
+      />
+      <path d={`M${px(rig, -28)} ${Y.hip} L${px(rig, -33)} ${Y.foot - 8}`} stroke={p.glow} strokeWidth="1.8" opacity="0.65" />
+      <path d={`M${px(rig, 28)} ${Y.hip} L${px(rig, 33)} ${Y.foot - 8}`} stroke={p.glow} strokeWidth="1.8" opacity="0.65" />
     </g>
   );
 }
 
-export function TogaCorte({ p }: { p: Palette }) {
+export function TogaProcesal({ p, rig }: PartProps) {
   return (
     <g>
-      <path d="M120 124 L162 148 L154 214 L86 214 L78 148 Z" fill={p.cloth} />
-      <path d="M120 124 L162 148 L158 214 L120 214 Z" fill={p.clothDark} opacity="0.55" />
-      {/* Muceta con hombros elevados */}
-      <path d="M78 148 Q120 128 162 148 L158 168 Q120 150 82 168 Z" fill={p.clothDark} />
-      <path d="M78 148 Q120 128 162 148" fill="none" stroke={p.glow} strokeWidth="2.5" opacity="0.9" />
-      {/* Solapas doradas por la luz del operador */}
-      <path d="M96 150 L120 172 L144 150 L140 214 L100 214 Z" fill={p.clothDark} />
-      <path d="M96 150 L120 172 L144 150" fill="none" stroke={p.glow} strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M106 178 L106 214 M134 178 L134 214" stroke={p.glow} strokeWidth="2.5" />
-      {/* Emblema de la Corte */}
-      <path d="M120 182 L128 190 L120 200 L112 190 Z" fill={p.glow} />
-      <circle cx="120" cy="190" r="14" fill="none" stroke={p.glow} strokeWidth="1.5" opacity="0.55" />
-      <circle cx="120" cy="190" r="20" fill={p.glow} opacity="0.1" />
+      <path d={robePath(rig, 66, 86, Y.foot - 2)} fill={p.cloth} />
+      <path
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 66, 0.42) / 2} ${Y.shoulder} L${rig.cx + pw(rig, 86, 0.46) / 2} ${Y.foot - 2} L${rig.cx} ${Y.foot} Z`}
+        fill={p.clothDark}
+        opacity={0.18 + 0.3 * Math.max(0, rig.s)}
+      />
+      {/* Placas laterales de blindaje */}
+      {[-1, 1].map((side) => (
+        <path
+          key={side}
+          d={`M${px(rig, side * 26)} ${Y.hip - 6} L${px(rig, side * 36)} ${Y.hip + 2} L${px(rig, side * 34)} ${Y.kneeTop} L${px(rig, side * 24)} ${Y.kneeTop - 6} Z`}
+          fill={p.shellDark}
+        />
+      ))}
+      <Lapels p={p} rig={rig} top={Y.shoulder - 4} glowEdge />
+      {!rig.back && (
+        <path
+          d={`M${rig.cx} ${Y.hip + 4} L${px(rig, 7)} ${Y.hip + 16} L${rig.cx} ${Y.foot - 10} L${px(rig, -7)} ${Y.hip + 16} Z`}
+          fill={p.glow}
+          opacity="0.8"
+        />
+      )}
+    </g>
+  );
+}
+
+export function TogaCorte({ p, rig }: PartProps) {
+  const sh = pw(rig, 70, 0.42) / 2;
+  return (
+    <g>
+      <path d={robePath(rig, 70, 92, Y.foot)} fill={p.cloth} />
+      <path
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + sh} ${Y.shoulder} L${rig.cx + pw(rig, 92, 0.46) / 2} ${Y.foot} L${rig.cx} ${Y.foot + 4} Z`}
+        fill={p.clothDark}
+        opacity={0.18 + 0.3 * Math.max(0, rig.s)}
+      />
+      {/* Muceta sobre los hombros: se ve de frente y de espaldas */}
+      <path
+        d={`M${rig.cx - sh - 4} ${Y.shoulder + 4} Q${rig.cx} ${Y.shoulder - 12} ${rig.cx + sh + 4} ${Y.shoulder + 4}
+            Q${rig.cx} ${Y.shoulder + 26} ${rig.cx - sh - 4} ${Y.shoulder + 4} Z`}
+        fill={p.clothDark}
+      />
+      <path
+        d={`M${rig.cx - sh - 4} ${Y.shoulder + 4} Q${rig.cx} ${Y.shoulder - 12} ${rig.cx + sh + 4} ${Y.shoulder + 4}`}
+        fill="none"
+        stroke={p.glow}
+        strokeWidth="2.4"
+        opacity="0.85"
+      />
+      <Lapels p={p} rig={rig} top={Y.shoulder + 14} glowEdge />
+      {/* Ruedo con ribete pleno */}
+      <path
+        d={`M${rig.cx - pw(rig, 92, 0.46) / 2} ${Y.foot - 2} Q${rig.cx} ${Y.foot + 4} ${rig.cx + pw(rig, 92, 0.46) / 2} ${Y.foot - 2}`}
+        fill="none"
+        stroke={p.glow}
+        strokeWidth="2.6"
+      />
+      {!rig.back && (
+        <g>
+          <path
+            d={`M${rig.cx} ${Y.hip + 10} L${px(rig, 9)} ${Y.hip + 22} L${rig.cx} ${Y.hip + 36} L${px(rig, -9)} ${Y.hip + 22} Z`}
+            fill={p.glow}
+          />
+          <circle cx={rig.cx} cy={Y.hip + 23} r={pw(rig, 34, 0.3) / 2} fill={p.glow} opacity="0.12" />
+        </g>
+      )}
     </g>
   );
 }

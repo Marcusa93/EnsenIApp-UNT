@@ -1,100 +1,118 @@
 import type { Palette } from "../palette";
+import { px, pw, type Rig } from "../rig";
+import { Y } from "./figure";
+import type { PartProps } from "./visor";
 
 /**
- * Instrumentos de litigio: flotan a la izquierda del busto, como sostenidos por
- * el operador. Nunca son armas — son las herramientas con las que se litiga.
+ * Instrumentos de litigio: van en la mano izquierda del operador (nuestra
+ * derecha del lienzo cuando mira de frente). Nunca son armas — son las
+ * herramientas con las que se litiga.
+ *
+ * Al girar acompañan a la mano, y cuando quedan detrás del cuerpo se atenúan.
  */
 
-export function InstCodice({ p }: { p: Palette }) {
+/** Punto donde está la mano que sostiene, y cuánto se ve desde este ángulo. */
+function grip(rig: Rig) {
+  const handOffset = -34;
+  return {
+    x: px(rig, handOffset),
+    y: Y.waist + 8,
+    /** 1 cuando el instrumento está de nuestro lado, menos cuando pasa atrás. */
+    front: 0.35 + 0.65 * Math.max(0, 1 - Math.max(0, -handOffset * rig.s) / 34),
+    scale: 0.72 + 0.28 * Math.abs(rig.c),
+  };
+}
+
+export function InstCodice({ p, rig }: PartProps) {
+  const g = grip(rig);
   return (
-    <g>
-      <path d="M28 150 L58 142 L58 190 L28 198 Z" fill={p.shellDark} />
-      <path d="M58 142 L64 146 L64 194 L58 190 Z" fill={p.shell} />
-      <path d="M33 156 L53 151 M33 165 L53 160 M33 174 L48 170" stroke={p.glow} strokeWidth="2" opacity="0.75" strokeLinecap="round" />
-      <circle cx="46" cy="186" r="3" fill={p.glow} />
+    <g transform={`translate(${g.x} ${g.y}) scale(${g.scale})`} opacity={g.front}>
+      {/* Códice abierto: dos tapas y el lomo iluminado */}
+      <path d="M-26 -14 L-2 -24 L-2 14 L-26 24 Z" fill={p.shellDark} />
+      <path d="M26 -14 L2 -24 L2 14 L26 24 Z" fill={p.shell} />
+      <path d="M-23 -11 L-4 -19 L-4 10 L-23 18 Z" fill={p.shellLight} opacity="0.22" />
+      <path d="M23 -11 L4 -19 L4 10 L23 18 Z" fill={p.shellLight} opacity="0.14" />
+      <path d="M0 -22 L0 14" stroke={p.glow} strokeWidth="2.4" opacity="0.9" />
+      <path d="M-20 -5 L-7 -10 M-20 2 L-7 -3 M-20 9 L-10 5" stroke={p.glow} strokeWidth="1.5" opacity="0.7" strokeLinecap="round" />
+      <path d="M20 -5 L7 -10 M20 2 L7 -3 M17 9 L7 5" stroke={p.glow} strokeWidth="1.5" opacity="0.5" strokeLinecap="round" />
     </g>
   );
 }
 
-export function InstMazo({ p }: { p: Palette }) {
+export function InstMazo({ p, rig }: PartProps) {
+  const g = grip(rig);
   return (
-    <g>
-      {/* Mango */}
-      <path d="M40 196 L62 156" stroke={p.shellDark} strokeWidth="7" strokeLinecap="round" />
-      <path d="M40 196 L62 156" stroke={p.shell} strokeWidth="3" strokeLinecap="round" />
-      {/* Cabeza del mazo */}
-      <g transform="rotate(-28 62 150)">
-        <rect x="44" y="138" width="36" height="24" rx="5" fill={p.shellDark} />
-        <rect x="47" y="141" width="30" height="18" rx="3" fill={p.shell} />
-        <rect x="44" y="146" width="36" height="8" fill={p.glow} opacity="0.75" />
+    <g transform={`translate(${g.x} ${g.y}) scale(${g.scale})`} opacity={g.front}>
+      <path d="M-4 26 L8 -12" stroke={p.shellDark} strokeWidth="7" strokeLinecap="round" />
+      <path d="M-4 26 L8 -12" stroke={p.shell} strokeWidth="3" strokeLinecap="round" />
+      <g transform="rotate(-24 8 -16)">
+        <rect x="-10" y="-27" width="36" height="22" rx="5" fill={p.shellDark} />
+        <rect x="-7" y="-24" width="30" height="16" rx="3" fill={p.shell} />
+        <rect x="-10" y="-19" width="36" height="7" fill={p.glow} opacity="0.75" />
       </g>
-      {/* Onda de impacto holográfica */}
-      <path d="M30 176 Q40 172 48 176" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.55" strokeLinecap="round" />
-      <path d="M26 184 Q40 178 52 184" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.3" strokeLinecap="round" />
+      {/* Onda de impacto */}
+      <path d="M-16 16 Q-6 12 2 16" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.5" strokeLinecap="round" />
+      <path d="M-20 23 Q-6 17 6 23" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.28" strokeLinecap="round" />
     </g>
   );
 }
 
-export function InstBalanza({ p }: { p: Palette }) {
+export function InstBalanza({ p, rig }: PartProps) {
+  const g = grip(rig);
   return (
-    <g>
-      {/* Fiel y brazo */}
-      <path d="M46 200 L46 146" stroke={p.shellDark} strokeWidth="5" strokeLinecap="round" />
-      <path d="M22 150 L70 150" stroke={p.shellDark} strokeWidth="4" strokeLinecap="round" />
-      <circle cx="46" cy="144" r="5" fill={p.glow} />
-      <circle cx="46" cy="144" r="10" fill={p.glow} opacity="0.22" />
-      {/* Platillos, uno más bajo: el equilibrio se está calculando */}
-      <path d="M22 150 L22 164" stroke={p.shell} strokeWidth="2" />
-      <path d="M70 150 L70 172" stroke={p.shell} strokeWidth="2" />
-      <path d="M12 164 Q22 176 32 164 Z" fill={p.shellDark} />
-      <path d="M60 172 Q70 184 80 172 Z" fill={p.shellDark} />
-      <path d="M14 164 Q22 173 30 164" fill={p.glow} opacity="0.5" />
-      <path d="M62 172 Q70 181 78 172" fill={p.glow} opacity="0.5" />
-      <path d="M46 196 L36 206 L56 206 Z" fill={p.shellDark} />
+    <g transform={`translate(${g.x} ${g.y}) scale(${g.scale})`} opacity={g.front}>
+      <path d="M0 30 L0 -22" stroke={p.shellDark} strokeWidth="5" strokeLinecap="round" />
+      <path d="M-24 -18 L24 -18" stroke={p.shellDark} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="0" cy="-24" r="5" fill={p.glow} />
+      <circle cx="0" cy="-24" r="10" fill={p.glow} opacity="0.22" />
+      <path d="M-24 -18 L-24 -5" stroke={p.shell} strokeWidth="2" />
+      <path d="M24 -18 L24 3" stroke={p.shell} strokeWidth="2" />
+      <path d="M-34 -5 Q-24 7 -14 -5 Z" fill={p.shellDark} />
+      <path d="M14 3 Q24 15 34 3 Z" fill={p.shellDark} />
+      <path d="M-32 -5 Q-24 4 -16 -5" fill={p.glow} opacity="0.5" />
+      <path d="M16 3 Q24 12 32 3" fill={p.glow} opacity="0.5" />
+      <path d="M0 26 L-9 36 L9 36 Z" fill={p.shellDark} />
     </g>
   );
 }
 
-export function InstSello({ p }: { p: Palette }) {
+export function InstSello({ p, rig }: PartProps) {
+  const g = grip(rig);
   return (
-    <g>
-      {/* Cuerpo del sello */}
-      <path d="M38 152 L58 152 L62 172 L34 172 Z" fill={p.shellDark} />
-      <rect x="42" y="134" width="12" height="20" rx="5" fill={p.shell} />
-      <circle cx="48" cy="132" r="8" fill={p.shellDark} />
-      <circle cx="48" cy="132" r="4" fill={p.glow} />
-      {/* Base y marca proyectada */}
-      <rect x="30" y="172" width="36" height="8" rx="3" fill={p.shell} />
-      <ellipse cx="48" cy="196" rx="26" ry="9" fill={p.glow} opacity="0.16" />
-      <ellipse cx="48" cy="196" rx="17" ry="6" fill="none" stroke={p.glow} strokeWidth="2" />
-      <path d="M42 196 L46 200 L55 192" fill="none" stroke={p.glow} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    <g transform={`translate(${g.x} ${g.y}) scale(${g.scale})`} opacity={g.front}>
+      <path d="M-11 -6 L11 -6 L15 14 L-15 14 Z" fill={p.shellDark} />
+      <rect x="-6" y="-26" width="12" height="20" rx="5" fill={p.shell} />
+      <circle cx="0" cy="-28" r="8" fill={p.shellDark} />
+      <circle cx="0" cy="-28" r="4" fill={p.glow} />
+      <rect x="-18" y="14" width="36" height="8" rx="3" fill={p.shell} />
+      <ellipse cx="0" cy="34" rx="26" ry="8" fill={p.glow} opacity="0.16" />
+      <ellipse cx="0" cy="34" rx="16" ry="5" fill="none" stroke={p.glow} strokeWidth="2" />
+      <path d="M-6 34 L-2 38 L7 30" fill="none" stroke={p.glow} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </g>
   );
 }
 
-export function InstMagno({ p }: { p: Palette }) {
+export function InstMagno({ p, rig }: PartProps) {
+  const g = grip(rig);
   return (
-    <g>
-      {/* Códice abierto, flotando */}
-      <path d="M14 158 Q46 148 46 158 L46 196 Q46 186 14 196 Z" fill={p.shellDark} />
-      <path d="M78 158 Q46 148 46 158 L46 196 Q46 186 78 196 Z" fill={p.shell} />
-      <path d="M46 156 L46 196" stroke={p.glowDeep} strokeWidth="2.5" />
-      {/* Texto luminoso */}
-      <path d="M22 164 L38 160 M22 172 L38 168 M22 180 L34 177" stroke={p.glow} strokeWidth="1.8" opacity="0.8" strokeLinecap="round" />
-      <path d="M70 164 L54 160 M70 172 L54 168 M70 180 L58 177" stroke={p.glow} strokeWidth="1.8" opacity="0.8" strokeLinecap="round" />
-      {/* Glifos que se elevan del códice */}
+    <g transform={`translate(${g.x} ${g.y}) scale(${g.scale})`} opacity={g.front}>
+      <path d="M-32 -6 Q0 -16 0 -6 L0 26 Q0 16 -32 26 Z" fill={p.shellDark} />
+      <path d="M32 -6 Q0 -16 0 -6 L0 26 Q0 16 32 26 Z" fill={p.shell} />
+      <path d="M0 -8 L0 26" stroke={p.glowDeep} strokeWidth="2.4" />
+      <path d="M-24 0 L-8 -4 M-24 7 L-8 3 M-24 14 L-12 11" stroke={p.glow} strokeWidth="1.6" opacity="0.8" strokeLinecap="round" />
+      <path d="M24 0 L8 -4 M24 7 L8 3 M20 14 L8 11" stroke={p.glow} strokeWidth="1.6" opacity="0.8" strokeLinecap="round" />
+      {/* Glifos que se elevan */}
       {[
-        [30, 140, 3.5],
-        [46, 130, 4.5],
-        [62, 140, 3.5],
-        [46, 146, 2.5],
+        [-14, -26, 3.4],
+        [0, -36, 4.4],
+        [14, -26, 3.4],
+        [0, -20, 2.4],
       ].map(([cx, cy, r], i) => (
         <g key={i}>
           <circle cx={cx} cy={cy} r={r} fill={p.glow} opacity={0.9 - i * 0.12} />
           <circle cx={cx} cy={cy} r={Number(r) * 2.2} fill={p.glow} opacity="0.14" />
         </g>
       ))}
-      <ellipse cx="46" cy="204" rx="30" ry="7" fill={p.glow} opacity="0.14" />
     </g>
   );
 }
@@ -106,3 +124,8 @@ export const INSTRUMENTOS = {
   "inst-sello": InstSello,
   "inst-magno": InstMagno,
 } as const;
+
+/** Ancho de referencia para que el rig sepa cuánto ocupa un instrumento. */
+export function instrumentWidth(rig: Rig): number {
+  return pw(rig, 60, 0.5);
+}

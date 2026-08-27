@@ -1,105 +1,169 @@
 import type { Palette } from "../palette";
+import { px, pw, protrude, type Rig } from "../rig";
+import { Y } from "./figure";
 
 /**
- * Visores: el módulo de análisis. Ocupa el lugar de la cara, así que es la pieza
- * que más define al operador — cada nivel se nota de lejos.
+ * Visores: el módulo de análisis, en el lugar del rostro. Se dibujan contra el
+ * rig, así que se angostan y se corren solos al girar la figura. De espaldas no
+ * se dibujan (ahí se le ve la nuca).
  */
 
-export function VisorBasico({ p }: { p: Palette }) {
+export interface PartProps {
+  p: Palette;
+  rig: Rig;
+}
+
+/** Banda del visor: alto fijo, ancho y centro según hacia dónde mira. */
+function band(rig: Rig, width: number) {
+  const w = pw(rig, width, 0.3);
+  const cx = rig.cx + protrude(rig, 4);
+  return { w, cx, x: cx - w / 2 };
+}
+
+export function VisorBasico({ p, rig }: PartProps) {
+  if (rig.back) return null;
+  const { x, w, cx } = band(rig, 50);
+  const eye = pw(rig, 14, 0.25);
   return (
-    <g>
-      <rect x="92" y="80" width="56" height="20" rx="10" fill={p.shellDark} />
-      <rect x="96" y="84" width="48" height="12" rx="6" fill={p.glowDeep} />
-      <rect x="100" y="87" width="16" height="6" rx="3" fill={p.glow} />
-      <rect x="124" y="87" width="16" height="6" rx="3" fill={p.glow} />
+    <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+      <rect x={x} y={Y.headCy - 10} width={w} height="18" rx="9" fill={p.shellDark} />
+      <rect x={x + w * 0.07} y={Y.headCy - 6} width={w * 0.86} height="10" rx="5" fill={p.glowDeep} />
+      <rect x={px(rig, -11) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
+      <rect x={px(rig, 11) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
+      <g data-cx={cx} />
     </g>
   );
 }
 
-export function VisorLente({ p }: { p: Palette }) {
+export function VisorLente({ p, rig }: PartProps) {
+  if (rig.back) return null;
+  const { x, w } = band(rig, 56);
   return (
-    <g>
-      <rect x="88" y="78" width="64" height="24" rx="12" fill={p.shellDark} />
-      <rect x="92" y="82" width="56" height="16" rx="8" fill={p.glowDeep} />
-      <path d="M96 90 L118 90 L114 96 L96 96 Z" fill={p.glow} />
-      <path d="M144 90 L122 90 L126 96 L144 96 Z" fill={p.glow} />
-      {/* Lente de aumento sobre el ojo derecho */}
-      <circle cx="140" cy="90" r="13" fill="none" stroke={p.shellLight} strokeWidth="2.5" />
-      <circle cx="140" cy="90" r="13" fill={p.glow} opacity="0.18" />
-      <path d="M150 100 L158 110" stroke={p.shellDark} strokeWidth="3" strokeLinecap="round" />
+    <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+      <rect x={x} y={Y.headCy - 12} width={w} height="21" rx="10.5" fill={p.shellDark} />
+      <rect x={x + w * 0.07} y={Y.headCy - 8} width={w * 0.86} height="13" rx="6.5" fill={p.glowDeep} />
+      <rect x={px(rig, -12) - pw(rig, 15, 0.25) / 2} y={Y.headCy - 4} width={pw(rig, 15, 0.25)} height="6" rx="3" fill={p.glow} />
+      <rect x={px(rig, 12) - pw(rig, 15, 0.25) / 2} y={Y.headCy - 4} width={pw(rig, 15, 0.25)} height="6" rx="3" fill={p.glow} />
+      {/* Lente de aumento sobre un ojo */}
+      <ellipse
+        cx={px(rig, 16)}
+        cy={Y.headCy - 1}
+        rx={pw(rig, 22, 0.3) / 2}
+        ry="11"
+        fill="none"
+        stroke={p.shellLight}
+        strokeWidth="2.4"
+      />
+      <ellipse cx={px(rig, 16)} cy={Y.headCy - 1} rx={pw(rig, 22, 0.3) / 2} ry="11" fill={p.glow} opacity="0.2" />
     </g>
   );
 }
 
-export function VisorTactico({ p }: { p: Palette }) {
+export function VisorTactico({ p, rig }: PartProps) {
+  if (rig.back) return null;
+  const { x, w, cx } = band(rig, 62);
   return (
-    <g>
-      {/* Banda envolvente */}
-      <path d="M84 76 Q120 68 156 76 L158 100 Q120 110 82 100 Z" fill={p.shellDark} />
-      <path d="M88 80 Q120 73 152 80 L153 97 Q120 105 87 97 Z" fill={p.glowDeep} />
-      <path d="M92 86 L116 84 L114 94 L92 93 Z" fill={p.glow} />
-      <path d="M148 86 L124 84 L126 94 L148 93 Z" fill={p.glow} />
-      {/* Antena de lectura lateral */}
-      <path d="M156 78 L170 66 L174 70 L160 84 Z" fill={p.shell} />
-      <circle cx="172" cy="68" r="4" fill={p.glow} />
-      <circle cx="172" cy="68" r="8" fill={p.glow} opacity="0.25" />
-      {/* Marcas de HUD */}
-      <path d="M96 100 L100 106 M144 100 L140 106" stroke={p.glow} strokeWidth="1.5" opacity="0.7" />
+    <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+      <path
+        d={`M${x} ${Y.headCy - 14} Q${cx} ${Y.headCy - 20} ${x + w} ${Y.headCy - 14} L${x + w + 1} ${Y.headCy + 8} Q${cx} ${Y.headCy + 15} ${x - 1} ${Y.headCy + 8} Z`}
+        fill={p.shellDark}
+      />
+      <path
+        d={`M${x + 4} ${Y.headCy - 10} Q${cx} ${Y.headCy - 15} ${x + w - 4} ${Y.headCy - 10} L${x + w - 4} ${Y.headCy + 5} Q${cx} ${Y.headCy + 11} ${x + 4} ${Y.headCy + 5} Z`}
+        fill={p.glowDeep}
+      />
+      <rect x={px(rig, -13) - pw(rig, 16, 0.25) / 2} y={Y.headCy - 5} width={pw(rig, 16, 0.25)} height="7" rx="3" fill={p.glow} />
+      <rect x={px(rig, 13) - pw(rig, 16, 0.25) / 2} y={Y.headCy - 5} width={pw(rig, 16, 0.25)} height="7" rx="3" fill={p.glow} />
+      {/* Antena lateral: se ve del lado que gira hacia nosotros */}
+      <g transform={`translate(${px(rig, 30)} ${Y.headCy - 12})`}>
+        <path d="M0 0 L10 -12 L14 -8 L4 4 Z" fill={p.shell} />
+        <circle cx="12" cy="-10" r="3.5" fill={p.glow} />
+        <circle cx="12" cy="-10" r="7" fill={p.glow} opacity="0.25" />
+      </g>
     </g>
   );
 }
 
-export function VisorCorona({ p }: { p: Palette }) {
+export function VisorCorona({ p, rig }: PartProps) {
+  const { x, w, cx } = band(rig, 66);
+  const ringRx = pw(rig, 74, 0.3) / 2;
   return (
     <g>
-      {/* Anillo de procesamiento por encima del chasis */}
-      <ellipse cx="120" cy="52" rx="40" ry="11" fill="none" stroke={p.glow} strokeWidth="2.5" opacity="0.85" />
-      <ellipse cx="120" cy="52" rx="40" ry="11" fill="none" stroke={p.glow} strokeWidth="6" opacity="0.16" />
-      {[
-        [82, 52],
-        [104, 45],
-        [136, 45],
-        [158, 52],
-        [120, 60],
-      ].map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r="3.2" fill={p.glow} />
+      {/* El anillo sí se ve de espaldas: rodea la cabeza */}
+      <ellipse cx={rig.cx} cy={Y.headTop - 2} rx={ringRx} ry={Math.max(4, ringRx * 0.26)} fill="none" stroke={p.glow} strokeWidth="2.5" opacity="0.85" />
+      <ellipse cx={rig.cx} cy={Y.headTop - 2} rx={ringRx} ry={Math.max(4, ringRx * 0.26)} fill="none" stroke={p.glow} strokeWidth="6" opacity="0.15" />
+      {[-1, -0.5, 0, 0.5, 1].map((t, i) => (
+        <circle
+          key={i}
+          cx={rig.cx + ringRx * t}
+          cy={Y.headTop - 2 + Math.max(4, ringRx * 0.26) * Math.sin(Math.acos(t)) * (i % 2 ? 1 : -1)}
+          r="3"
+          fill={p.glow}
+        />
       ))}
-      {/* Visor pleno */}
-      <path d="M82 76 Q120 66 158 76 L160 102 Q120 113 80 102 Z" fill={p.shellDark} />
-      <path d="M86 80 Q120 71 154 80 L155 99 Q120 108 85 99 Z" fill={p.glowDeep} />
-      <path d="M90 88 Q120 82 150 88 L150 94 Q120 100 90 94 Z" fill={p.glow} opacity="0.9" />
-      <path d="M98 84 L108 83 L107 97 L97 96 Z" fill={p.glow} />
-      <path d="M142 84 L132 83 L133 97 L143 96 Z" fill={p.glow} />
+      {!rig.back && (
+        <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+          <path
+            d={`M${x} ${Y.headCy - 14} Q${cx} ${Y.headCy - 21} ${x + w} ${Y.headCy - 14} L${x + w + 1} ${Y.headCy + 10} Q${cx} ${Y.headCy + 18} ${x - 1} ${Y.headCy + 10} Z`}
+            fill={p.shellDark}
+          />
+          <path
+            d={`M${x + 4} ${Y.headCy - 10} Q${cx} ${Y.headCy - 16} ${x + w - 4} ${Y.headCy - 10} L${x + w - 4} ${Y.headCy + 7} Q${cx} ${Y.headCy + 14} ${x + 4} ${Y.headCy + 7} Z`}
+            fill={p.glowDeep}
+          />
+          <path
+            d={`M${x + 7} ${Y.headCy - 3} Q${cx} ${Y.headCy - 7} ${x + w - 7} ${Y.headCy - 3} L${x + w - 7} ${Y.headCy + 3} Q${cx} ${Y.headCy + 8} ${x + 7} ${Y.headCy + 3} Z`}
+            fill={p.glow}
+            opacity="0.9"
+          />
+        </g>
+      )}
     </g>
   );
 }
 
-export function VisorMagistral({ p }: { p: Palette }) {
+export function VisorMagistral({ p, rig }: PartProps) {
+  const { x, w, cx } = band(rig, 70);
+  const spread = pw(rig, 70, 0.3) / 2;
   return (
     <g>
-      {/* Diadema de laurel geométrico: la referencia clásica, en clave técnica */}
-      <path d="M120 44 L128 36 L140 34 L150 40 L156 52" fill="none" stroke={p.glow} strokeWidth="3" strokeLinecap="round" />
-      <path d="M120 44 L112 36 L100 34 L90 40 L84 52" fill="none" stroke={p.glow} strokeWidth="3" strokeLinecap="round" />
-      {[
-        [131, 35],
-        [143, 34],
-        [152, 42],
-        [109, 35],
-        [97, 34],
-        [88, 42],
-      ].map(([cx, cy], i) => (
+      {/* Laurel geométrico: envuelve la cabeza, se ve de todos los ángulos */}
+      {[-1, 1].map((side) => (
+        <path
+          key={side}
+          d={`M${rig.cx} ${Y.headTop - 10} Q${rig.cx + side * spread * 0.7} ${Y.headTop - 14} ${rig.cx + side * spread} ${Y.headTop + 6}`}
+          fill="none"
+          stroke={p.glow}
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      ))}
+      {[-0.85, -0.45, 0.45, 0.85].map((t, i) => (
         <g key={i}>
-          <circle cx={cx} cy={cy} r="4" fill={p.glow} />
-          <circle cx={cx} cy={cy} r="8" fill={p.glow} opacity="0.2" />
+          <circle cx={rig.cx + spread * t} cy={Y.headTop - 10 + Math.abs(t) * 12} r="3.6" fill={p.glow} />
+          <circle cx={rig.cx + spread * t} cy={Y.headTop - 10 + Math.abs(t) * 12} r="7.5" fill={p.glow} opacity="0.2" />
         </g>
       ))}
-      <path d="M120 40 L126 46 L120 52 L114 46 Z" fill={p.shellLight} />
+      <path d={`M${rig.cx} ${Y.headTop - 16} L${rig.cx + 6} ${Y.headTop - 10} L${rig.cx} ${Y.headTop - 4} L${rig.cx - 6} ${Y.headTop - 10} Z`} fill={p.shellLight} />
 
-      <path d="M80 74 Q120 63 160 74 L162 104 Q120 116 78 104 Z" fill={p.shellDark} />
-      <path d="M84 78 Q120 68 156 78 L157 101 Q120 111 83 101 Z" fill={p.glowDeep} />
-      <path d="M88 86 Q120 79 152 86 L152 96 Q120 103 88 96 Z" fill={p.glow} />
-      <path d="M96 82 L106 81 L105 99 L95 98 Z" fill={p.shellLight} opacity="0.9" />
-      <path d="M144 82 L134 81 L135 99 L145 98 Z" fill={p.shellLight} opacity="0.9" />
+      {!rig.back && (
+        <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+          <path
+            d={`M${x} ${Y.headCy - 16} Q${cx} ${Y.headCy - 23} ${x + w} ${Y.headCy - 16} L${x + w + 1} ${Y.headCy + 12} Q${cx} ${Y.headCy + 20} ${x - 1} ${Y.headCy + 12} Z`}
+            fill={p.shellDark}
+          />
+          <path
+            d={`M${x + 4} ${Y.headCy - 12} Q${cx} ${Y.headCy - 18} ${x + w - 4} ${Y.headCy - 12} L${x + w - 4} ${Y.headCy + 9} Q${cx} ${Y.headCy + 16} ${x + 4} ${Y.headCy + 9} Z`}
+            fill={p.glowDeep}
+          />
+          <path
+            d={`M${x + 7} ${Y.headCy - 4} Q${cx} ${Y.headCy - 9} ${x + w - 7} ${Y.headCy - 4} L${x + w - 7} ${Y.headCy + 4} Q${cx} ${Y.headCy + 10} ${x + 7} ${Y.headCy + 4} Z`}
+            fill={p.glow}
+          />
+          <rect x={px(rig, -14) - pw(rig, 10, 0.25) / 2} y={Y.headCy - 10} width={pw(rig, 10, 0.25)} height="18" rx="3" fill={p.shellLight} opacity="0.9" />
+          <rect x={px(rig, 14) - pw(rig, 10, 0.25) / 2} y={Y.headCy - 10} width={pw(rig, 10, 0.25)} height="18" rx="3" fill={p.shellLight} opacity="0.9" />
+        </g>
+      )}
     </g>
   );
 }
