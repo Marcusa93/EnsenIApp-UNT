@@ -1,6 +1,6 @@
 import * as React from "react";
 import { buildPalette, type ChassisId, type Palette } from "./palette";
-import { makeRig, type Rig } from "./rig";
+import { depthAt, makeRig, type Rig } from "./rig";
 import { Arm, Body, Head, Legs } from "./parts/figure";
 import { VISORES } from "./parts/visor";
 import { TOGAS } from "./parts/toga";
@@ -65,9 +65,9 @@ export function OperatorAvatar({
   const Visor = pick(VISORES as unknown as Record<string, Part>, eq.visor);
   const Instrumento = bust ? null : pick(INSTRUMENTOS as unknown as Record<string, Part>, eq.instrumento);
 
-  // El brazo que sostiene el instrumento es el de offset negativo. Queda delante
-  // del cuerpo mientras esté de nuestro lado.
-  const leftArmInFront = rig.s <= 0;
+  // Qué brazo queda delante del cuerpo depende de la profundidad real de cada
+  // uno (cuelgan levemente hacia adelante, no sobre el eje).
+  const leftArmInFront = depthAt(rig, -33, 7) >= depthAt(rig, 33, 7);
 
   // El busto encuadra la cabeza; el cuerpo entero, la figura completa.
   const viewBox = bust ? "72 26 96 96" : "0 0 240 240";

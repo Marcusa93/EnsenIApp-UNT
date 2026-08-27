@@ -12,11 +12,11 @@ import { depthAt, faceAlpha, place, proj, type Rig } from "../rig";
 
 export const Y = {
   headTop: 28,
-  headCy: 62,
+  headCy: 64,
   headRy: 33,
-  neck: 95,
-  shoulder: 108,
-  chest: 126,
+  neck: 97,
+  shoulder: 104,
+  chest: 124,
   hip: 158,
   knee: 184,
   foot: 214,
@@ -26,8 +26,8 @@ export const Y = {
 export const DIM = {
   head: [66, 60] as const,
   neck: [17, 16] as const,
-  shoulders: [64, 34] as const,
-  waist: [46, 30] as const,
+  shoulders: [64, 46] as const,
+  waist: [46, 38] as const,
   leg: [17, 16] as const,
   arm: [13, 13] as const,
 } as const;
@@ -59,7 +59,8 @@ export function Legs({ p, rig }: { p: Palette; rig: Rig }) {
 
 export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
   const lateral = 33 * side;
-  const cx = place(rig, lateral);
+  const forward = 7;
+  const cx = place(rig, lateral, forward);
   const armW = proj(rig, DIM.arm[0], DIM.arm[1]);
 
   return (
@@ -88,7 +89,7 @@ export function Body({ p, rig }: { p: Palette; rig: Rig }) {
   return (
     <g>
       {/* Cuello */}
-      <rect x={place(rig, 0) - neckW / 2} y={Y.neck - 4} width={neckW} height="16" rx="5" fill={p.shellDark} />
+      <rect x={place(rig, 0) - neckW / 2} y={Y.neck - 3} width={neckW} height="11" rx="4" fill={p.shellDark} />
 
       {/* Torso */}
       <path
