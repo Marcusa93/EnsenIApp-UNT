@@ -10,6 +10,7 @@ import { Turntable } from "./turntable";
 import { OperatorForge } from "./operator-forge";
 import { equipItem, markItemsSeen } from "@/app/campus/estudiante/juegos/avatar-actions";
 import { EmoteBar } from "./emote-bar";
+import { ShareStory } from "./share-story";
 import { EMOTE_BY_ID, type EmoteProgress } from "@/lib/games/emotes";
 
 /**
@@ -62,10 +63,12 @@ export function Loadout({
   avatar,
   items,
   progress,
+  share,
 }: {
   avatar: LoadoutAvatar;
   items: LoadoutItem[];
   progress: EmoteProgress;
+  share: { levelName: string; levelNumber: number; xp: number; streak: number };
 }) {
   const router = useRouter();
   const [config, setConfig] = React.useState(avatar);
@@ -83,11 +86,13 @@ export function Loadout({
     if (!e) return;
     if (emoteTimer.current) clearTimeout(emoteTimer.current);
     // Se apaga y se vuelve a prender para que la animación reinicie si repetís.
+    // Con setTimeout y no rAF: si la pestaña está en segundo plano, rAF no corre
+    // y el emote quedaría colgado esperando para siempre.
     setEmote(null);
-    requestAnimationFrame(() => {
+    emoteTimer.current = setTimeout(() => {
       setEmote(id);
       emoteTimer.current = setTimeout(() => setEmote(null), e.duration + 60);
-    });
+    }, 20);
   }, []);
 
   React.useEffect(() => () => {
@@ -169,9 +174,23 @@ export function Loadout({
               </>
             )}
           </div>
-          <Button variant="secondary" size="sm" leftIcon={<Pencil />} onClick={() => setEditing(true)}>
-            Cambiar aspecto
-          </Button>
+          <div className="flex flex-wrap items-start justify-center gap-2">
+            <Button variant="secondary" size="sm" leftIcon={<Pencil />} onClick={() => setEditing(true)}>
+              Cambiar aspecto
+            </Button>
+            <div className="flex flex-col items-center">
+              <ShareStory
+                config={config}
+                callsign={config.callsign}
+                levelName={share.levelName}
+                levelNumber={share.levelNumber}
+                xp={share.xp}
+                itemsOwned={owned}
+                itemsTotal={items.length}
+                streak={share.streak}
+              />
+            </div>
+          </div>
 
           <div className="w-full">
             <EmoteBar progress={progress} playing={emote} onPlay={playEmote} />

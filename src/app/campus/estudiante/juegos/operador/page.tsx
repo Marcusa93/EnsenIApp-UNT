@@ -26,8 +26,9 @@ export default async function OperadorPage() {
     .eq("student_id", user.id)
     .maybeSingle();
 
+  const lvl = levelFor(stats?.xp ?? 0);
   const progress = {
-    level: levelFor(stats?.xp ?? 0).level.n,
+    level: lvl.level.n,
     streak: stats?.best_streak ?? 0,
     correct: stats?.correct ?? 0,
     runs: stats?.runs ?? 0,
@@ -49,7 +50,17 @@ export default async function OperadorPage() {
         title="Mi operador"
         description="Todo lo que ves acá se gana jugando. Lo bloqueado muestra qué falta para conseguirlo."
       />
-      <Loadout avatar={avatar} items={items} progress={progress} />
+      <Loadout
+        avatar={avatar}
+        items={items}
+        progress={progress}
+        share={{
+          levelName: lvl.level.name,
+          levelNumber: lvl.level.n,
+          xp: stats?.xp ?? 0,
+          streak: stats?.best_streak ?? 0,
+        }}
+      />
     </>
   );
 }
