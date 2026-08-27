@@ -64,7 +64,10 @@ export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
   const armW = proj(rig, DIM.arm[0], DIM.arm[1]);
 
   return (
-    <g>
+    <g
+      className={side < 0 ? "av-arm av-arm-l" : "av-arm av-arm-r"}
+      style={{ transformOrigin: `${cx}px ${Y.shoulder}px` }}
+    >
       {/* Hombrera */}
       <ellipse cx={cx} cy={Y.shoulder + 1} rx={armW * 0.82} ry={armW * 0.7} fill={p.shellDark} />
       <ellipse cx={cx - armW * 0.12} cy={Y.shoulder - 1} rx={armW * 0.6} ry={armW * 0.48} fill={p.shell} opacity="0.7" />
@@ -170,7 +173,7 @@ export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: Chass
   const shift = 2 * rig.s;
 
   return (
-    <g>
+    <g className="av-head" style={{ transformOrigin: `${rig.cx}px ${Y.neck}px` }}>
       {chassis === "encapuchado" && (
         <path
           d={`M${cx + shift} ${Y.headTop - 9} Q${cx + shift + rx + 9} ${Y.headTop - 3} ${cx + shift + rx + 7} ${Y.headCy + 24}

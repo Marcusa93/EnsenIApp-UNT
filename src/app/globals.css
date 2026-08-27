@@ -341,3 +341,134 @@ dialog[open] {
   animation: av-pulse 3.6s ease-in-out infinite;
   transform-origin: 120px 130px;
 }
+
+/* ---------------------------------------------------------------------------
+   Emotes del operador (src/lib/games/emotes.ts)
+   Animaciones ORIGINALES de la cátedra: no se replican coreografías de terceros.
+   Cada clase anima los grupos etiquetados del muñeco; el rig no se toca.
+--------------------------------------------------------------------------- */
+
+/* Saludo: el brazo derecho sube y hamaca */
+@keyframes em-wave {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-118deg); }
+  35% { transform: rotate(-96deg); }
+  50% { transform: rotate(-124deg); }
+  65% { transform: rotate(-100deg); }
+  80% { transform: rotate(-118deg); }
+}
+.em-saludo .av-arm-r { animation: em-wave 1.6s ease-in-out; }
+.em-saludo .av-head { animation: em-tilt 1.6s ease-in-out; }
+@keyframes em-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  40% { transform: rotate(-7deg); }
+  70% { transform: rotate(4deg); }
+}
+
+/* Objeción: brazo al frente, cuerpo adelantado */
+@keyframes em-point {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-72deg) translateY(-4px); }
+  70% { transform: rotate(-66deg) translateY(-4px); }
+}
+@keyframes em-lean {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  30%, 70% { transform: translateX(5px) rotate(2deg); }
+}
+.em-objecion .av-arm-l { animation: em-point 1.4s cubic-bezier(0.22, 1, 0.36, 1); }
+.em-objecion .av-head { animation: em-lean 1.4s ease-out; }
+
+/* Fallo favorable: los dos brazos arriba y saltito */
+@keyframes em-up-l {
+  0%, 100% { transform: rotate(0deg); }
+  30%, 75% { transform: rotate(138deg); }
+}
+@keyframes em-up-r {
+  0%, 100% { transform: rotate(0deg); }
+  30%, 75% { transform: rotate(-138deg); }
+}
+@keyframes em-hop {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-12px); }
+  45% { transform: translateY(0); }
+  60% { transform: translateY(-6px); }
+  80% { transform: translateY(0); }
+}
+.em-festejo .av-arm-l { animation: em-up-l 1.8s ease-in-out; }
+.em-festejo .av-arm-r { animation: em-up-r 1.8s ease-in-out; }
+.em-festejo { animation: em-hop 1.8s ease-in-out; }
+
+/* Martillazo: sube y golpea */
+@keyframes em-hammer {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-104deg); }
+  42% { transform: rotate(-24deg); }
+  55% { transform: rotate(-88deg); }
+  70% { transform: rotate(-20deg); }
+}
+@keyframes em-shake {
+  0%, 100% { transform: translateY(0); }
+  44%, 72% { transform: translateY(3px); }
+}
+.em-martillazo .av-arm-l { animation: em-hammer 1.5s ease-in-out; }
+.em-martillazo { animation: em-shake 1.5s ease-in-out; }
+
+/* Seis siete: una mano y la otra, alternando */
+@keyframes em-weigh-l {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-58deg); }
+  50% { transform: rotate(-30deg); }
+  80% { transform: rotate(-58deg); }
+}
+@keyframes em-weigh-r {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(30deg); }
+  50% { transform: rotate(58deg); }
+  80% { transform: rotate(30deg); }
+}
+@keyframes em-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(6deg); }
+  60% { transform: rotate(-6deg); }
+}
+.em-seissiete .av-arm-l { animation: em-weigh-l 2s ease-in-out; }
+.em-seissiete .av-arm-r { animation: em-weigh-r 2s ease-in-out; }
+.em-seissiete .av-head { animation: em-sway 2s ease-in-out; }
+
+/* Vuelta de toga: giro completo de la figura */
+@keyframes em-spin-body {
+  0% { transform: rotateY(0deg) scale(1); }
+  50% { transform: rotateY(180deg) scale(1.04); }
+  100% { transform: rotateY(360deg) scale(1); }
+}
+.em-toga { animation: em-spin-body 2.2s cubic-bezier(0.5, 0, 0.5, 1); transform-origin: 120px 130px; }
+
+/* A pensar: mano al mentón y cabeza inclinada */
+@keyframes em-think-arm {
+  0%, 100% { transform: rotate(0deg); }
+  22%, 82% { transform: rotate(-128deg) translateX(6px); }
+}
+@keyframes em-think-head {
+  0%, 100% { transform: rotate(0deg); }
+  30%, 75% { transform: rotate(-11deg); }
+}
+.em-meditar .av-arm-r { animation: em-think-arm 2.4s ease-in-out; }
+.em-meditar .av-head { animation: em-think-head 2.4s ease-in-out; }
+
+/* Sentencia firme: brazos abiertos, pulso y destello */
+@keyframes em-open-l {
+  0%, 100% { transform: rotate(0deg); }
+  35%, 80% { transform: rotate(108deg); }
+}
+@keyframes em-open-r {
+  0%, 100% { transform: rotate(0deg); }
+  35%, 80% { transform: rotate(-108deg); }
+}
+@keyframes em-surge {
+  0%, 100% { transform: scale(1); filter: none; }
+  40% { transform: scale(1.05); filter: brightness(1.35); }
+  70% { transform: scale(1.02); filter: brightness(1.15); }
+}
+.em-victoria .av-arm-l { animation: em-open-l 2.6s cubic-bezier(0.22, 1, 0.36, 1); }
+.em-victoria .av-arm-r { animation: em-open-r 2.6s cubic-bezier(0.22, 1, 0.36, 1); }
+.em-victoria { animation: em-surge 2.6s ease-in-out; transform-origin: 120px 140px; }

@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { Turntable } from "./turntable";
 import { OperatorForge } from "./operator-forge";
 import { equipItem, markItemsSeen } from "@/app/campus/estudiante/juegos/avatar-actions";
+import { EmoteBar } from "./emote-bar";
+import { EMOTE_BY_ID, type EmoteProgress } from "@/lib/games/emotes";
 
 /**
  * Vestidor: el retrato grande y las ranuras de equipo. Lo bloqueado también se
@@ -56,7 +58,15 @@ const RARITY: Record<LoadoutItem["rarity"], { label: string; className: string; 
   legendario: { label: "Legendario", className: "border-accent-3/60", tone: "accent-3" },
 };
 
-export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: LoadoutItem[] }) {
+export function Loadout({
+  avatar,
+  items,
+  progress,
+}: {
+  avatar: LoadoutAvatar;
+  items: LoadoutItem[];
+  progress: EmoteProgress;
+}) {
   const router = useRouter();
   const [config, setConfig] = React.useState(avatar);
   const [slot, setSlot] = React.useState<string>("visor");
@@ -64,6 +74,25 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
   const [editing, setEditing] = React.useState(false);
   /** Ítem bloqueado que se está probando: se ve puesto, pero como proyección. */
   const [trying, setTrying] = React.useState<LoadoutItem | null>(null);
+  /** Emote sonando: se apaga solo al terminar para poder repetirlo. */
+  const [emote, setEmote] = React.useState<string | null>(null);
+  const emoteTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const playEmote = React.useCallback((id: string) => {
+    const e = EMOTE_BY_ID.get(id);
+    if (!e) return;
+    if (emoteTimer.current) clearTimeout(emoteTimer.current);
+    // Se apaga y se vuelve a prender para que la animación reinicie si repetís.
+    setEmote(null);
+    requestAnimationFrame(() => {
+      setEmote(id);
+      emoteTimer.current = setTimeout(() => setEmote(null), e.duration + 60);
+    });
+  }, []);
+
+  React.useEffect(() => () => {
+    if (emoteTimer.current) clearTimeout(emoteTimer.current);
+  }, []);
   const [error, setError] = React.useState<string | null>(null);
 
   const nuevos = items.filter((i) => i.isNew);
@@ -122,7 +151,7 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         {/* Retrato */}
         <div className="flex min-w-0 flex-col items-center gap-3 lg:col-span-5">
-          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} title={config.callsign} className="w-full" />
+          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} emoteClass={emote ? (EMOTE_BY_ID.get(emote)?.className ?? null) : null} title={config.callsign} className="w-full" />
           <div className="text-center">
             {trying ? (
               <>
@@ -143,6 +172,10 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
           <Button variant="secondary" size="sm" leftIcon={<Pencil />} onClick={() => setEditing(true)}>
             Cambiar aspecto
           </Button>
+
+          <div className="w-full">
+            <EmoteBar progress={progress} playing={emote} onPlay={playEmote} />
+          </div>
         </div>
 
         {/* Ranuras */}

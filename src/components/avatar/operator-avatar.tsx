@@ -40,6 +40,8 @@ export interface OperatorAvatarProps {
    * proyección, para que se vea cómo quedaría sin hacerlo pasar por propio.
    */
   ghostSlot?: string | null;
+  /** Clase CSS del emote que se está reproduciendo (ver src/lib/games/emotes.ts). */
+  emoteClass?: string | null;
   className?: string;
   title?: string;
 }
@@ -57,6 +59,7 @@ export function OperatorAvatar({
   angle = 0,
   bust = false,
   ghostSlot = null,
+  emoteClass = null,
   className,
   title,
 }: OperatorAvatarProps) {
@@ -110,7 +113,7 @@ export function OperatorAvatar({
         </clipPath>
       </defs>
 
-      <g clipPath={bust ? undefined : `url(#${clipId})`}>
+      <g clipPath={bust ? undefined : `url(#${clipId})`} className={emoteClass ?? undefined}>
         {Fondo ? <Fondo p={p} rig={rig} /> : !bust && <circle cx="120" cy="120" r="118" fill="#12151f" />}
         {Aura && wrap("aura", <Aura p={p} rig={rig} />)}
 

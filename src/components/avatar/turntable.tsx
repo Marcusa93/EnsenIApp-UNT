@@ -17,12 +17,14 @@ export function Turntable({
   config,
   size = 300,
   ghostSlot = null,
+  emoteClass = null,
   className,
   title,
 }: {
   config: AvatarConfig;
   size?: number;
   ghostSlot?: string | null;
+  emoteClass?: string | null;
   className?: string;
   title?: string;
 }) {
@@ -87,7 +89,15 @@ export function Turntable({
         }}
         className="w-full max-w-[320px] cursor-ew-resize touch-none rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
       >
-        <OperatorAvatar config={config} size={size} angle={angle} ghostSlot={ghostSlot} className="h-auto w-full" title={title} />
+        <OperatorAvatar
+          config={config}
+          size={size}
+          angle={angle}
+          ghostSlot={ghostSlot}
+          emoteClass={emoteClass}
+          className="h-auto w-full"
+          title={title}
+        />
       </div>
 
       <div className="flex items-center gap-2">
