@@ -67,6 +67,7 @@ Nunca importar `admin.ts` desde un componente cliente.
 | Seguimiento | `usage_events` (telemetría; ver taxonomía en `src/lib/types/helpers.ts`), `teacher_alerts` (triggers automáticos), `report_requests` (informes a demanda: scope, filters, result_md) |
 | Notificaciones | `notifications` (bandeja in-app), `notification_preferences`, `notification_deliveries`, `notification_campaigns`, `push_subscriptions` — esquema listo (004) con RLS; la UI/envíos son un módulo futuro |
 | Sesión en vivo | `live_prompts` (banco de disparadoras por clase; sólo docente ve el banco completo), `live_sessions` (code, status draft/live/ended, `active_prompt_id` = única fuente de verdad de qué se ve ahora, `class_topic` denormalizado para el link público), `live_responses` (una por participante y prompt; RLS exige que sea justo la disparadora activa) |
+| Gamificación | `badges` (catálogo con tier bronce/plata/oro), `student_badges` (seen para la celebración); `award_badges(uuid)` se dispara por triggers en cada interacción (usage_events, check-ins, Alberdi, vivo, debates, entregas, placas) |
 | Vistas | `v_course_engagement`, `v_recording_status` (incluye `error_message` desde 004), `v_live_wordcloud` (agregado público, sin identidad, para el proyector) |
 
 Tipos: `import type { Tables, Enums } from "@/lib/types/helpers"` → `Tables<"activities">`. Los JSONB llegan como `Json`;
@@ -76,7 +77,8 @@ Migraciones aplicadas: `001_init` → `004_integration` (esta última consolidó
 paralela: constraints del pipeline, policies de storage para entregas y borrado, visibilidad de perfiles
 docentes, esquema de notificaciones, delete de informes, realtime de `debate_supports` y unicidad de
 check-ins). `005` agrega el acceso por nombre (sesión anónima). `006`/`007` agregan la sesión en vivo (nube de
-palabras) y seedean la clase de Ciberdelitos con sus 6 disparadoras. Cambios de esquema nuevos:
+palabras) y seedean la clase de Ciberdelitos con sus 6 disparadoras. `008` auto-inscripción; `009` Alberdi;
+`010` cronograma real 2026 (30 clases); `011` medallas. Cambios de esquema nuevos:
 `supabase/migrations/NNN_*.sql` + `scripts/db.sh` + `scripts/gen-types.sh`.
 
 ## 5. Mapa de rutas (única fuente de verdad: `src/lib/nav.ts`)

@@ -438,6 +438,33 @@ export type Database = {
           },
         ]
       }
+      badges: {
+        Row: {
+          description: string
+          icon: string
+          id: string
+          name: string
+          sort: number
+          tier: Database["public"]["Enums"]["badge_tier"]
+        }
+        Insert: {
+          description: string
+          icon: string
+          id: string
+          name: string
+          sort?: number
+          tier?: Database["public"]["Enums"]["badge_tier"]
+        }
+        Update: {
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort?: number
+          tier?: Database["public"]["Enums"]["badge_tier"]
+        }
+        Relationships: []
+      }
       card_progress: {
         Row: {
           attempts: number
@@ -1866,6 +1893,42 @@ export type Database = {
           },
         ]
       }
+      student_badges: {
+        Row: {
+          awarded_at: string
+          badge_id: string
+          seen: boolean
+          student_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_id: string
+          seen?: boolean
+          student_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_id?: string
+          seen?: boolean
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_badges_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_checkins: {
         Row: {
           class_id: string
@@ -2357,6 +2420,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      award_badges: { Args: { p_student: string }; Returns: undefined }
       default_course_id: { Args: never; Returns: string }
       try_uuid: { Args: { v: string }; Returns: string }
       unread_notifications_count: { Args: never; Returns: number }
@@ -2378,6 +2442,7 @@ export type Database = {
         | "inactividad"
         | "consulta_sin_responder"
       argument_status: "visible" | "hidden"
+      badge_tier: "bronce" | "plata" | "oro"
       debate_stance: "a_favor" | "en_contra" | "neutral"
       debate_status: "open" | "closed" | "archived"
       delivery_channel: "email" | "push"
@@ -2559,6 +2624,7 @@ export const Constants = {
         "consulta_sin_responder",
       ],
       argument_status: ["visible", "hidden"],
+      badge_tier: ["bronce", "plata", "oro"],
       debate_stance: ["a_favor", "en_contra", "neutral"],
       debate_status: ["open", "closed", "archived"],
       delivery_channel: ["email", "push"],

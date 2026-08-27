@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpenCheck, ClipboardCheck, Gauge, GraduationCap, Layers, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { BookOpenCheck, ClipboardCheck, Gauge, GraduationCap, Layers, MessageCircleQuestion, Sparkles, Trophy } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getPrimaryCourse } from "@/lib/courses";
 import { createClient } from "@/lib/supabase/server";
@@ -12,6 +12,7 @@ import { dayKey, shiftDayKey, todayKey, weekStartKey } from "../_components/stud
 import { CardsRadial, WeeklyActivityChart, type WeekBucket } from "./_components/progress-charts";
 import { GenerateFeedbackButton } from "./_components/generate-feedback-button";
 import { FeedbackList, type FeedbackRow } from "./_components/feedback-list";
+import { Medallero } from "@/components/gamification/medallero";
 
 export const metadata = { title: "Mi progreso · EnsenIA UNT" };
 
@@ -251,6 +252,16 @@ export default async function ProgresoPage() {
           <CardsRadial known={knownCards} total={totalCards} />
         </div>
       </div>
+
+      <section aria-labelledby="medallero" className="mt-10">
+        <div className="mb-4 flex items-center gap-2">
+          <Trophy className="size-4 text-accent-3" aria-hidden />
+          <h2 id="medallero" className="eyebrow">
+            Medallero
+          </h2>
+        </div>
+        <Medallero userId={user.id} />
+      </section>
 
       <section aria-labelledby="devolucion" className="mt-10">
         <div className="mb-4 flex items-center gap-2">
