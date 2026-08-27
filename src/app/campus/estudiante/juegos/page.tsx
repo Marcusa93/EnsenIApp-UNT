@@ -11,6 +11,8 @@ import { getAvatarData } from "@/lib/games/avatar-data";
 import { OperatorAvatar } from "@/components/avatar/operator-avatar";
 import { GameLauncher } from "./_components/game-launcher";
 import { OperatorGate } from "./_components/operator-gate";
+import { WeeklyCard } from "./_components/weekly-card";
+import { getWeeklyStatus } from "@/lib/games/weekly";
 
 export const metadata: Metadata = { title: "Juegos · EnsenIA UNT" };
 
@@ -44,6 +46,8 @@ export default async function JuegosPage() {
   if (!avatarData.avatar) {
     return <OperatorGate />;
   }
+
+  const weekly = await getWeeklyStatus(supabase, user.id, course.id);
 
   const [statsRes, configRes, classesRes, boardRes, countsRes] = await Promise.all([
     supabase
@@ -121,6 +125,10 @@ export default async function JuegosPage() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
           <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
+            <Reveal>
+              <WeeklyCard status={weekly} />
+            </Reveal>
+
             {/* Nivel */}
             <Reveal>
               <Card highlight>

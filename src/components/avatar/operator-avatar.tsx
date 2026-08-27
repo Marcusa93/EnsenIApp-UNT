@@ -114,7 +114,6 @@ export function OperatorAvatar({
       className={[cn("select-none", className), emoteClass, bust ? "" : activeSetClasses(eq)]
         .filter(Boolean)
         .join(" ")}
-      data-emote={emoteClass ?? "sin-emote"}
       role="img"
       aria-label={title ?? "Avatar del operador"}
     >

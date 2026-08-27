@@ -2651,6 +2651,55 @@ export type Database = {
           },
         ]
       }
+      weekly_claims: {
+        Row: {
+          claimed_at: string
+          correct: number
+          course_id: string
+          student_id: string
+          week_start: string
+          xp_awarded: number
+        }
+        Insert: {
+          claimed_at?: string
+          correct: number
+          course_id: string
+          student_id: string
+          week_start: string
+          xp_awarded: number
+        }
+        Update: {
+          claimed_at?: string
+          correct?: number
+          course_id?: string
+          student_id?: string
+          week_start?: string
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_claims_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_claims_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "weekly_claims_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_alberdi_stats: {
@@ -2838,6 +2887,7 @@ export type Database = {
         | "aciertos"
         | "partidas"
         | "medalla"
+        | "semanas"
       avatar_slot:
         | "visor"
         | "toga"
@@ -3036,6 +3086,7 @@ export const Constants = {
         "aciertos",
         "partidas",
         "medalla",
+        "semanas",
       ],
       avatar_slot: [
         "visor",
