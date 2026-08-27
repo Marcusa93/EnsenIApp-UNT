@@ -18,6 +18,7 @@ export function Turntable({
   size = 300,
   ghostSlot = null,
   emoteClass = null,
+  emoteKey = 0,
   className,
   title,
 }: {
@@ -25,6 +26,7 @@ export function Turntable({
   size?: number;
   ghostSlot?: string | null;
   emoteClass?: string | null;
+  emoteKey?: number;
   className?: string;
   title?: string;
 }) {
@@ -95,6 +97,7 @@ export function Turntable({
           angle={angle}
           ghostSlot={ghostSlot}
           emoteClass={emoteClass}
+          emoteKey={emoteKey}
           className="h-auto w-full"
           title={title}
         />

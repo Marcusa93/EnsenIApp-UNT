@@ -80,25 +80,25 @@ export function Loadout({
   /** Ítem bloqueado que se está probando: se ve puesto, pero como proyección. */
   const [trying, setTrying] = React.useState<LoadoutItem | null>(null);
   /**
-   * Emote sonando. Se guarda el objeto entero y no su id: buscarlo de nuevo en
-   * el render agregaba una indirección que devolvía undefined y dejaba al muñeco
-   * sin animar.
+   * Emote sonando. Se guarda el objeto entero (no su id) y un contador de pases.
+   *
+   * El contador es lo que reinicia la animación al repetir el mismo emote: viaja
+   * como `key` del svg, así React lo vuelve a montar y los keyframes arrancan de
+   * cero. Antes esto se hacía apagando y volviendo a prender con un timer, que
+   * dependía de que el componente siguiera montado en ese intervalo y a veces
+   * dejaba al muñeco sin animar.
    */
-  const [emote, setEmote] = React.useState<Emote | null>(null);
+  const [emote, setEmote] = React.useState<{ e: Emote; pass: number } | null>(null);
   const emoteTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const passRef = React.useRef(0);
 
   const playEmote = React.useCallback((id: string) => {
     const e = EMOTE_BY_ID.get(id);
     if (!e) return;
     if (emoteTimer.current) clearTimeout(emoteTimer.current);
-    // Se apaga y se vuelve a prender para que la animación reinicie si repetís.
-    // Con setTimeout y no rAF: si la pestaña está en segundo plano, rAF no corre
-    // y el emote quedaría colgado esperando para siempre.
-    setEmote(null);
-    emoteTimer.current = setTimeout(() => {
-      setEmote(e);
-      emoteTimer.current = setTimeout(() => setEmote(null), e.duration + 60);
-    }, 20);
+    passRef.current += 1;
+    setEmote({ e, pass: passRef.current });
+    emoteTimer.current = setTimeout(() => setEmote(null), e.duration + 80);
   }, []);
 
   React.useEffect(() => () => {
@@ -172,7 +172,8 @@ export function Loadout({
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         {/* Retrato */}
         <div className="flex min-w-0 flex-col items-center gap-3 lg:col-span-5">
-          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} emoteClass={emote?.className ?? null} title={config.callsign} className="w-full" />
+          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} emoteClass={emote?.e.className ?? null}
+            emoteKey={emote?.pass ?? 0} title={config.callsign} className="w-full" />
           <div className="text-center">
             {trying ? (
               <>
@@ -209,7 +210,7 @@ export function Loadout({
           </div>
 
           <div className="w-full">
-            <EmoteBar progress={progress} playing={emote?.id ?? null} onPlay={playEmote} />
+            <EmoteBar progress={progress} playing={emote?.e.id ?? null} onPlay={playEmote} />
           </div>
         </div>
 

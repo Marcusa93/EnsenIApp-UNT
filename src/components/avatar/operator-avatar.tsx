@@ -45,6 +45,8 @@ export interface OperatorAvatarProps {
   ghostSlot?: string | null;
   /** Clase CSS del emote que se está reproduciendo (ver src/lib/games/emotes.ts). */
   emoteClass?: string | null;
+  /** Contador de pases: al cambiar, remonta el svg y la animación arranca de cero. */
+  emoteKey?: number;
   className?: string;
   title?: string;
 }
@@ -63,6 +65,7 @@ export function OperatorAvatar({
   bust = false,
   ghostSlot = null,
   emoteClass = null,
+  emoteKey = 0,
   className,
   title,
 }: OperatorAvatarProps) {
@@ -101,6 +104,7 @@ export function OperatorAvatar({
 
   return (
     <svg
+      key={`${emoteClass ?? "idle"}-${emoteKey}`}
       viewBox={viewBox}
       width={size}
       height={size}
