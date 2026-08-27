@@ -11,9 +11,13 @@ import type { DbClient } from "@/lib/courses";
 const LIMITS = {
   summaryMd: 2500,
   simplified: 2000,
-  /** Sólo cuando la consulta está anclada a una clase concreta. */
-  transcript: 12_000,
-  totalChars: 60_000,
+  /**
+   * Sólo cuando la consulta está anclada a una clase concreta. Alto a propósito:
+   * una clase de 80 min ronda los 45k caracteres y "¿en qué minuto se dijo X?"
+   * necesita la clase entera (≈13k tokens de Haiku por consulta: barato).
+   */
+  transcript: 48_000,
+  totalChars: 90_000,
 } as const;
 
 export interface ContextSource {
@@ -35,6 +39,42 @@ function clamp(text: string | null | undefined, max: number): string {
   if (!text) return "";
   const t = text.trim();
   return t.length <= max ? t : `${t.slice(0, max)}\n[…recortado]`;
+}
+
+function mmss(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+/**
+ * Transcripción con marcas de tiempo: agrupa los micro-segmentos de Whisper en
+ * líneas de ~30 s ("[mm:ss] texto…"). Si no hay segments, cae al texto plano.
+ */
+function buildStampedTranscript(segments: unknown, fullText: string | null): string {
+  const list = Array.isArray(segments)
+    ? (segments as { start?: number; text?: string }[]).filter((s) => typeof s?.start === "number" && s?.text)
+    : [];
+  if (list.length === 0) return clamp(fullText, LIMITS.transcript);
+
+  const lines: string[] = [];
+  let lineStart = -1;
+  let buffer = "";
+  for (const s of list) {
+    const start = s.start as number;
+    if (lineStart < 0 || start - lineStart >= 30) {
+      if (buffer) lines.push(`[${mmss(lineStart)}] ${buffer.trim()}`);
+      lineStart = start;
+      buffer = "";
+    }
+    buffer += ` ${(s.text as string).trim()}`;
+  }
+  if (buffer) lines.push(`[${mmss(lineStart)}] ${buffer.trim()}`);
+  return clamp(lines.join("\n"), LIMITS.transcript);
 }
 
 interface ClassRow {
@@ -138,19 +178,21 @@ export async function buildAlberdiContext(
         parts.push(chunks.join("\n\n"));
       }
 
-      // Clase enfocada: sumamos su transcripción para poder responder al detalle.
+      // Clase enfocada: sumamos su transcripción CON marcas de tiempo [mm:ss],
+      // para que Alberdi pueda responder "en qué momento se dijo tal cosa".
       if (classId) {
         const focusRec = recs.find((r) => r.class_id === classId);
         if (focusRec) {
           const { data: transcript } = await supabase
             .from("transcripts")
-            .select("full_text")
+            .select("full_text, segments")
             .eq("recording_id", focusRec.id)
             .maybeSingle();
-          if (transcript?.full_text) {
+          if (transcript) {
             const cls = byClass.get(classId);
+            const stamped = buildStampedTranscript(transcript.segments, transcript.full_text);
             parts.push(
-              `## Transcripción de la clase que se está consultando\n### ${cls?.topic ?? ""}\n${clamp(transcript.full_text, LIMITS.transcript)}`,
+              `## Transcripción de la clase que se está consultando (con minutos [mm:ss])\n### ${cls?.topic ?? ""}\n${stamped}`,
             );
             sources.push({ kind: "transcripcion", class_id: classId, label: cls?.topic ?? "Clase" });
           }

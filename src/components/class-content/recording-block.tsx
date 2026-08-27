@@ -12,6 +12,7 @@ import { SummaryView } from "./summary-view";
 import { CardsPreview } from "./cards-preview";
 import { SimplifiedView } from "./simplified-view";
 import { TranscriptViewer } from "./transcript-viewer";
+import { AudioPlayer, type AudioPlayerHandle } from "./audio-player";
 
 export interface RecordingBlockProps {
   recording: RecordingContent;
@@ -29,6 +30,11 @@ type TabKey = "resumen" | "placas" | "simple" | "transcripcion";
 export function RecordingBlock({ recording, classId, ordinal }: RecordingBlockProps) {
   const [tab, setTab] = React.useState<TabKey>("resumen");
   const seen = React.useRef<Set<TabKey>>(new Set());
+  const playerRef = React.useRef<AudioPlayerHandle>(null);
+
+  const seekAndListen = (seconds: number) => {
+    playerRef.current?.seek(seconds);
+  };
 
   React.useEffect(() => {
     if (seen.current.has(tab)) return;
@@ -65,6 +71,17 @@ export function RecordingBlock({ recording, classId, ordinal }: RecordingBlockPr
         <CardDescription>
           Contenido generado con IA a partir de la clase y revisado por el equipo docente.
         </CardDescription>
+        {recording.audio.length > 0 && (
+          <AudioPlayer
+            ref={playerRef}
+            chunks={recording.audio}
+            totalSeconds={recording.duration_seconds}
+            onPlay={() =>
+              void track("recording_played", { entity_type: "recording", entity_id: recording.id, metadata: { class_id: classId } })
+            }
+            className="mt-2"
+          />
+        )}
       </CardHeader>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="px-5 pb-5 sm:px-6 sm:pb-6">
@@ -111,6 +128,7 @@ export function RecordingBlock({ recording, classId, ordinal }: RecordingBlockPr
           <TranscriptViewer
             segments={recording.transcript?.segments ?? []}
             fullText={recording.transcript?.full_text ?? ""}
+            onSeek={recording.audio.length > 0 ? seekAndListen : undefined}
           />
         </TabsContent>
       </Tabs>

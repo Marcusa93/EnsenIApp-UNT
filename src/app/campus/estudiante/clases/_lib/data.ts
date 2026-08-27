@@ -64,6 +64,13 @@ export interface CardProgressRow {
   correct: number;
 }
 
+/** Un tramo de audio de la grabación, con URL firmada lista para el <audio>. */
+export interface AudioChunk {
+  url: string;
+  start: number;
+  duration: number;
+}
+
 export interface RecordingContent {
   id: string;
   title: string | null;
@@ -79,6 +86,8 @@ export interface RecordingContent {
   simplified: { facil: string | null; intermedio: string | null };
   transcript: { full_text: string; segments: TranscriptSegment[] } | null;
   progress: CardProgressRow[];
+  /** Vacío si el audio no está disponible (chunks sin metadatos o URLs no firmables). */
+  audio: AudioChunk[];
 }
 
 export interface ClassDetail {
@@ -244,6 +253,39 @@ async function resolveMaterials(supabase: DbClient, rows: RawMaterial[]): Promis
   );
 }
 
+const RECORDING_BUCKET = "class-recordings";
+
+/** Chunks de audio de grabaciones publicadas, con URL firmada por SIGNED_URL_TTL. */
+async function resolveAudio(supabase: DbClient, recordingIds: string[]): Promise<Map<string, AudioChunk[]>> {
+  const out = new Map<string, AudioChunk[]>();
+  if (recordingIds.length === 0) return out;
+  const { data, error } = await supabase
+    .from("recording_chunks")
+    .select("recording_id, chunk_index, storage_path, start_seconds, duration_seconds")
+    .in("recording_id", recordingIds)
+    .order("chunk_index", { ascending: true });
+  if (error) {
+    console.error("[clases] audio chunks", error);
+    return out;
+  }
+  await Promise.all(
+    (data ?? []).map(async (c) => {
+      const { data: signed, error: signError } = await supabase.storage
+        .from(RECORDING_BUCKET)
+        .createSignedUrl(c.storage_path, SIGNED_URL_TTL);
+      if (signError || !signed?.signedUrl) {
+        console.error("[clases] no se pudo firmar chunk", { path: c.storage_path, signError });
+        return;
+      }
+      const list = out.get(c.recording_id) ?? [];
+      list.push({ url: signed.signedUrl, start: Number(c.start_seconds), duration: Number(c.duration_seconds ?? 0) });
+      out.set(c.recording_id, list);
+    }),
+  );
+  for (const list of out.values()) list.sort((a, b) => a.start - b.start);
+  return out;
+}
+
 interface RawRecording {
   id: string;
   title: string | null;
@@ -264,7 +306,7 @@ function latest<T extends { created_at: string }>(rows: T[] | null | undefined):
   return [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at))[0] ?? null;
 }
 
-function toRecordingContent(r: RawRecording, progress: CardProgressRow[]): RecordingContent {
+function toRecordingContent(r: RawRecording, progress: CardProgressRow[], audio: AudioChunk[]): RecordingContent {
   const summary = latest(r.summaries);
   const cards = latest(r.cards);
   const transcript = one(r.transcript);
@@ -289,6 +331,7 @@ function toRecordingContent(r: RawRecording, progress: CardProgressRow[]): Recor
       ? { full_text: transcript.full_text, segments: parseSegments(transcript.segments) }
       : null,
     progress,
+    audio,
   };
 }
 
@@ -385,11 +428,15 @@ export async function getClassDetail(
   if (checkinRes.error) console.error("[clases] checkin", { classId, error: checkinRes.error });
 
   const rawRecordings = (recRes.data ?? []) as unknown as RawRecording[];
-  const [materials, progress] = await Promise.all([
+  const [materials, progress, audio] = await Promise.all([
     resolveMaterials(supabase, (matRes.data ?? []) as RawMaterial[]),
     getProgressByRecording(
       supabase,
       studentId,
+      rawRecordings.map((r) => r.id),
+    ),
+    resolveAudio(
+      supabase,
       rawRecordings.map((r) => r.id),
     ),
   ]);
@@ -407,7 +454,7 @@ export async function getClassDetail(
     state: stated.state === "futura" ? "proxima" : stated.state,
     announcements: annRes.data ?? [],
     materials,
-    recordings: rawRecordings.map((r) => toRecordingContent(r, progress.get(r.id) ?? [])),
+    recordings: rawRecordings.map((r) => toRecordingContent(r, progress.get(r.id) ?? [], audio.get(r.id) ?? [])),
     checkin: checkinRes.data ?? null,
   };
 }

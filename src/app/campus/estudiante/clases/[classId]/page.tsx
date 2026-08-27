@@ -12,6 +12,7 @@ import { RecordingBlock } from "@/components/class-content/recording-block";
 import { formatDate, formatDateLong, formatRelative } from "@/lib/format";
 import { getClassDetail } from "../_lib/data";
 import { ClassOpenedTracker } from "./_components/class-opened-tracker";
+import { FloatingAlberdi } from "@/components/alberdi/floating-alberdi";
 
 export async function generateMetadata({ params }: { params: Promise<{ classId: string }> }) {
   const { classId } = await params;
@@ -41,6 +42,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
   return (
     <>
       <ClassOpenedTracker classId={cls.id} recordingIds={cls.recordings.map((r) => r.id)} />
+      <FloatingAlberdi courseId={cls.course_id} classId={cls.id} classTopic={cls.topic} />
 
       <PageHeader
         top={

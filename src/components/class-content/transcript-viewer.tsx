@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, Search, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Copy, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,50 +12,136 @@ import { formatTimestamp } from "./parse";
 export interface TranscriptViewerProps {
   segments: TranscriptSegment[];
   fullText: string;
-  /** Se invoca al clickear un timestamp (p. ej. para un reproductor futuro). */
+  /** Salta el reproductor a ese segundo de la clase. */
   onSeek?: (seconds: number) => void;
   className?: string;
+}
+
+/** Une los micro-segmentos de Whisper en párrafos legibles (~35 s o ~420 caracteres). */
+interface Block {
+  start: number;
+  text: string;
+}
+
+const BLOCK_MAX_SECONDS = 35;
+const BLOCK_MAX_CHARS = 420;
+
+function buildBlocks(segments: TranscriptSegment[]): Block[] {
+  const blocks: Block[] = [];
+  let current: Block | null = null;
+  for (const s of segments) {
+    const text = s.text.trim();
+    if (!text) continue;
+    if (
+      !current ||
+      s.start - current.start >= BLOCK_MAX_SECONDS ||
+      current.text.length + text.length > BLOCK_MAX_CHARS
+    ) {
+      current = { start: s.start, text };
+      blocks.push(current);
+    } else {
+      current.text += ` ${text}`;
+    }
+  }
+  return blocks;
 }
 
 function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function Highlight({ text, query }: { text: string; query: string }) {
+/** Coincidencia puntual: bloque + índice de aparición dentro del bloque. */
+interface Match {
+  block: number;
+  occurrence: number;
+}
+
+function findMatches(blocks: Block[], query: string): Match[] {
+  if (!query) return [];
+  const re = new RegExp(escapeRegExp(query), "ig");
+  const out: Match[] = [];
+  blocks.forEach((b, bi) => {
+    let occ = 0;
+    while (re.exec(b.text) !== null) {
+      out.push({ block: bi, occurrence: occ });
+      occ++;
+    }
+    re.lastIndex = 0;
+  });
+  return out;
+}
+
+function HighlightedText({
+  text,
+  query,
+  currentOccurrence,
+}: {
+  text: string;
+  query: string;
+  /** Índice de la aparición “actual” dentro de este bloque, o null. */
+  currentOccurrence: number | null;
+}) {
   if (!query) return <>{text}</>;
   const re = new RegExp(`(${escapeRegExp(query)})`, "ig");
   const parts = text.split(re);
+  let occ = -1;
   return (
     <>
-      {parts.map((part, i) =>
-        part.toLowerCase() === query.toLowerCase() ? (
-          <mark key={i} className="rounded-sm bg-accent-2/30 px-0.5 text-foreground">
+      {parts.map((part, i) => {
+        const isMatch = part.toLowerCase() === query.toLowerCase();
+        if (isMatch) occ++;
+        const isCurrent = isMatch && occ === currentOccurrence;
+        return isMatch ? (
+          <mark
+            key={i}
+            data-current={isCurrent || undefined}
+            className={cn(
+              "rounded-sm px-0.5 text-foreground",
+              isCurrent ? "bg-accent text-white ring-2 ring-accent/50" : "bg-accent-2/25",
+            )}
+          >
             {part}
           </mark>
         ) : (
           <React.Fragment key={i}>{part}</React.Fragment>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
 
 /**
- * Transcripción navegable: segmentos con timestamp mono clickeable, buscador con
- * resaltado y botón copiar. Sólo texto (sin reproductor).
+ * Transcripción legible por párrafos, con reproductor integrado vía onSeek:
+ * cada párrafo lleva su minuto clickeable, y el buscador navega coincidencia
+ * por coincidencia (Enter/↓ siguiente, Shift+Enter/↑ anterior, Esc limpia).
  */
 export function TranscriptViewer({ segments, fullText, onSeek, className }: TranscriptViewerProps) {
   const [query, setQuery] = React.useState("");
+  const [cursor, setCursor] = React.useState(0);
   const [copied, setCopied] = React.useState(false);
-  const [active, setActive] = React.useState<number | null>(null);
-  const listRef = React.useRef<HTMLOListElement>(null);
+  const listRef = React.useRef<HTMLDivElement>(null);
 
+  const blocks = React.useMemo(() => buildBlocks(segments), [segments]);
   const q = query.trim();
-  const matches = React.useMemo(() => {
-    if (!q) return [];
-    const lower = q.toLowerCase();
-    return segments.map((s, i) => (s.text.toLowerCase().includes(lower) ? i : -1)).filter((i) => i >= 0);
-  }, [segments, q]);
+  const matches = React.useMemo(() => findMatches(blocks, q), [blocks, q]);
+  const current = matches.length > 0 ? matches[Math.min(cursor, matches.length - 1)] : null;
+
+  // Nueva búsqueda → arrancar desde la primera coincidencia.
+  React.useEffect(() => {
+    setCursor(0);
+  }, [q]);
+
+  // Autoscroll a la coincidencia actual.
+  React.useEffect(() => {
+    if (!current) return;
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-block="${current.block}"] mark[data-current]`);
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [current]);
+
+  const step = (dir: 1 | -1) => {
+    if (matches.length === 0) return;
+    setCursor((c) => (c + dir + matches.length) % matches.length);
+  };
 
   const copy = async () => {
     try {
@@ -67,34 +153,36 @@ export function TranscriptViewer({ segments, fullText, onSeek, className }: Tran
     }
   };
 
-  const jumpTo = (i: number) => {
-    setActive(i);
-    const el = listRef.current?.querySelector<HTMLElement>(`[data-seg="${i}"]`);
-    el?.scrollIntoView({ block: "center", behavior: "smooth" });
-  };
-
-  if (segments.length === 0 && !fullText.trim()) {
+  if (blocks.length === 0 && !fullText.trim()) {
     return (
       <EmptyState
         compact
         tone="muted"
         title="La transcripción todavía no está disponible"
-        description="Cuando el procesamiento termine, vas a poder leerla y buscar dentro de ella."
+        description="Cuando el procesamiento termine, vas a poder leerla, buscar dentro de ella y escuchar cada momento."
       />
     );
   }
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-0 flex-1 basis-56">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar en la transcripción…"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                step(e.shiftKey ? -1 : 1);
+              } else if (e.key === "Escape") {
+                setQuery("");
+              }
+            }}
+            placeholder="Buscar en la clase…"
             aria-label="Buscar en la transcripción"
             leftIcon={<Search />}
-            className="pr-10"
+            className="pr-9"
           />
           {query && (
             <button
@@ -107,81 +195,78 @@ export function TranscriptViewer({ segments, fullText, onSeek, className }: Tran
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {q && (
-            <span className="font-mono text-[11px] uppercase tracking-widest text-muted" aria-live="polite">
-              {matches.length} {matches.length === 1 ? "coincidencia" : "coincidencias"}
+
+        {q && (
+          <div className="flex items-center gap-1 rounded-xl border border-border bg-surface-2 px-1.5 py-1">
+            <span className="px-1.5 font-mono text-[11px] tabular-nums text-muted" aria-live="polite">
+              {matches.length === 0 ? "0 resultados" : `${Math.min(cursor + 1, matches.length)} de ${matches.length}`}
             </span>
-          )}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={copy}
-            leftIcon={copied ? <Check /> : <Copy />}
-            aria-live="polite"
-          >
-            {copied ? "Copiada" : "Copiar"}
-          </Button>
-        </div>
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              disabled={matches.length === 0}
+              aria-label="Coincidencia anterior"
+              className="flex size-7 items-center justify-center rounded-lg text-muted transition hover:bg-surface hover:text-foreground disabled:opacity-40"
+            >
+              <ChevronUp className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              disabled={matches.length === 0}
+              aria-label="Coincidencia siguiente"
+              className="flex size-7 items-center justify-center rounded-lg text-muted transition hover:bg-surface hover:text-foreground disabled:opacity-40"
+            >
+              <ChevronDown className="size-4" />
+            </button>
+          </div>
+        )}
+
+        <Button variant="secondary" size="sm" onClick={copy} leftIcon={copied ? <Check /> : <Copy />} aria-live="polite">
+          {copied ? "Copiada" : "Copiar"}
+        </Button>
       </div>
 
-      {q && matches.length > 0 && (
-        <div className="flex flex-wrap gap-1.5" aria-label="Saltar a coincidencia">
-          {matches.slice(0, 12).map((i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => jumpTo(i)}
-              className="rounded-full border border-border bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-accent-2 hover:border-accent-2/60"
-            >
-              {formatTimestamp(segments[i].start)}
-            </button>
-          ))}
-          {matches.length > 12 && (
-            <span className="px-1 font-mono text-[11px] text-muted">+{matches.length - 12}</span>
-          )}
-        </div>
-      )}
-
-      {segments.length > 0 ? (
-        <ol
+      {blocks.length > 0 ? (
+        <div
           ref={listRef}
-          className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-surface-2/40 p-1 sm:max-h-[32rem]"
-          aria-label="Segmentos de la transcripción"
+          className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-surface-2/40 sm:max-h-[34rem]"
+          aria-label="Transcripción de la clase"
         >
-          {segments.map((s, i) => {
-            const isMatch = q ? s.text.toLowerCase().includes(q.toLowerCase()) : false;
+          {blocks.map((b, i) => {
+            const isCurrentBlock = current?.block === i;
             return (
-              <li
-                key={`${s.start}-${i}`}
-                data-seg={i}
+              <div
+                key={`${b.start}-${i}`}
+                data-block={i}
                 className={cn(
-                  "flex gap-3 rounded-xl px-2.5 py-2 text-sm leading-relaxed transition-colors",
-                  active === i && "bg-accent/10",
-                  q && !isMatch && "opacity-50",
+                  "flex gap-3 border-b border-border/50 px-3.5 py-3 text-sm leading-relaxed last:border-b-0",
+                  isCurrentBlock && "bg-accent/5",
                 )}
               >
                 <button
                   type="button"
-                  onClick={() => {
-                    setActive(i);
-                    onSeek?.(s.start);
-                  }}
-                  className="mt-0.5 shrink-0 rounded-md font-mono text-[11px] tabular-nums text-accent-2 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-                  aria-label={`Ir al minuto ${formatTimestamp(s.start)}`}
+                  onClick={() => onSeek?.(b.start)}
+                  title="Escuchar desde acá"
+                  className="mt-0.5 h-fit shrink-0 rounded-md border border-transparent px-1 py-0.5 font-mono text-[11px] tabular-nums text-accent-2 transition hover:border-accent-2/40 hover:bg-accent-2/10 focus-visible:outline-2 focus-visible:outline-ring"
+                  aria-label={`Escuchar desde el minuto ${formatTimestamp(b.start)}`}
                 >
-                  {formatTimestamp(s.start)}
+                  {formatTimestamp(b.start)}
                 </button>
                 <p className="min-w-0 flex-1">
-                  <Highlight text={s.text} query={q} />
+                  <HighlightedText
+                    text={b.text}
+                    query={q}
+                    currentOccurrence={isCurrentBlock ? (current?.occurrence ?? null) : null}
+                  />
                 </p>
-              </li>
+              </div>
             );
           })}
-        </ol>
+        </div>
       ) : (
         <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-2xl border border-border bg-surface-2/40 p-4 text-sm leading-relaxed">
-          <Highlight text={fullText} query={q} />
+          {fullText}
         </div>
       )}
     </div>
