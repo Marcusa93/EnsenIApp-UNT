@@ -54,8 +54,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-background text-foreground">
+    <html lang="es" className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full overflow-x-hidden antialiased`}>
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-background text-foreground">
         <a
           href="#contenido"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-accent focus:px-4 focus:py-2 focus:text-white"

@@ -88,7 +88,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
 
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         {/* Columna principal */}
-        <div className="flex flex-col gap-4 lg:col-span-8">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
           {cls.summary && (
             <Reveal>
               <Card>
@@ -130,7 +130,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
         </div>
 
         {/* Columna lateral */}
-        <div className="flex flex-col gap-4 lg:col-span-4">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-4">
           {isPast || cls.state === "hoy" ? (
             cls.checkin ? (
               <Reveal delay={0.08}>

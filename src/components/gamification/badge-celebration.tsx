@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
@@ -57,7 +58,11 @@ export function BadgeCelebration({ userId }: { userId: string }) {
     setQueue((q) => q.slice(1));
   }
 
-  return (
+  // Portal a document.body: vive dentro de la transición de página, cuyo
+  // motion.div anima "y" (deja un transform aplicado) y así se convierte en el
+  // marco de referencia de este overlay "fixed inset-0" — quedaba encajado en
+  // el contenedor angosto/con padding del contenido en vez de cubrir la pantalla.
+  return createPortal(
     <AnimatePresence>
       {current && (
         <motion.div
@@ -97,6 +102,7 @@ export function BadgeCelebration({ userId }: { userId: string }) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

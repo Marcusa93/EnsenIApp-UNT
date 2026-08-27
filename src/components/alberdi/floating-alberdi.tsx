@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { Expand, Feather, Loader2, Send, X } from "lucide-react";
@@ -151,11 +152,19 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
 
   if (!pos) return null;
 
-  // El panel se ancla al lado del botón, hacia adentro de la pantalla.
-  const panelRight = pos.x > window.innerWidth / 2;
-  const panelBottom = pos.y > window.innerHeight / 2;
+  // Clamp también en render: una posición guardada en una pantalla más grande
+  // no puede dejar el botón fuera del viewport actual (rompía el ancho en mobile).
+  const safe = clampPos(pos);
 
-  return (
+  // El panel se ancla al lado del botón, hacia adentro de la pantalla.
+  const panelRight = safe.x > window.innerWidth / 2;
+  const panelBottom = safe.y > window.innerHeight / 2;
+
+  // Portal a document.body: la transición de página (motion.div con animate={{y}})
+  // deja un transform aplicado, y eso convierte a ese contenedor angosto/con padding
+  // en el marco de referencia de cualquier "fixed" anidado — el botón terminaba
+  // corrido fuera de la pantalla en mobile. El portal lo saca de esa cadena.
+  return createPortal(
     <>
       <AnimatePresence>
         {open && (
@@ -295,10 +304,11 @@ export function FloatingAlberdi({ courseId, classId, classTopic }: FloatingAlber
           "glow-2 fixed z-[81] flex size-14 touch-none items-center justify-center rounded-full border border-accent-2/40 bg-surface text-accent-2 shadow-xl transition-colors hover:bg-accent-2/10",
           open && "border-accent-2 bg-accent-2/15",
         )}
-        style={{ left: pos.x, top: pos.y }}
+        style={{ left: safe.x, top: safe.y }}
       >
         <Feather className="size-6" aria-hidden />
       </button>
-    </>
+    </>,
+    document.body,
   );
 }

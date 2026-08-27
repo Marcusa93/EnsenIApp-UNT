@@ -76,7 +76,7 @@ export function TabsList({ className, children, ...props }: React.HTMLAttributes
       role="tablist"
       onKeyDown={onKeyDown}
       className={cn(
-        "relative flex gap-1 overflow-x-auto",
+        "relative flex min-w-0 max-w-full shrink-0 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         variant === "underline" ? "border-b border-border" : "rounded-xl border border-border bg-surface-2 p-1",
         className,
       )}

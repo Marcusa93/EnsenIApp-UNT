@@ -147,7 +147,8 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
         }}
       />
 
-      <div className="flex items-center gap-2">
+      {/* En mobile la barra baja a su propia fila para que no quede minúscula. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2.5">
         <button
           type="button"
           onClick={toggle}
@@ -182,10 +183,10 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
           value={Math.floor(time)}
           onChange={(e) => seek(Number(e.target.value))}
           aria-label="Posición en la clase"
-          className="h-1.5 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-border accent-[var(--accent)]"
+          className="order-last h-1.5 min-w-0 basis-full cursor-pointer appearance-none rounded-full bg-border accent-[var(--accent)] sm:order-none sm:basis-auto sm:flex-1"
         />
 
-        <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted">
+        <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-muted sm:ml-0">
           {formatTimestamp(time)} / {formatTimestamp(total)}
         </span>
 
