@@ -7,6 +7,7 @@ import { TOGAS } from "./parts/toga";
 import { INSTRUMENTOS } from "./parts/instrumento";
 import { COMPANIONS } from "./parts/companion";
 import { AURAS, FONDOS } from "./parts/ambiente";
+import { TEMATICOS } from "./parts/tematicos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -34,6 +35,11 @@ export interface OperatorAvatarProps {
   angle?: number;
   /** Recorta a cabeza y hombros: para chips y listados. */
   bust?: boolean;
+  /**
+   * Ranura que se está probando sin tener desbloqueado el ítem: se dibuja como
+   * proyección, para que se vea cómo quedaría sin hacerlo pasar por propio.
+   */
+  ghostSlot?: string | null;
   className?: string;
   title?: string;
 }
@@ -50,6 +56,7 @@ export function OperatorAvatar({
   size = 240,
   angle = 0,
   bust = false,
+  ghostSlot = null,
   className,
   title,
 }: OperatorAvatarProps) {
@@ -58,12 +65,26 @@ export function OperatorAvatar({
   const eq = config.equipped ?? {};
   const clipId = React.useId();
 
-  const Fondo = bust ? null : pick(FONDOS as unknown as Record<string, Part>, eq.fondo);
-  const Aura = bust ? null : pick(AURAS as unknown as Record<string, Part>, eq.aura);
-  const Companion = bust ? null : pick(COMPANIONS as unknown as Record<string, Part>, eq.companion);
-  const Toga = pick(TOGAS as unknown as Record<string, Part>, eq.toga);
-  const Visor = pick(VISORES as unknown as Record<string, Part>, eq.visor);
-  const Instrumento = bust ? null : pick(INSTRUMENTOS as unknown as Record<string, Part>, eq.instrumento);
+  // Cada ranura busca en su catálogo base y en el de los bloques temáticos.
+  const catalog = (base: unknown, extra: unknown) =>
+    ({ ...(base as Record<string, Part>), ...(extra as Record<string, Part>) }) as Record<string, Part>;
+
+  const Fondo = bust ? null : pick(catalog(FONDOS, TEMATICOS.fondo), eq.fondo);
+  const Aura = bust ? null : pick(catalog(AURAS, TEMATICOS.aura), eq.aura);
+  const Companion = bust ? null : pick(catalog(COMPANIONS, TEMATICOS.companion), eq.companion);
+  const Toga = pick(catalog(TOGAS, TEMATICOS.toga), eq.toga);
+  const Visor = pick(catalog(VISORES, TEMATICOS.visor), eq.visor);
+  const Instrumento = bust ? null : pick(catalog(INSTRUMENTOS, TEMATICOS.instrumento), eq.instrumento);
+
+  /** Envuelve la pieza que se está probando para que se lea como proyección. */
+  const wrap = (slot: string, node: React.ReactNode) =>
+    ghostSlot === slot ? (
+      <g opacity="0.62" style={{ filter: `drop-shadow(0 0 6px ${p.glow})` }}>
+        {node}
+      </g>
+    ) : (
+      node
+    );
 
   // Qué brazo queda delante del cuerpo depende de la profundidad real de cada
   // uno (cuelgan levemente hacia adelante, no sobre el eje).
@@ -91,7 +112,7 @@ export function OperatorAvatar({
 
       <g clipPath={bust ? undefined : `url(#${clipId})`}>
         {Fondo ? <Fondo p={p} rig={rig} /> : !bust && <circle cx="120" cy="120" r="118" fill="#12151f" />}
-        {Aura && <Aura p={p} rig={rig} />}
+        {Aura && wrap("aura", <Aura p={p} rig={rig} />)}
 
         {/* Sombra en el piso: ancla la figura al escenario */}
         {!bust && <ellipse cx="120" cy="222" rx={46 - 10 * (1 - Math.abs(rig.c))} ry="7" fill="#000" opacity="0.35" />}
@@ -101,16 +122,16 @@ export function OperatorAvatar({
         {leftArmInFront && <Arm p={p} rig={rig} side={1} />}
 
         <Body p={p} rig={rig} />
-        {Toga && <Toga p={p} rig={rig} />}
+        {Toga && wrap("toga", <Toga p={p} rig={rig} />)}
 
         <Head p={p} rig={rig} chassis={config.chassis as ChassisId} />
-        {Visor && <Visor p={p} rig={rig} />}
+        {Visor && wrap("visor", <Visor p={p} rig={rig} />)}
 
         {leftArmInFront && <Arm p={p} rig={rig} side={-1} />}
         {!leftArmInFront && <Arm p={p} rig={rig} side={1} />}
 
-        {Instrumento && <Instrumento p={p} rig={rig} />}
-        {Companion && <Companion p={p} rig={rig} />}
+        {Instrumento && wrap("instrumento", <Instrumento p={p} rig={rig} />)}
+        {Companion && wrap("companion", <Companion p={p} rig={rig} />)}
       </g>
 
       {!bust && <circle cx="120" cy="120" r="117" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.32" />}

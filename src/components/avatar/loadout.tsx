@@ -62,6 +62,8 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
   const [slot, setSlot] = React.useState<string>("visor");
   const [busy, setBusy] = React.useState<string | null>(null);
   const [editing, setEditing] = React.useState(false);
+  /** Ítem bloqueado que se está probando: se ve puesto, pero como proyección. */
+  const [trying, setTrying] = React.useState<LoadoutItem | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   const nuevos = items.filter((i) => i.isNew);
@@ -105,19 +107,38 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
     setBusy(null);
   }
 
+  // Cambiar de ranura corta la prueba: probar es algo puntual de un ítem.
+  React.useEffect(() => setTrying(null), [slot]);
+
   const slotItems = bySlot.get(slot) ?? [];
+
+  // Lo que se dibuja: lo equipado, o lo que se está probando encima.
+  const shown = trying
+    ? { ...config, equipped: { ...config.equipped, [trying.slot]: trying.id } }
+    : config;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         {/* Retrato */}
         <div className="flex min-w-0 flex-col items-center gap-3 lg:col-span-5">
-          <Turntable config={config} size={300} title={config.callsign} className="w-full" />
+          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} title={config.callsign} className="w-full" />
           <div className="text-center">
-            <p className="font-mono text-sm uppercase tracking-[0.2em] text-foreground">{config.callsign}</p>
-            <p className="mt-0.5 text-xs text-muted">
-              {owned} de {items.length} equipos desbloqueados
-            </p>
+            {trying ? (
+              <>
+                <p className="font-mono text-sm uppercase tracking-[0.2em] text-accent-2">{trying.name}</p>
+                <p className="mt-0.5 text-xs text-muted">
+                  Así te quedaría. {trying.requirement}.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-mono text-sm uppercase tracking-[0.2em] text-foreground">{config.callsign}</p>
+                <p className="mt-0.5 text-xs text-muted">
+                  {owned} de {items.length} equipos desbloqueados
+                </p>
+              </>
+            )}
           </div>
           <Button variant="secondary" size="sm" leftIcon={<Pencil />} onClick={() => setEditing(true)}>
             Cambiar aspecto
@@ -203,8 +224,8 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
                   <li key={item.id}>
                     <button
                       type="button"
-                      onClick={() => item.unlocked && equip(item.id)}
-                      disabled={!item.unlocked || busy != null}
+                      onClick={() => (item.unlocked ? equip(item.id) : setTrying((t) => (t?.id === item.id ? null : item)))}
+                      disabled={busy != null}
                       className={cn(
                         "w-full rounded-2xl border px-3.5 py-3 text-left transition",
                         isEquipped
@@ -234,11 +255,19 @@ export function Loadout({ avatar, items }: { avatar: LoadoutAvatar; items: Loado
                                 Equipado
                               </Badge>
                             )}
+                            {trying?.id === item.id && (
+                              <Badge size="sm" tone="accent-2" dot live>
+                                Probando
+                              </Badge>
+                            )}
                           </div>
                           <p className="mt-1 text-[13px] leading-relaxed text-muted">{item.description}</p>
                           {!item.unlocked && (
-                            <p className="mt-1.5 font-mono text-[11px] uppercase tracking-wider text-accent-2">
+                            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] uppercase tracking-wider text-accent-2">
                               {item.requirement}
+                              <span className="text-muted normal-case tracking-normal">
+                                {trying?.id === item.id ? "· tocá otra vez para sacarlo" : "· tocá para probártelo"}
+                              </span>
                             </p>
                           )}
                         </div>
