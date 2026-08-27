@@ -179,8 +179,13 @@ export function FloatingAlberdi({ courseId }: FloatingAlberdiProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="border-gradient fixed z-[80] flex flex-col overflow-hidden rounded-3xl border border-transparent bg-surface shadow-2xl"
+            className="border-gradient z-[80] flex flex-col overflow-hidden rounded-3xl border border-transparent bg-surface shadow-2xl"
             style={{
+              // .border-gradient fija position:relative (para su ::before del degradé) y,
+              // por orden de cascada, le gana a la clase "fixed" de Tailwind — el panel
+              // quedaba con position:relative y cayendo al final del documento en vez de
+              // anclado a la pantalla. Con position inline (siempre gana) se resuelve solo.
+              position: "fixed",
               width: "min(92vw, 380px)",
               height: "min(72vh, 540px)",
               [panelRight ? "right" : "left"]: 12,
