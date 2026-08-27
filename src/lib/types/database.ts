@@ -2847,11 +2847,13 @@ export type Database = {
       game_leaderboard: {
         Args: { p_course: string; p_limit?: number }
         Returns: {
+          build: string
           callsign: string
           chassis: string
           equipped: Json
           glow: string
           nombre: string
+          runs: number
           streak_days: number
           student_id: string
           tone: string

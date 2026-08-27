@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Flame, Gamepad2, GraduationCap, Shirt, Trophy } from "lucide-react";
+import { Flame, Gamepad2, GraduationCap, Shirt, Trophy, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getPrimaryCourse } from "@/lib/courses";
@@ -92,6 +92,7 @@ export default async function JuegosPage() {
     chassis: string | null;
     tone: string | null;
     glow: string | null;
+    build: string | null;
     equipped: Record<string, string> | null;
   }[];
   const runsByGame = new Map<string, number>();
@@ -223,6 +224,7 @@ export default async function JuegosPage() {
                                 chassis: row.chassis,
                                 tone: row.tone,
                                 glow: row.glow,
+                                build: row.build ?? "estandar",
                                 equipped: row.equipped ?? {},
                               }}
                               size={32}
@@ -243,8 +245,13 @@ export default async function JuegosPage() {
                   </ol>
                 )}
 
-                <p className="mt-3 text-[11px] leading-relaxed text-muted">
-                  Sólo se muestra el nombre de pila de quienes ya jugaron.
+                <div className="mt-3">
+                  <Button asChild variant="secondary" size="sm" leftIcon={<Users />}>
+                    <Link href="/campus/estudiante/juegos/comision">Ver toda la comisión</Link>
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                  Se muestra el alias de quienes ya jugaron, no su nombre completo.
                 </p>
               </Card>
             </Reveal>
