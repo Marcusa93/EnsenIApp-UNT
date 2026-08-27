@@ -96,30 +96,68 @@ export function mmss(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+/** Sin puntuación, sin tildes y con espacios normalizados: así compara parejo. */
+function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9ñ\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Ubica la cita dentro de la transcripción para poder guardar el segundo exacto
  * (así el estudiante puede ir a escuchar ese tramo después de contestar).
+ *
+ * Whisper corta en micro-segmentos, así que una cita de una línea casi siempre
+ * cruza varios: se busca sobre el texto concatenado y después se mapea la
+ * posición encontrada al segmento que la contiene.
  */
 export function findQuoteSeconds(
   quote: string,
   segments: { start?: number; text?: string }[],
 ): number | null {
-  const needle = quote.toLowerCase().replace(/[«»"'.,;:!?¿¡]/g, "").trim();
-  if (needle.length < 8) return null;
+  const needle = normalize(quote);
+  if (needle.length < 12) return null;
 
-  // Primero, coincidencia directa dentro de un segmento.
+  // Texto corrido + índice de dónde arranca cada segmento dentro de él.
+  const starts: { at: number; seconds: number }[] = [];
+  let full = "";
   for (const seg of segments) {
     if (typeof seg.start !== "number" || !seg.text) continue;
-    const hay = seg.text.toLowerCase().replace(/[«»"'.,;:!?¿¡]/g, "");
-    if (hay.includes(needle.slice(0, 40))) return seg.start;
+    const piece = normalize(seg.text);
+    if (!piece) continue;
+    if (full) full += " ";
+    starts.push({ at: full.length, seconds: seg.start });
+    full += piece;
+  }
+  if (starts.length === 0) return null;
+
+  const locate = (at: number): number => {
+    // Último segmento que arranca antes (o justo en) la posición hallada.
+    let found = starts[0].seconds;
+    for (const s of starts) {
+      if (s.at > at) break;
+      found = s.seconds;
+    }
+    return found;
+  };
+
+  const direct = full.indexOf(needle);
+  if (direct >= 0) return locate(direct);
+
+  // El modelo suele recortar o unir la cita: probamos con un prefijo largo y,
+  // si tampoco, con las primeras palabras.
+  for (const size of [80, 50, 30]) {
+    if (needle.length <= size) continue;
+    const at = full.indexOf(needle.slice(0, size));
+    if (at >= 0) return locate(at);
   }
 
-  // Si la cita cruza segmentos, buscamos por las primeras palabras.
-  const head = needle.split(/\s+/).slice(0, 5).join(" ");
-  if (head.length < 8) return null;
-  for (const seg of segments) {
-    if (typeof seg.start !== "number" || !seg.text) continue;
-    if (seg.text.toLowerCase().replace(/[«»"'.,;:!?¿¡]/g, "").includes(head)) return seg.start;
-  }
-  return null;
+  const head = needle.split(" ").slice(0, 6).join(" ");
+  if (head.length < 12) return null;
+  const at = full.indexOf(head);
+  return at >= 0 ? locate(at) : null;
 }
