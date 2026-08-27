@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { PageHeader } from "@/components/ui";
 import { PushToggle } from "@/components/pwa/push-toggle";
+import { OperatorCard } from "./_components/operator-card";
 import { PasswordForm } from "./password-form";
 
 export const metadata: Metadata = { title: "Mi cuenta · EnsenIA UNT" };
 
 export default async function CuentaPage() {
-  const { profile } = await requireUser("/campus/cuenta");
+  const { user, profile } = await requireUser("/campus/cuenta");
 
   return (
     <>
@@ -21,6 +22,7 @@ export default async function CuentaPage() {
         }
       />
       <div className="flex flex-col gap-4">
+        {profile.role === "estudiante" && <OperatorCard studentId={user.id} />}
         <PushToggle />
         {profile.email && <PasswordForm />}
       </div>

@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Flame, Gamepad2, GraduationCap, Trophy } from "lucide-react";
+import { Flame, Gamepad2, GraduationCap, Shirt, Trophy } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getPrimaryCourse } from "@/lib/courses";
 import { Badge, Button, Card, CardTitle, EmptyState, PageHeader, Progress } from "@/components/ui";
 import { Reveal } from "@/components/shell/reveal";
 import { GAMES, levelFor, type GameKey } from "@/lib/games/config";
+import { getAvatarData } from "@/lib/games/avatar-data";
+import { OperatorAvatar } from "@/components/avatar/operator-avatar";
 import { GameLauncher } from "./_components/game-launcher";
+import { OperatorGate } from "./_components/operator-gate";
 
 export const metadata: Metadata = { title: "Juegos · EnsenIA UNT" };
 
@@ -32,6 +35,14 @@ export default async function JuegosPage() {
         />
       </>
     );
+  }
+
+  const avatarData = await getAvatarData(supabase, user.id);
+
+  // El operador se crea acá, no al entrar al campus: quien viene a buscar la
+  // clase de mañana no se topa con nada; quien viene a jugar, lo arma.
+  if (!avatarData.avatar) {
+    return <OperatorGate />;
   }
 
   const [statsRes, configRes, classesRes, boardRes, countsRes] = await Promise.all([
@@ -68,7 +79,17 @@ export default async function JuegosPage() {
     date: c.class_date,
   }));
 
-  const board = (boardRes.data ?? []) as { student_id: string; nombre: string; xp: number; streak_days: number }[];
+  const board = (boardRes.data ?? []) as {
+    student_id: string;
+    nombre: string;
+    xp: number;
+    streak_days: number;
+    callsign: string | null;
+    chassis: string | null;
+    tone: string | null;
+    glow: string | null;
+    equipped: Record<string, string> | null;
+  }[];
   const runsByGame = new Map<string, number>();
   for (const r of countsRes.data ?? []) {
     runsByGame.set(r.game, (runsByGame.get(r.game) ?? 0) + 1);
@@ -103,12 +124,25 @@ export default async function JuegosPage() {
             {/* Nivel */}
             <Reveal>
               <Card highlight>
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="eyebrow text-accent-2">Nivel {progress.level.n}</p>
-                    <h2 className="mt-0.5 text-2xl font-semibold tracking-tight">{progress.level.name}</h2>
+                <div className="flex items-center gap-4">
+                  <Link href="/campus/estudiante/juegos/operador" className="shrink-0" aria-label="Ver mi operador">
+                    <OperatorAvatar
+                      config={avatarData.avatar}
+                      size={84}
+                      title={avatarData.avatar.callsign}
+                      className="transition hover:scale-105"
+                    />
+                  </Link>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+                      {avatarData.avatar.callsign}
+                    </p>
+                    <p className="eyebrow mt-1 text-accent-2">Nivel {progress.level.n}</p>
+                    <h2 className="mt-0.5 truncate text-xl font-semibold tracking-tight sm:text-2xl">
+                      {progress.level.name}
+                    </h2>
                   </div>
-                  <p className="font-mono text-sm tabular-nums text-muted">
+                  <p className="shrink-0 font-mono text-sm tabular-nums text-muted">
                     <span className="text-lg font-semibold text-foreground">{xp}</span> XP
                   </p>
                 </div>
@@ -120,6 +154,20 @@ export default async function JuegosPage() {
                       ? `Te faltan ${progress.xpForNext} XP para ${progress.next.name}.`
                       : "Llegaste al último escalón. Sos parte de la doctrina de la cátedra."}
                   </p>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <Button asChild variant="secondary" size="sm" leftIcon={<Shirt />}>
+                    <Link href="/campus/estudiante/juegos/operador">
+                      Mi operador
+                      {avatarData.nuevos.length > 0 && ` · ${avatarData.nuevos.length} nuevo${avatarData.nuevos.length > 1 ? "s" : ""}`}
+                    </Link>
+                  </Button>
+                  {avatarData.nuevos.length > 0 && (
+                    <Badge size="sm" tone="accent-3" dot live>
+                      Equipo desbloqueado
+                    </Badge>
+                  )}
                 </div>
 
                 {stats && stats.runs > 0 && (
@@ -156,13 +204,29 @@ export default async function JuegosPage() {
                       return (
                         <li
                           key={row.student_id}
-                          className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${
+                          className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 ${
                             isMe ? "border-accent/40 bg-accent/10" : "border-border bg-surface-2/50"
                           }`}
                         >
-                          <span className="w-5 shrink-0 font-mono text-xs tabular-nums text-muted">{i + 1}</span>
+                          <span className="w-4 shrink-0 font-mono text-xs tabular-nums text-muted">{i + 1}</span>
+                          {row.chassis && row.tone && row.glow ? (
+                            <OperatorAvatar
+                              config={{
+                                chassis: row.chassis,
+                                tone: row.tone,
+                                glow: row.glow,
+                                equipped: row.equipped ?? {},
+                              }}
+                              size={32}
+                              bust
+                              className="shrink-0"
+                              title={row.callsign ?? row.nombre}
+                            />
+                          ) : (
+                            <span className="size-8 shrink-0 rounded-full border border-border bg-surface-2" />
+                          )}
                           <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                            {isMe ? "Vos" : row.nombre}
+                            {isMe ? "Vos" : (row.callsign ?? row.nombre)}
                           </span>
                           <span className="shrink-0 font-mono text-xs tabular-nums text-muted">{row.xp} XP</span>
                         </li>

@@ -438,6 +438,50 @@ export type Database = {
           },
         ]
       }
+      avatar_items: {
+        Row: {
+          description: string
+          id: string
+          name: string
+          rarity: Database["public"]["Enums"]["avatar_rarity"]
+          req_badge: string | null
+          req_kind: Database["public"]["Enums"]["avatar_req"]
+          req_value: number
+          slot: Database["public"]["Enums"]["avatar_slot"]
+          sort: number
+        }
+        Insert: {
+          description: string
+          id: string
+          name: string
+          rarity?: Database["public"]["Enums"]["avatar_rarity"]
+          req_badge?: string | null
+          req_kind?: Database["public"]["Enums"]["avatar_req"]
+          req_value?: number
+          slot: Database["public"]["Enums"]["avatar_slot"]
+          sort?: number
+        }
+        Update: {
+          description?: string
+          id?: string
+          name?: string
+          rarity?: Database["public"]["Enums"]["avatar_rarity"]
+          req_badge?: string | null
+          req_kind?: Database["public"]["Enums"]["avatar_req"]
+          req_value?: number
+          slot?: Database["public"]["Enums"]["avatar_slot"]
+          sort?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avatar_items_req_badge_fkey"
+            columns: ["req_badge"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badges: {
         Row: {
           description: string
@@ -2081,6 +2125,83 @@ export type Database = {
           },
         ]
       }
+      student_avatar_items: {
+        Row: {
+          item_id: string
+          seen: boolean
+          student_id: string
+          unlocked_at: string
+        }
+        Insert: {
+          item_id: string
+          seen?: boolean
+          student_id: string
+          unlocked_at?: string
+        }
+        Update: {
+          item_id?: string
+          seen?: boolean
+          student_id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_avatar_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_avatar_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_avatars: {
+        Row: {
+          callsign: string
+          chassis: string
+          created_at: string
+          equipped: Json
+          glow: string
+          student_id: string
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          callsign: string
+          chassis?: string
+          created_at?: string
+          equipped?: Json
+          glow?: string
+          student_id: string
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          callsign?: string
+          chassis?: string
+          created_at?: string
+          equipped?: Json
+          glow?: string
+          student_id?: string
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_avatars_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_badges: {
         Row: {
           awarded_at: string
@@ -2674,13 +2795,19 @@ export type Database = {
       game_leaderboard: {
         Args: { p_course: string; p_limit?: number }
         Returns: {
+          callsign: string
+          chassis: string
+          equipped: Json
+          glow: string
           nombre: string
           streak_days: number
           student_id: string
+          tone: string
           xp: number
         }[]
       }
       try_uuid: { Args: { v: string }; Returns: string }
+      unlock_avatar_items: { Args: { p_student: string }; Returns: undefined }
       unread_notifications_count: { Args: never; Returns: number }
     }
     Enums: {
@@ -2700,6 +2827,21 @@ export type Database = {
         | "inactividad"
         | "consulta_sin_responder"
       argument_status: "visible" | "hidden"
+      avatar_rarity: "comun" | "raro" | "epico" | "legendario"
+      avatar_req:
+        | "inicio"
+        | "nivel"
+        | "racha"
+        | "aciertos"
+        | "partidas"
+        | "medalla"
+      avatar_slot:
+        | "visor"
+        | "toga"
+        | "instrumento"
+        | "companion"
+        | "aura"
+        | "fondo"
       badge_tier: "bronce" | "plata" | "oro"
       debate_stance: "a_favor" | "en_contra" | "neutral"
       debate_status: "open" | "closed" | "archived"
@@ -2883,6 +3025,23 @@ export const Constants = {
         "consulta_sin_responder",
       ],
       argument_status: ["visible", "hidden"],
+      avatar_rarity: ["comun", "raro", "epico", "legendario"],
+      avatar_req: [
+        "inicio",
+        "nivel",
+        "racha",
+        "aciertos",
+        "partidas",
+        "medalla",
+      ],
+      avatar_slot: [
+        "visor",
+        "toga",
+        "instrumento",
+        "companion",
+        "aura",
+        "fondo",
+      ],
       badge_tier: ["bronce", "plata", "oro"],
       debate_stance: ["a_favor", "en_contra", "neutral"],
       debate_status: ["open", "closed", "archived"],

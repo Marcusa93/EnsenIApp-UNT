@@ -306,3 +306,38 @@ dialog::backdrop {
 dialog[open] {
   animation: fade-up 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ---------------------------------------------------------------------------
+   Avatar del operador (src/components/avatar)
+   Animaciones lentas y sutiles: el retrato tiene que sentirse vivo sin robarle
+   atención al resto. La regla global de prefers-reduced-motion ya las apaga.
+--------------------------------------------------------------------------- */
+@keyframes av-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes av-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+  }
+}
+.av-spin {
+  animation: av-spin 26s linear infinite;
+}
+.av-spin-slow {
+  animation: av-spin 44s linear infinite;
+}
+.av-spin-rev {
+  animation: av-spin 34s linear infinite reverse;
+}
+.av-pulse {
+  animation: av-pulse 3.6s ease-in-out infinite;
+  transform-origin: 120px 130px;
+}
