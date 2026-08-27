@@ -1,140 +1,142 @@
 import type { Palette } from "../palette";
 import type { ChassisId } from "../palette";
-import { px, pw, protrude, type Rig } from "../rig";
+import { depthAt, faceAlpha, place, proj, type Rig } from "../rig";
 
 /**
- * Muñequito de cuerpo entero, proporción chibi (la cabeza pesa: es lo que hace
- * que se lea como personaje de juego y no como maniquí).
+ * Muñequito de cuerpo entero, proporción chibi.
  *
- * Alturas fijas en el lienzo de 240×240 — el giro sólo cambia anchos y posiciones
- * horizontales, nunca la altura, así la figura no "salta" al rotar.
+ * Cada parte declara su ancho Y su profundidad, así al girar la silueta cambia
+ * de forma en vez de aplastarse: de perfil la cabeza sigue siendo redonda y el
+ * torso conserva cuerpo, que es lo que hace creíble la rotación.
  */
 
 export const Y = {
-  headTop: 26,
-  headCy: 60,
-  headRy: 34,
-  neck: 96,
-  shoulder: 106,
-  waist: 152,
-  hip: 162,
-  kneeTop: 186,
-  foot: 216,
+  headTop: 28,
+  headCy: 62,
+  headRy: 33,
+  neck: 95,
+  shoulder: 108,
+  chest: 126,
+  hip: 158,
+  knee: 184,
+  foot: 214,
 } as const;
 
-/** Piernas: van primero, detrás del torso. */
+/** Medidas del cuerpo: [ancho de frente, profundidad de perfil]. */
+export const DIM = {
+  head: [66, 60] as const,
+  neck: [17, 16] as const,
+  shoulders: [64, 34] as const,
+  waist: [46, 30] as const,
+  leg: [17, 16] as const,
+  arm: [13, 13] as const,
+} as const;
+
 export function Legs({ p, rig }: { p: Palette; rig: Rig }) {
-  const spread = 15;
-  const legW = pw(rig, 17, 0.55);
-  const lx = px(rig, -spread);
-  const rx = px(rig, spread);
+  const legW = proj(rig, DIM.leg[0], DIM.leg[1]);
+  const spread = 14;
 
-  const leg = (cx: number, key: string) => (
-    <g key={key}>
-      <rect x={cx - legW / 2} y={Y.hip - 4} width={legW} height={Y.foot - Y.hip - 6} rx={legW / 2.4} fill={p.clothDark} />
-      {/* Rodillera */}
-      <rect x={cx - legW / 2} y={Y.kneeTop} width={legW} height="9" rx="3" fill={p.shellDark} />
-      {/* Bota */}
-      <path
-        d={`M${cx - legW / 2 - 1} ${Y.foot - 8} L${cx + legW / 2 + 1} ${Y.foot - 8} L${cx + legW / 2 + 3} ${Y.foot} L${cx - legW / 2 - 3} ${Y.foot} Z`}
-        fill={p.shellDark}
-      />
-      <rect x={cx - legW / 2 - 3} y={Y.foot - 2} width={legW + 6} height="3" rx="1.5" fill={p.shell} opacity="0.7" />
-    </g>
-  );
+  const leg = (lateral: number, key: string) => {
+    const cx = place(rig, lateral);
+    return (
+      <g key={key}>
+        <rect x={cx - legW / 2} y={Y.hip - 6} width={legW} height={Y.foot - Y.hip} rx={legW / 2.6} fill={p.clothDark} />
+        <rect x={cx - legW / 2} y={Y.knee} width={legW} height="9" rx="3" fill={p.shellDark} />
+        {/* Bota: se alarga hacia adelante cuando lo vemos de perfil */}
+        <path
+          d={`M${cx - legW / 2 - 1} ${Y.foot - 7} L${cx + legW / 2 + 1} ${Y.foot - 7}
+              L${cx + legW / 2 + 2 + 7 * Math.abs(rig.s)} ${Y.foot} L${cx - legW / 2 - 2} ${Y.foot} Z`}
+          fill={p.shellDark}
+        />
+      </g>
+    );
+  };
 
-  // De perfil, la pierna de atrás va primero para que no se superponga mal.
-  const order = rig.s >= 0 ? [lx, rx] : [rx, lx];
-  return <g>{order.map((cx, i) => leg(cx, `leg-${i}`))}</g>;
+  // La pierna más lejana se dibuja primero.
+  const legs = [-spread, spread].sort((a, b) => depthAt(rig, a) - depthAt(rig, b));
+  return <g>{legs.map((l, i) => leg(l, `leg-${i}`))}</g>;
 }
 
-/** Brazos. Se dibujan en dos pasadas: los de atrás antes del torso, los de adelante después. */
-export function Arm({
-  p,
-  rig,
-  side,
-}: {
-  p: Palette;
-  rig: Rig;
-  /** -1 = brazo a nuestra izquierda, +1 = a nuestra derecha. */
-  side: -1 | 1;
-}) {
-  const offset = 34 * side;
-  const cx = px(rig, offset);
-  const armW = pw(rig, 13, 0.6);
+export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
+  const lateral = 33 * side;
+  const cx = place(rig, lateral);
+  const armW = proj(rig, DIM.arm[0], DIM.arm[1]);
 
   return (
     <g>
       {/* Hombrera */}
-      <ellipse cx={cx} cy={Y.shoulder + 2} rx={armW * 0.85} ry={armW * 0.72} fill={p.shellDark} />
-      <ellipse cx={cx} cy={Y.shoulder} rx={armW * 0.7} ry={armW * 0.55} fill={p.shell} opacity="0.75" />
-      {/* Brazo */}
-      <rect x={cx - armW / 2} y={Y.shoulder + 4} width={armW} height={Y.waist - Y.shoulder + 4} rx={armW / 2} fill={p.cloth} />
-      {/* Antebrazo con acento */}
-      <rect x={cx - armW / 2} y={Y.waist - 14} width={armW} height="12" rx={armW / 2.4} fill={p.shellDark} />
-      <rect x={cx - armW / 2 + 1.5} y={Y.waist - 11} width={armW - 3} height="2.5" rx="1.2" fill={p.glow} opacity="0.85" />
+      <ellipse cx={cx} cy={Y.shoulder + 1} rx={armW * 0.82} ry={armW * 0.7} fill={p.shellDark} />
+      <ellipse cx={cx - armW * 0.12} cy={Y.shoulder - 1} rx={armW * 0.6} ry={armW * 0.48} fill={p.shell} opacity="0.7" />
+      {/* Brazo hasta la muñeca */}
+      <rect x={cx - armW / 2} y={Y.shoulder + 4} width={armW} height={Y.hip - Y.shoulder - 6} rx={armW / 2} fill={p.cloth} />
+      {/* Puño técnico */}
+      <rect x={cx - armW / 2} y={Y.hip - 16} width={armW} height="11" rx={armW / 2.6} fill={p.shellDark} />
+      <rect x={cx - armW / 2 + 1.5} y={Y.hip - 13} width={Math.max(2, armW - 3)} height="2.4" rx="1.2" fill={p.glow} opacity="0.85" />
       {/* Mano */}
-      <circle cx={cx} cy={Y.waist + 6} r={armW * 0.52} fill={p.shellDark} />
+      <circle cx={cx} cy={Y.hip - 1} r={armW * 0.5} fill={p.shellDark} />
     </g>
   );
 }
 
 export function Body({ p, rig }: { p: Palette; rig: Rig }) {
-  const shoulderW = pw(rig, 62, 0.42);
-  const waistW = pw(rig, 46, 0.5);
-  const half = shoulderW / 2;
-  const wHalf = waistW / 2;
+  const sh = proj(rig, DIM.shoulders[0], DIM.shoulders[1]) / 2;
+  const wa = proj(rig, DIM.waist[0], DIM.waist[1]) / 2;
+  const neckW = proj(rig, DIM.neck[0], DIM.neck[1]);
+  const c = rig.cx;
+  const alpha = faceAlpha(rig);
 
   return (
     <g>
       {/* Cuello */}
-      <rect x={px(rig, 0) - pw(rig, 16, 0.6) / 2} y={Y.neck - 6} width={pw(rig, 16, 0.6)} height="14" rx="4" fill={p.shellDark} />
+      <rect x={place(rig, 0) - neckW / 2} y={Y.neck - 4} width={neckW} height="16" rx="5" fill={p.shellDark} />
 
       {/* Torso */}
       <path
-        d={`M${rig.cx - half} ${Y.shoulder} Q${rig.cx} ${Y.shoulder - 8} ${rig.cx + half} ${Y.shoulder}
-            L${rig.cx + wHalf} ${Y.hip} Q${rig.cx} ${Y.hip + 6} ${rig.cx - wHalf} ${Y.hip} Z`}
+        d={`M${c - sh} ${Y.shoulder} Q${c} ${Y.shoulder - 9} ${c + sh} ${Y.shoulder}
+            L${c + wa} ${Y.hip} Q${c} ${Y.hip + 7} ${c - wa} ${Y.hip} Z`}
         fill={p.cloth}
       />
-      {/* Volumen lateral: el lado que se aleja queda en sombra */}
+      {/* Sombra del costado que se aleja: da volumen al girar */}
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + half} ${Y.shoulder} L${rig.cx + wHalf} ${Y.hip} L${rig.cx} ${Y.hip + 3} Z`}
+        d={`M${c} ${Y.shoulder - 7} L${c + sh} ${Y.shoulder} L${c + wa} ${Y.hip} L${c} ${Y.hip + 4} Z`}
         fill={p.clothDark}
         opacity={0.2 + 0.3 * Math.max(0, rig.s)}
       />
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx - half} ${Y.shoulder} L${rig.cx - wHalf} ${Y.hip} L${rig.cx} ${Y.hip + 3} Z`}
+        d={`M${c} ${Y.shoulder - 7} L${c - sh} ${Y.shoulder} L${c - wa} ${Y.hip} L${c} ${Y.hip + 4} Z`}
         fill={p.clothDark}
         opacity={0.2 + 0.3 * Math.max(0, -rig.s)}
       />
 
-      {/* Placa pectoral: sólo cuando le vemos el frente */}
-      {!rig.back && (
-        <g opacity={Math.min(1, Math.abs(rig.c) * 1.6)}>
+      {/* Placa pectoral: superficie plana, se va de canto sola */}
+      {alpha > 0.05 && (
+        <g opacity={alpha}>
           <path
-            d={`M${rig.cx} ${Y.shoulder + 8} L${px(rig, 13)} ${Y.shoulder + 18} L${px(rig, 10)} ${Y.waist - 4} L${px(rig, -10)} ${Y.waist - 4} L${px(rig, -13)} ${Y.shoulder + 18} Z`}
+            d={`M${place(rig, 0, 20)} ${Y.shoulder + 8} L${place(rig, 13, 18)} ${Y.chest - 2}
+                L${place(rig, 10, 18)} ${Y.hip - 12} L${place(rig, -10, 18)} ${Y.hip - 12}
+                L${place(rig, -13, 18)} ${Y.chest - 2} Z`}
             fill={p.shellDark}
           />
-          <circle cx={rig.cx} cy={Y.shoulder + 26} r={pw(rig, 9, 0.3) / 2} fill={p.glow} />
-          <circle cx={rig.cx} cy={Y.shoulder + 26} r={pw(rig, 18, 0.3) / 2} fill={p.glow} opacity="0.22" />
+          <circle cx={place(rig, 0, 20)} cy={Y.chest + 10} r={proj(rig, 9, 2) / 2 + 2} fill={p.glow} />
+          <circle cx={place(rig, 0, 20)} cy={Y.chest + 10} r={proj(rig, 20, 4) / 2 + 3} fill={p.glow} opacity="0.2" />
         </g>
       )}
 
-      {/* Mochila dorsal: aparece al darse vuelta */}
+      {/* Mochila dorsal: la superficie de atrás */}
       {rig.back && (
-        <g opacity={Math.min(1, Math.abs(rig.c) * 1.6)}>
+        <g opacity={Math.min(1, -rig.c * 1.8)}>
           <rect
-            x={rig.cx - pw(rig, 30, 0.3) / 2}
+            x={place(rig, 0, -20) - proj(rig, 32, 6) / 2}
             y={Y.shoulder + 10}
-            width={pw(rig, 30, 0.3)}
+            width={proj(rig, 32, 6)}
             height="34"
             rx="5"
             fill={p.shellDark}
           />
           <rect
-            x={rig.cx - pw(rig, 14, 0.3) / 2}
-            y={Y.shoulder + 18}
-            width={pw(rig, 14, 0.3)}
+            x={place(rig, 0, -20) - proj(rig, 14, 3) / 2}
+            y={Y.shoulder + 19}
+            width={proj(rig, 14, 3)}
             height="4"
             rx="2"
             fill={p.glow}
@@ -144,88 +146,96 @@ export function Body({ p, rig }: { p: Palette; rig: Rig }) {
       )}
 
       {/* Cinturón */}
-      <rect
-        x={rig.cx - waistW / 2 - 1}
-        y={Y.hip - 8}
-        width={waistW + 2}
-        height="9"
-        rx="3"
-        fill={p.shellDark}
-      />
-      <circle cx={px(rig, 0)} cy={Y.hip - 3.5} r="2.6" fill={p.glow} opacity={rig.back ? 0.3 : 0.9} />
+      <rect x={c - wa - 1} y={Y.hip - 9} width={wa * 2 + 2} height="9" rx="3" fill={p.shellDark} />
+      <circle cx={place(rig, 0, 16)} cy={Y.hip - 4.5} r="2.6" fill={p.glow} opacity={alpha * 0.9 + 0.1} />
     </g>
   );
 }
 
 export function Head({ p, rig, chassis }: { p: Palette; rig: Rig; chassis: ChassisId }) {
-  const rx = pw(rig, 34, 0.62) / 2 + 17 * (1 - Math.abs(rig.c)) * 0.35;
-  const headRx = Math.max(20, pw(rig, 68, 0.72) / 2);
-  const cx = rig.cx + protrude(rig, 3);
-
-  const shell = (
-    <>
-      {chassis === "angular" ? (
-        <path
-          d={`M${cx} ${Y.headTop} L${cx + headRx} ${Y.headCy - 16} L${cx + headRx} ${Y.headCy + 16} L${cx + headRx * 0.6} ${Y.headCy + Y.headRy - 4}
-              L${cx - headRx * 0.6} ${Y.headCy + Y.headRy - 4} L${cx - headRx} ${Y.headCy + 16} L${cx - headRx} ${Y.headCy - 16} Z`}
-          fill={p.shell}
-        />
-      ) : (
-        <ellipse cx={cx} cy={Y.headCy} rx={headRx} ry={Y.headRy} fill={p.shell} />
-      )}
-      {/* Sombra del lado que se aleja */}
-      <ellipse
-        cx={cx + headRx * 0.42 * (rig.s >= 0 ? 1 : -1)}
-        cy={Y.headCy}
-        rx={headRx * 0.58}
-        ry={Y.headRy * 0.94}
-        fill={p.shellDark}
-        opacity="0.28"
-      />
-      {/* Brillo superior */}
-      <ellipse cx={cx} cy={Y.headCy - Y.headRy * 0.55} rx={headRx * 0.66} ry={Y.headRy * 0.26} fill={p.shellLight} opacity="0.4" />
-    </>
-  );
+  const rx = proj(rig, DIM.head[0], DIM.head[1]) / 2;
+  const cx = rig.cx;
+  const alpha = faceAlpha(rig);
+  // De perfil la cabeza se corre un poco hacia adelante: da sensación de mirada.
+  const shift = 4 * rig.s;
 
   return (
     <g>
       {chassis === "encapuchado" && (
         <path
-          d={`M${cx} ${Y.headTop - 8} Q${cx + headRx + 10} ${Y.headTop - 2} ${cx + headRx + 8} ${Y.headCy + 22}
-              L${cx + headRx - 2} ${Y.headCy + 16} Q${cx + headRx + 2} ${Y.headCy - 14} ${cx} ${Y.headTop + 2}
-              Q${cx - headRx - 2} ${Y.headCy - 14} ${cx - headRx + 2} ${Y.headCy + 16}
-              L${cx - headRx - 8} ${Y.headCy + 22} Q${cx - headRx - 10} ${Y.headTop - 2} ${cx} ${Y.headTop - 8} Z`}
+          d={`M${cx + shift} ${Y.headTop - 9} Q${cx + shift + rx + 9} ${Y.headTop - 3} ${cx + shift + rx + 7} ${Y.headCy + 24}
+              L${cx + shift + rx - 3} ${Y.headCy + 17} Q${cx + shift + rx} ${Y.headCy - 15} ${cx + shift} ${Y.headTop + 1}
+              Q${cx + shift - rx} ${Y.headCy - 15} ${cx + shift - rx + 3} ${Y.headCy + 17}
+              L${cx + shift - rx - 7} ${Y.headCy + 24} Q${cx + shift - rx - 9} ${Y.headTop - 3} ${cx + shift} ${Y.headTop - 9} Z`}
           fill={p.clothDark}
         />
       )}
-      {shell}
-      {/* Puertos auriculares: uno a cada lado, se corren al girar */}
+
+      {/* Cráneo */}
+      {chassis === "angular" ? (
+        <path
+          d={`M${cx + shift} ${Y.headTop} L${cx + shift + rx} ${Y.headCy - 14} L${cx + shift + rx} ${Y.headCy + 14}
+              L${cx + shift + rx * 0.62} ${Y.headCy + Y.headRy - 3} L${cx + shift - rx * 0.62} ${Y.headCy + Y.headRy - 3}
+              L${cx + shift - rx} ${Y.headCy + 14} L${cx + shift - rx} ${Y.headCy - 14} Z`}
+          fill={p.shell}
+        />
+      ) : (
+        <ellipse cx={cx + shift} cy={Y.headCy} rx={rx} ry={Y.headRy} fill={p.shell} />
+      )}
+
+      {/* Sombreado del lado que se aleja */}
+      <ellipse
+        cx={cx + shift + rx * 0.4 * (rig.s >= 0 ? 1 : -1)}
+        cy={Y.headCy}
+        rx={rx * 0.6}
+        ry={Y.headRy * 0.95}
+        fill={p.shellDark}
+        opacity="0.26"
+      />
+      <ellipse cx={cx + shift} cy={Y.headCy - Y.headRy * 0.58} rx={rx * 0.62} ry={Y.headRy * 0.24} fill={p.shellLight} opacity="0.38" />
+
+      {/* Visera que sobresale: de frente casi no se nota, de perfil define el rostro */}
+      {Math.abs(rig.s) > 0.15 && (
+        <path
+          d={`M${place(rig, 0, 28)} ${Y.headCy - 10} Q${place(rig, 0, 40)} ${Y.headCy - 2} ${place(rig, 0, 28)} ${Y.headCy + 8}`}
+          fill={p.shellDark}
+          opacity={Math.abs(rig.s) * 0.9}
+        />
+      )}
+
+      {/* Puertos auriculares, uno a cada lado */}
       {[-1, 1].map((side) => {
-        const ex = px(rig, side * 31);
-        const visible = Math.abs(rig.c) > 0.25 || side * rig.s < 0;
-        if (!visible) return null;
+        const ex = place(rig, side * 30);
+        const w = proj(rig, 12, 11);
         return (
           <g key={side}>
-            <circle cx={ex} cy={Y.headCy + 6} r={pw(rig, 12, 0.5) / 2} fill={p.shellDark} />
-            <circle cx={ex} cy={Y.headCy + 6} r={pw(rig, 5, 0.5) / 2} fill={p.glow} opacity="0.8" />
+            <circle cx={ex} cy={Y.headCy + 5} r={w / 2} fill={p.shellDark} />
+            <circle cx={ex} cy={Y.headCy + 5} r={w / 4} fill={p.glow} opacity="0.75" />
           </g>
         );
       })}
-      {/* Antena/cresta que ayuda a leer la orientación */}
-      <rect x={cx - pw(rig, 8, 0.3) / 2} y={Y.headTop - 4} width={pw(rig, 8, 0.3)} height="8" rx="3" fill={p.shellDark} />
-      <circle cx={cx} cy={Y.headTop - 5} r="2.6" fill={p.glow} />
-      {/* Nuca: marca clara de que lo estamos viendo de atrás */}
+
+      {/* Cresta: ayuda a leer hacia dónde mira */}
+      <path
+        d={`M${place(rig, 0, -6)} ${Y.headTop + 4} Q${place(rig, 0, 6)} ${Y.headTop - 8} ${place(rig, 0, 16)} ${Y.headTop + 2}`}
+        fill="none"
+        stroke={p.shellDark}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <circle cx={place(rig, 0, 16)} cy={Y.headTop + 2} r="2.8" fill={p.glow} />
+
+      {/* Nuca marcada cuando le vemos la espalda */}
       {rig.back && (
         <path
-          d={`M${cx - headRx * 0.5} ${Y.headCy + 4} Q${cx} ${Y.headCy + 14} ${cx + headRx * 0.5} ${Y.headCy + 4}`}
+          d={`M${cx + shift - rx * 0.5} ${Y.headCy + 6} Q${cx + shift} ${Y.headCy + 16} ${cx + shift + rx * 0.5} ${Y.headCy + 6}`}
           fill="none"
           stroke={p.shellDark}
-          strokeWidth="3"
-          opacity="0.6"
+          strokeWidth="3.5"
+          opacity="0.55"
         />
       )}
-      {/* rx se usa para que los visores sepan cuánto ancho tienen disponible */}
-      <g data-head-rx={rx} />
+      <g data-alpha={alpha} />
     </g>
   );
 }

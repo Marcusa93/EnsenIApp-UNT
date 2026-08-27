@@ -1,5 +1,5 @@
 import type { Palette } from "../palette";
-import { px, pw, type Rig } from "../rig";
+import { depthAt, place, proj, type Rig } from "../rig";
 import { Y } from "./figure";
 import type { PartProps } from "./visor";
 
@@ -13,13 +13,15 @@ import type { PartProps } from "./visor";
 
 /** Punto donde está la mano que sostiene, y cuánto se ve desde este ángulo. */
 function grip(rig: Rig) {
-  const handOffset = -34;
+  const lateral = -33;
+  const forward = 12;
+  const behind = depthAt(rig, lateral, forward) < 0;
   return {
-    x: px(rig, handOffset),
-    y: Y.waist + 8,
-    /** 1 cuando el instrumento está de nuestro lado, menos cuando pasa atrás. */
-    front: 0.35 + 0.65 * Math.max(0, 1 - Math.max(0, -handOffset * rig.s) / 34),
-    scale: 0.72 + 0.28 * Math.abs(rig.c),
+    x: place(rig, lateral, forward),
+    y: Y.hip - 2,
+    front: behind ? 0.4 : 1,
+    // Escala chica: sostenido en la mano, no puede competir con el torso.
+    scale: 0.5 + 0.16 * Math.abs(rig.c),
   };
 }
 
@@ -125,7 +127,3 @@ export const INSTRUMENTOS = {
   "inst-magno": InstMagno,
 } as const;
 
-/** Ancho de referencia para que el rig sepa cuánto ocupa un instrumento. */
-export function instrumentWidth(rig: Rig): number {
-  return pw(rig, 60, 0.5);
-}

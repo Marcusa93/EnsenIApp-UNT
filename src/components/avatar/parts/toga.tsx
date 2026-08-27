@@ -1,5 +1,5 @@
 import type { Palette } from "../palette";
-import { px, pw, type Rig } from "../rig";
+import { faceAlpha, place, proj, px, type Rig } from "../rig";
 import { Y } from "./figure";
 import type { PartProps } from "./visor";
 
@@ -11,9 +11,10 @@ import type { PartProps } from "./visor";
 
 /** Silueta de la prenda: hombros → cintura → vuelo de la falda. */
 function robePath(rig: Rig, shoulder: number, hem: number, bottom: number) {
-  const sh = pw(rig, shoulder, 0.42) / 2;
-  const wa = pw(rig, shoulder * 0.74, 0.5) / 2;
-  const he = pw(rig, hem, 0.46) / 2;
+  // La prenda es un volumen: de perfil conserva cuerpo en vez de aplastarse.
+  const sh = proj(rig, shoulder, shoulder * 0.55) / 2;
+  const wa = proj(rig, shoulder * 0.74, shoulder * 0.5) / 2;
+  const he = proj(rig, hem, hem * 0.62) / 2;
   const c = rig.cx;
   return `M${c - sh} ${Y.shoulder} Q${c} ${Y.shoulder - 8} ${c + sh} ${Y.shoulder}
           L${c + wa} ${Y.hip} L${c + he} ${bottom} Q${c} ${bottom + 6} ${c - he} ${bottom} L${c - wa} ${Y.hip} Z`;
@@ -21,10 +22,10 @@ function robePath(rig: Rig, shoulder: number, hem: number, bottom: number) {
 
 function Lapels({ p, rig, top, glowEdge }: PartProps & { top: number; glowEdge?: boolean }) {
   if (rig.back) return null;
-  const w = pw(rig, 22, 0.3);
+  const w = proj(rig, 22, 22 * 0.5);
   const vBottom = Y.hip - 4;
   return (
-    <g opacity={Math.min(1, Math.abs(rig.c) * 1.8)}>
+    <g opacity={faceAlpha(rig)}>
       <path
         d={`M${px(rig, -18)} ${top} L${rig.cx} ${vBottom} L${px(rig, -10)} ${Y.foot - 8} L${px(rig, -26)} ${Y.foot - 8} Z`}
         fill={p.clothDark}
@@ -52,7 +53,7 @@ export function TogaCursante({ p, rig }: PartProps) {
     <g>
       <path d={robePath(rig, 60, 74, Y.foot - 6)} fill={p.cloth} />
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 60, 0.42) / 2} ${Y.shoulder} L${rig.cx + pw(rig, 74, 0.46) / 2} ${Y.foot - 6} L${rig.cx} ${Y.foot} Z`}
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + proj(rig, 60, 60 * 0.5) / 2} ${Y.shoulder} L${rig.cx + proj(rig, 74, 74 * 0.5) / 2} ${Y.foot - 6} L${rig.cx} ${Y.foot} Z`}
         fill={p.clothDark}
         opacity={0.18 + 0.28 * Math.max(0, rig.s)}
       />
@@ -66,14 +67,14 @@ export function TogaReforzada({ p, rig }: PartProps) {
     <g>
       <path d={robePath(rig, 62, 78, Y.foot - 4)} fill={p.cloth} />
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 62, 0.42) / 2} ${Y.shoulder} L${rig.cx + pw(rig, 78, 0.46) / 2} ${Y.foot - 4} L${rig.cx} ${Y.foot} Z`}
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + proj(rig, 62, 62 * 0.5) / 2} ${Y.shoulder} L${rig.cx + proj(rig, 78, 78 * 0.5) / 2} ${Y.foot - 4} L${rig.cx} ${Y.foot} Z`}
         fill={p.clothDark}
         opacity={0.18 + 0.28 * Math.max(0, rig.s)}
       />
       <Lapels p={p} rig={rig} top={Y.shoulder} />
       {/* Costuras horizontales */}
       <path
-        d={`M${rig.cx - pw(rig, 66, 0.46) / 2} ${Y.hip + 22} L${rig.cx + pw(rig, 66, 0.46) / 2} ${Y.hip + 22}`}
+        d={`M${rig.cx - proj(rig, 66, 66 * 0.5) / 2} ${Y.hip + 22} L${rig.cx + proj(rig, 66, 66 * 0.5) / 2} ${Y.hip + 22}`}
         stroke={p.shellDark}
         strokeWidth="1.6"
         opacity="0.55"
@@ -83,12 +84,12 @@ export function TogaReforzada({ p, rig }: PartProps) {
 }
 
 export function TogaFibra({ p, rig }: PartProps) {
-  const hem = pw(rig, 82, 0.46) / 2;
+  const hem = proj(rig, 82, 82 * 0.5) / 2;
   return (
     <g>
       <path d={robePath(rig, 64, 82, Y.foot - 4)} fill={p.cloth} />
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 64, 0.42) / 2} ${Y.shoulder} L${rig.cx + hem} ${Y.foot - 4} L${rig.cx} ${Y.foot} Z`}
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + proj(rig, 64, 64 * 0.5) / 2} ${Y.shoulder} L${rig.cx + hem} ${Y.foot - 4} L${rig.cx} ${Y.foot} Z`}
         fill={p.clothDark}
         opacity={0.18 + 0.28 * Math.max(0, rig.s)}
       />
@@ -112,7 +113,7 @@ export function TogaProcesal({ p, rig }: PartProps) {
     <g>
       <path d={robePath(rig, 66, 86, Y.foot - 2)} fill={p.cloth} />
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + pw(rig, 66, 0.42) / 2} ${Y.shoulder} L${rig.cx + pw(rig, 86, 0.46) / 2} ${Y.foot - 2} L${rig.cx} ${Y.foot} Z`}
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + proj(rig, 66, 66 * 0.5) / 2} ${Y.shoulder} L${rig.cx + proj(rig, 86, 86 * 0.5) / 2} ${Y.foot - 2} L${rig.cx} ${Y.foot} Z`}
         fill={p.clothDark}
         opacity={0.18 + 0.3 * Math.max(0, rig.s)}
       />
@@ -120,7 +121,7 @@ export function TogaProcesal({ p, rig }: PartProps) {
       {[-1, 1].map((side) => (
         <path
           key={side}
-          d={`M${px(rig, side * 26)} ${Y.hip - 6} L${px(rig, side * 36)} ${Y.hip + 2} L${px(rig, side * 34)} ${Y.kneeTop} L${px(rig, side * 24)} ${Y.kneeTop - 6} Z`}
+          d={`M${px(rig, side * 26)} ${Y.hip - 6} L${px(rig, side * 36)} ${Y.hip + 2} L${px(rig, side * 34)} ${Y.knee} L${px(rig, side * 24)} ${Y.knee - 6} Z`}
           fill={p.shellDark}
         />
       ))}
@@ -137,12 +138,12 @@ export function TogaProcesal({ p, rig }: PartProps) {
 }
 
 export function TogaCorte({ p, rig }: PartProps) {
-  const sh = pw(rig, 70, 0.42) / 2;
+  const sh = proj(rig, 70, 70 * 0.5) / 2;
   return (
     <g>
       <path d={robePath(rig, 70, 92, Y.foot)} fill={p.cloth} />
       <path
-        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + sh} ${Y.shoulder} L${rig.cx + pw(rig, 92, 0.46) / 2} ${Y.foot} L${rig.cx} ${Y.foot + 4} Z`}
+        d={`M${rig.cx} ${Y.shoulder - 6} L${rig.cx + sh} ${Y.shoulder} L${rig.cx + proj(rig, 92, 92 * 0.5) / 2} ${Y.foot} L${rig.cx} ${Y.foot + 4} Z`}
         fill={p.clothDark}
         opacity={0.18 + 0.3 * Math.max(0, rig.s)}
       />
@@ -162,7 +163,7 @@ export function TogaCorte({ p, rig }: PartProps) {
       <Lapels p={p} rig={rig} top={Y.shoulder + 14} glowEdge />
       {/* Ruedo con ribete pleno */}
       <path
-        d={`M${rig.cx - pw(rig, 92, 0.46) / 2} ${Y.foot - 2} Q${rig.cx} ${Y.foot + 4} ${rig.cx + pw(rig, 92, 0.46) / 2} ${Y.foot - 2}`}
+        d={`M${rig.cx - proj(rig, 92, 92 * 0.5) / 2} ${Y.foot - 2} Q${rig.cx} ${Y.foot + 4} ${rig.cx + proj(rig, 92, 92 * 0.5) / 2} ${Y.foot - 2}`}
         fill="none"
         stroke={p.glow}
         strokeWidth="2.6"
@@ -173,7 +174,7 @@ export function TogaCorte({ p, rig }: PartProps) {
             d={`M${rig.cx} ${Y.hip + 10} L${px(rig, 9)} ${Y.hip + 22} L${rig.cx} ${Y.hip + 36} L${px(rig, -9)} ${Y.hip + 22} Z`}
             fill={p.glow}
           />
-          <circle cx={rig.cx} cy={Y.hip + 23} r={pw(rig, 34, 0.3) / 2} fill={p.glow} opacity="0.12" />
+          <circle cx={rig.cx} cy={Y.hip + 23} r={proj(rig, 34, 34 * 0.5) / 2} fill={p.glow} opacity="0.12" />
         </g>
       )}
     </g>

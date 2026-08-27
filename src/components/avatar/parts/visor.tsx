@@ -1,5 +1,5 @@
 import type { Palette } from "../palette";
-import { px, pw, protrude, type Rig } from "../rig";
+import { faceAlpha, place, proj, px, type Rig } from "../rig";
 import { Y } from "./figure";
 
 /**
@@ -15,21 +15,22 @@ export interface PartProps {
 
 /** Banda del visor: alto fijo, ancho y centro según hacia dónde mira. */
 function band(rig: Rig, width: number) {
-  const w = pw(rig, width, 0.3);
-  const cx = rig.cx + protrude(rig, 4);
+  // Profundidad chica: es una placa en el frente del casco, se va de canto sola.
+  const w = proj(rig, width, 10);
+  const cx = place(rig, 0, 26);
   return { w, cx, x: cx - w / 2 };
 }
 
 export function VisorBasico({ p, rig }: PartProps) {
   if (rig.back) return null;
   const { x, w, cx } = band(rig, 50);
-  const eye = pw(rig, 14, 0.25);
+  const eye = proj(rig, 14, 8);
   return (
-    <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+    <g opacity={faceAlpha(rig)}>
       <rect x={x} y={Y.headCy - 10} width={w} height="18" rx="9" fill={p.shellDark} />
       <rect x={x + w * 0.07} y={Y.headCy - 6} width={w * 0.86} height="10" rx="5" fill={p.glowDeep} />
-      <rect x={px(rig, -11) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
-      <rect x={px(rig, 11) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
+      <rect x={place(rig, -11, 26) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
+      <rect x={place(rig, 11, 26) - eye / 2} y={Y.headCy - 3.5} width={eye} height="5" rx="2.5" fill={p.glow} />
       <g data-cx={cx} />
     </g>
   );
@@ -39,22 +40,22 @@ export function VisorLente({ p, rig }: PartProps) {
   if (rig.back) return null;
   const { x, w } = band(rig, 56);
   return (
-    <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+    <g opacity={faceAlpha(rig)}>
       <rect x={x} y={Y.headCy - 12} width={w} height="21" rx="10.5" fill={p.shellDark} />
       <rect x={x + w * 0.07} y={Y.headCy - 8} width={w * 0.86} height="13" rx="6.5" fill={p.glowDeep} />
-      <rect x={px(rig, -12) - pw(rig, 15, 0.25) / 2} y={Y.headCy - 4} width={pw(rig, 15, 0.25)} height="6" rx="3" fill={p.glow} />
-      <rect x={px(rig, 12) - pw(rig, 15, 0.25) / 2} y={Y.headCy - 4} width={pw(rig, 15, 0.25)} height="6" rx="3" fill={p.glow} />
+      <rect x={place(rig, -12, 26) - proj(rig, 15, 8) / 2} y={Y.headCy - 4} width={proj(rig, 15, 8)} height="6" rx="3" fill={p.glow} />
+      <rect x={place(rig, 12, 26) - proj(rig, 15, 8) / 2} y={Y.headCy - 4} width={proj(rig, 15, 8)} height="6" rx="3" fill={p.glow} />
       {/* Lente de aumento sobre un ojo */}
       <ellipse
-        cx={px(rig, 16)}
+        cx={place(rig, 16, 26)}
         cy={Y.headCy - 1}
-        rx={pw(rig, 22, 0.3) / 2}
+        rx={proj(rig, 22, 8) / 2}
         ry="11"
         fill="none"
         stroke={p.shellLight}
         strokeWidth="2.4"
       />
-      <ellipse cx={px(rig, 16)} cy={Y.headCy - 1} rx={pw(rig, 22, 0.3) / 2} ry="11" fill={p.glow} opacity="0.2" />
+      <ellipse cx={place(rig, 16, 26)} cy={Y.headCy - 1} rx={proj(rig, 22, 8) / 2} ry="11" fill={p.glow} opacity="0.2" />
     </g>
   );
 }
@@ -63,7 +64,7 @@ export function VisorTactico({ p, rig }: PartProps) {
   if (rig.back) return null;
   const { x, w, cx } = band(rig, 62);
   return (
-    <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+    <g opacity={faceAlpha(rig)}>
       <path
         d={`M${x} ${Y.headCy - 14} Q${cx} ${Y.headCy - 20} ${x + w} ${Y.headCy - 14} L${x + w + 1} ${Y.headCy + 8} Q${cx} ${Y.headCy + 15} ${x - 1} ${Y.headCy + 8} Z`}
         fill={p.shellDark}
@@ -72,10 +73,10 @@ export function VisorTactico({ p, rig }: PartProps) {
         d={`M${x + 4} ${Y.headCy - 10} Q${cx} ${Y.headCy - 15} ${x + w - 4} ${Y.headCy - 10} L${x + w - 4} ${Y.headCy + 5} Q${cx} ${Y.headCy + 11} ${x + 4} ${Y.headCy + 5} Z`}
         fill={p.glowDeep}
       />
-      <rect x={px(rig, -13) - pw(rig, 16, 0.25) / 2} y={Y.headCy - 5} width={pw(rig, 16, 0.25)} height="7" rx="3" fill={p.glow} />
-      <rect x={px(rig, 13) - pw(rig, 16, 0.25) / 2} y={Y.headCy - 5} width={pw(rig, 16, 0.25)} height="7" rx="3" fill={p.glow} />
+      <rect x={place(rig, -13, 26) - proj(rig, 16, 8) / 2} y={Y.headCy - 5} width={proj(rig, 16, 8)} height="7" rx="3" fill={p.glow} />
+      <rect x={place(rig, 13, 26) - proj(rig, 16, 8) / 2} y={Y.headCy - 5} width={proj(rig, 16, 8)} height="7" rx="3" fill={p.glow} />
       {/* Antena lateral: se ve del lado que gira hacia nosotros */}
-      <g transform={`translate(${px(rig, 30)} ${Y.headCy - 12})`}>
+      <g transform={`translate(${place(rig, 30, 26)} ${Y.headCy - 12})`}>
         <path d="M0 0 L10 -12 L14 -8 L4 4 Z" fill={p.shell} />
         <circle cx="12" cy="-10" r="3.5" fill={p.glow} />
         <circle cx="12" cy="-10" r="7" fill={p.glow} opacity="0.25" />
@@ -86,7 +87,7 @@ export function VisorTactico({ p, rig }: PartProps) {
 
 export function VisorCorona({ p, rig }: PartProps) {
   const { x, w, cx } = band(rig, 66);
-  const ringRx = pw(rig, 74, 0.3) / 2;
+  const ringRx = proj(rig, 74, 8) / 2;
   return (
     <g>
       {/* El anillo sí se ve de espaldas: rodea la cabeza */}
@@ -102,7 +103,7 @@ export function VisorCorona({ p, rig }: PartProps) {
         />
       ))}
       {!rig.back && (
-        <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+        <g opacity={faceAlpha(rig)}>
           <path
             d={`M${x} ${Y.headCy - 14} Q${cx} ${Y.headCy - 21} ${x + w} ${Y.headCy - 14} L${x + w + 1} ${Y.headCy + 10} Q${cx} ${Y.headCy + 18} ${x - 1} ${Y.headCy + 10} Z`}
             fill={p.shellDark}
@@ -124,7 +125,7 @@ export function VisorCorona({ p, rig }: PartProps) {
 
 export function VisorMagistral({ p, rig }: PartProps) {
   const { x, w, cx } = band(rig, 70);
-  const spread = pw(rig, 70, 0.3) / 2;
+  const spread = proj(rig, 70, 8) / 2;
   return (
     <g>
       {/* Laurel geométrico: envuelve la cabeza, se ve de todos los ángulos */}
@@ -147,7 +148,7 @@ export function VisorMagistral({ p, rig }: PartProps) {
       <path d={`M${rig.cx} ${Y.headTop - 16} L${rig.cx + 6} ${Y.headTop - 10} L${rig.cx} ${Y.headTop - 4} L${rig.cx - 6} ${Y.headTop - 10} Z`} fill={p.shellLight} />
 
       {!rig.back && (
-        <g opacity={Math.min(1, Math.abs(rig.c) * 2)}>
+        <g opacity={faceAlpha(rig)}>
           <path
             d={`M${x} ${Y.headCy - 16} Q${cx} ${Y.headCy - 23} ${x + w} ${Y.headCy - 16} L${x + w + 1} ${Y.headCy + 12} Q${cx} ${Y.headCy + 20} ${x - 1} ${Y.headCy + 12} Z`}
             fill={p.shellDark}
@@ -160,8 +161,8 @@ export function VisorMagistral({ p, rig }: PartProps) {
             d={`M${x + 7} ${Y.headCy - 4} Q${cx} ${Y.headCy - 9} ${x + w - 7} ${Y.headCy - 4} L${x + w - 7} ${Y.headCy + 4} Q${cx} ${Y.headCy + 10} ${x + 7} ${Y.headCy + 4} Z`}
             fill={p.glow}
           />
-          <rect x={px(rig, -14) - pw(rig, 10, 0.25) / 2} y={Y.headCy - 10} width={pw(rig, 10, 0.25)} height="18" rx="3" fill={p.shellLight} opacity="0.9" />
-          <rect x={px(rig, 14) - pw(rig, 10, 0.25) / 2} y={Y.headCy - 10} width={pw(rig, 10, 0.25)} height="18" rx="3" fill={p.shellLight} opacity="0.9" />
+          <rect x={place(rig, -14, 26) - proj(rig, 10, 8) / 2} y={Y.headCy - 10} width={proj(rig, 10, 8)} height="18" rx="3" fill={p.shellLight} opacity="0.9" />
+          <rect x={place(rig, 14, 26) - proj(rig, 10, 8) / 2} y={Y.headCy - 10} width={proj(rig, 10, 8)} height="18" rx="3" fill={p.shellLight} opacity="0.9" />
         </g>
       )}
     </g>

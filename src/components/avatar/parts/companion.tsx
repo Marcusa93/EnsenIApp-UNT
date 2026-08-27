@@ -68,7 +68,7 @@ export function CompAsesor({ p, rig }: PartProps) {
 
 export function CompEnjambre({ p, rig }: PartProps) {
   const a = orbit(rig, 54, Y.shoulder - 16);
-  const b = orbit(rig, 64, Y.waist + 4);
+  const b = orbit(rig, 64, Y.chest + 4);
   const c = orbit(rig, -50, Y.hip - 10);
   return (
     <g>

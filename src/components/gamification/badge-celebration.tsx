@@ -65,10 +65,10 @@ export function BadgeCelebration({ userId }: { userId: string }) {
   return createPortal(
     <AnimatePresence>
       {current && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        // El fondo NO se anima: si la animación se interrumpe (cambiar de pestaña
+        // justo al aparecer), quedaba un overlay casi invisible tapando toda la
+        // pantalla y comiéndose los clics. Sólo anima la tarjeta de adentro.
+        <div
           className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
@@ -100,7 +100,7 @@ export function BadgeCelebration({ userId }: { userId: string }) {
               </Button>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>,
     document.body,

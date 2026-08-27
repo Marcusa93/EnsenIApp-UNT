@@ -2,70 +2,85 @@
  * Rig 2.5D del operador.
  *
  * El muñeco se dibuja en función del ángulo hacia el que mira, en vez de tener
- * cuatro dibujos hechos a mano por cada ítem. Cada pieza pregunta al rig dónde
- * cae en pantalla y cuánto se angosta, y el conjunto gira de forma coherente.
+ * un dibujo hecho a mano por cada vista de cada ítem.
  *
- * Ángulos: 0° = de frente, 90° = perfil a su izquierda (nuestra derecha),
+ * La clave está en distinguir dos cosas que se comportan distinto al girar:
+ *
+ *  - Un VOLUMEN (la cabeza, el torso) tiene ancho y profundidad. Al girar, su
+ *    silueta pasa de mostrar el ancho a mostrar la profundidad, así que el ancho
+ *    proyectado es la elipse √((W·cos)² + (D·sin)²) — nunca se achica a cero.
+ *    Tratarlo como plano fue el error que convertía al muñeco en un palo de perfil.
+ *  - Una SUPERFICIE plana (el visor, una placa pectoral) sí desaparece de canto:
+ *    su profundidad es casi nula y la misma fórmula lo resuelve sola.
+ *
+ * Ángulos: 0° = de frente, 90° = perfil (nos da su costado izquierdo),
  * 180° = de espaldas, 270° = el otro perfil.
  */
 
 export interface Rig {
-  /** Ángulo normalizado en radianes. */
   a: number;
-  /** cos(a): 1 de frente, 0 de perfil, -1 de espaldas. Marca el "ancho" visible. */
+  /** cos: 1 de frente, 0 de perfil, -1 de espaldas. */
   c: number;
-  /** sin(a): de qué lado estamos mirando. Marca el desplazamiento lateral. */
+  /** sin: hacia qué lado gira. */
   s: number;
-  /** true cuando le vemos la espalda (no se dibujan cara ni visor). */
+  /** true cuando le vemos la espalda. */
   back: boolean;
-  /** Cuánto se comprime lo que es plano de frente (0.18 de perfil, 1 de frente). */
-  flat: number;
-  /** Eje horizontal de la figura. */
+  /** Cuánto se ve de la cara frontal (1 de frente, 0 de perfil). */
+  facing: number;
+  /** Eje vertical de la figura en el lienzo. */
   cx: number;
 }
 
 export const CX = 120;
 
 export function makeRig(degrees: number): Rig {
-  const a = ((degrees % 360) + 360) % 360 * (Math.PI / 180);
+  const a = (((degrees % 360) + 360) % 360) * (Math.PI / 180);
   const c = Math.cos(a);
   const s = Math.sin(a);
-  return {
-    a,
-    c,
-    s,
-    back: c < 0,
-    // Nunca llega a 0: de perfil los rasgos se ven angostos, no desaparecidos.
-    flat: 0.18 + 0.82 * Math.abs(c),
-    cx: CX,
-  };
+  return { a, c, s, back: c < 0, facing: Math.max(0, c), cx: CX };
 }
 
 /**
- * Dónde cae en pantalla un punto que, de frente, está a `offset` px del eje.
- * Al girar, lo que estaba al costado se acerca al centro.
+ * Dónde cae en pantalla un punto del cuerpo.
+ * @param lateral distancia al eje cuando se lo mira de frente (+ = a su izquierda)
+ * @param forward cuánto sobresale hacia adelante (+ = hacia el espectador de frente)
  */
+export function place(rig: Rig, lateral: number, forward = 0): number {
+  return rig.cx + lateral * rig.c + forward * rig.s;
+}
+
+/**
+ * Ancho proyectado de una pieza de `width` de ancho y `depth` de profundidad.
+ * Para superficies planas se pasa una profundidad chica y desaparecen de canto.
+ */
+export function proj(rig: Rig, width: number, depth: number): number {
+  const w = width * rig.c;
+  const d = depth * rig.s;
+  return Math.sqrt(w * w + d * d);
+}
+
+/** Profundidad de un punto: mayor = más cerca del espectador. Ordena las capas. */
+export function depthAt(rig: Rig, lateral: number, forward = 0): number {
+  return forward * rig.c - lateral * rig.s;
+}
+
+/**
+ * Cuánto se ve una superficie orientada hacia adelante: 1 de frente, 0 de canto.
+ * Sirve para atenuar visores y placas en vez de cortarlos de golpe.
+ */
+export function faceAlpha(rig: Rig, sharpness = 1.8): number {
+  return Math.min(1, Math.max(0, rig.c) * sharpness);
+}
+
+/** Compatibilidad: ancho de algo tratado como volumen suave. */
+export function pw(rig: Rig, width: number, minRatio = 0.35): number {
+  return proj(rig, width, width * minRatio);
+}
+
 export function px(rig: Rig, offset: number): number {
-  return rig.cx + offset * rig.c;
+  return place(rig, offset, 0);
 }
 
-/** Ancho en pantalla de algo que de frente mide `w` y de perfil casi nada. */
-export function pw(rig: Rig, w: number, minRatio = 0.18): number {
-  return w * (minRatio + (1 - minRatio) * Math.abs(rig.c));
-}
-
-/**
- * Profundidad de un elemento que de frente está a `offset` del eje: positivo =
- * más cerca del espectador. Sirve para ordenar brazos y piezas al girar.
- */
-export function depth(rig: Rig, offset: number): number {
-  return -offset * rig.s;
-}
-
-/**
- * Desplazamiento lateral de una pieza que sobresale hacia adelante (una visera,
- * una nariz de casco): de frente no se corre, de perfil se va hacia el costado.
- */
 export function protrude(rig: Rig, amount: number): number {
   return amount * rig.s;
 }
