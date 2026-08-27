@@ -12,7 +12,7 @@ import { equipItem, markItemsSeen } from "@/app/campus/estudiante/juegos/avatar-
 import { EmoteBar } from "./emote-bar";
 import { ShareStory } from "./share-story";
 import { SetPanel } from "./set-panel";
-import { EMOTE_BY_ID, type EmoteProgress } from "@/lib/games/emotes";
+import { EMOTE_BY_ID, type Emote, type EmoteProgress } from "@/lib/games/emotes";
 
 /**
  * Vestidor: el retrato grande y las ranuras de equipo. Lo bloqueado también se
@@ -79,8 +79,12 @@ export function Loadout({
   const [editing, setEditing] = React.useState(false);
   /** Ítem bloqueado que se está probando: se ve puesto, pero como proyección. */
   const [trying, setTrying] = React.useState<LoadoutItem | null>(null);
-  /** Emote sonando: se apaga solo al terminar para poder repetirlo. */
-  const [emote, setEmote] = React.useState<string | null>(null);
+  /**
+   * Emote sonando. Se guarda el objeto entero y no su id: buscarlo de nuevo en
+   * el render agregaba una indirección que devolvía undefined y dejaba al muñeco
+   * sin animar.
+   */
+  const [emote, setEmote] = React.useState<Emote | null>(null);
   const emoteTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playEmote = React.useCallback((id: string) => {
@@ -92,7 +96,7 @@ export function Loadout({
     // y el emote quedaría colgado esperando para siempre.
     setEmote(null);
     emoteTimer.current = setTimeout(() => {
-      setEmote(id);
+      setEmote(e);
       emoteTimer.current = setTimeout(() => setEmote(null), e.duration + 60);
     }, 20);
   }, []);
@@ -168,7 +172,7 @@ export function Loadout({
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         {/* Retrato */}
         <div className="flex min-w-0 flex-col items-center gap-3 lg:col-span-5">
-          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} emoteClass={emote ? (EMOTE_BY_ID.get(emote)?.className ?? null) : null} title={config.callsign} className="w-full" />
+          <Turntable config={shown} size={300} ghostSlot={trying?.slot ?? null} emoteClass={emote?.className ?? null} title={config.callsign} className="w-full" />
           <div className="text-center">
             {trying ? (
               <>
@@ -205,7 +209,7 @@ export function Loadout({
           </div>
 
           <div className="w-full">
-            <EmoteBar progress={progress} playing={emote} onPlay={playEmote} />
+            <EmoteBar progress={progress} playing={emote?.id ?? null} onPlay={playEmote} />
           </div>
         </div>
 
