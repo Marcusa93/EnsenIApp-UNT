@@ -93,6 +93,13 @@ export function AlberdiNpc({
           height={size * 1.5}
           priority={false}
           className="size-full object-contain"
+          style={{
+            // La ilustración es oscura y el salón también: sin este borde de
+            // luz (que sigue el alfa real del recorte) se pierde contra el
+            // piso #0d111c.
+            filter:
+              "drop-shadow(0 0 2px rgba(255,255,255,0.6)) drop-shadow(0 0 10px var(--accent)) drop-shadow(0 0 22px var(--accent-2))",
+          }}
         />
       </div>
 
