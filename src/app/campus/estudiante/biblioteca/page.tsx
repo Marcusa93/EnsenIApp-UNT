@@ -51,9 +51,11 @@ export default async function BibliotecaPage() {
   }
 
   // Las mesas son las clases que YA tienen desafíos: sentarse tiene que servir
-  // para algo, si no la sala es decorado.
-  const [challengesRes, statsRes] = await Promise.all([
-    supabase.from("game_challenges").select("class_id, classes(id, topic, class_date)").eq("course_id", course.id),
+  // para algo, si no la sala es decorado. game_challenges no tiene policy de
+  // lectura para estudiantes (tiene la respuesta correcta adentro), así que se
+  // lee la vista agregada v_game_tables, que sólo expone clase y cantidad.
+  const [tablesRes, statsRes] = await Promise.all([
+    supabase.from("v_game_tables").select("class_id, topic, class_date, challenges").eq("course_id", course.id),
     supabase
       .from("student_game_stats")
       .select("xp, best_streak, correct, runs")
@@ -61,16 +63,11 @@ export default async function BibliotecaPage() {
       .maybeSingle(),
   ]);
 
-  const porClase = new Map<string, LibraryTable>();
-  for (const row of challengesRes.data ?? []) {
-    const cls = row.classes as { id: string; topic: string; class_date: string } | null;
-    if (!cls) continue;
-    const actual = porClase.get(cls.id);
-    if (actual) actual.challenges += 1;
-    else porClase.set(cls.id, { id: cls.id, topic: cls.topic, date: cls.class_date, challenges: 1 });
-  }
+  const tables: LibraryTable[] = (tablesRes.data ?? [])
+    .filter((r): r is typeof r & { class_id: string; challenges: number } => r.class_id != null && r.challenges != null)
+    .map((r) => ({ id: r.class_id, topic: r.topic ?? "", date: r.class_date ?? "", challenges: r.challenges }))
+    .sort((a, b) => b.date.localeCompare(a.date));
 
-  const tables = [...porClase.values()].sort((a, b) => b.date.localeCompare(a.date));
   const stats = statsRes.data;
 
   return (

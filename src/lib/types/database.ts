@@ -2739,6 +2739,38 @@ export type Database = {
         }
         Relationships: []
       }
+      v_game_tables: {
+        Row: {
+          challenges: number | null
+          class_date: string | null
+          class_id: string | null
+          course_id: string | null
+          topic: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_challenges_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_challenges_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_challenges_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+        ]
+      }
       v_live_wordcloud: {
         Row: {
           display_word: string | null
