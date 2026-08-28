@@ -16,7 +16,11 @@ import { getWeeklyStatus } from "@/lib/games/weekly";
 
 export const metadata: Metadata = { title: "Juegos · EnsenIA UNT" };
 
-export default async function JuegosPage() {
+export default async function JuegosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clase?: string }>;
+}) {
   const { user, profile } = await requireRole("estudiante");
   const supabase = await createClient();
   const course = await getPrimaryCourse(supabase, user.id, profile.role);
@@ -95,6 +99,10 @@ export default async function JuegosPage() {
     build: string | null;
     equipped: Record<string, string> | null;
   }[];
+  // Si venís de sentarte en una mesa de la Biblioteca, la clase llega elegida.
+  const { clase } = await searchParams;
+  const claseInicial = clase && classes.some((c) => c.id === clase) ? clase : "";
+
   const runsByGame = new Map<string, number>();
   for (const r of countsRes.data ?? []) {
     runsByGame.set(r.game, (runsByGame.get(r.game) ?? 0) + 1);
@@ -190,7 +198,7 @@ export default async function JuegosPage() {
             </Reveal>
 
             {/* Juegos */}
-            <GameLauncher games={available} classes={classes} runsByGame={Object.fromEntries(runsByGame)} />
+            <GameLauncher games={available} classes={classes} runsByGame={Object.fromEntries(runsByGame)} initialClassId={claseInicial} />
           </div>
 
           {/* Tabla de posiciones */}

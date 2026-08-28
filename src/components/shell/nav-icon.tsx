@@ -1,5 +1,6 @@
 import {
   Bell,
+  BookOpen,
   CalendarDays,
   ClipboardList,
   Feather,
@@ -36,6 +37,7 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   Feather,
   Gamepad2,
   Settings,
+  BookOpen,
 };
 
 export function NavIcon({ name, className }: { name: NavItem["icon"]; className?: string }) {

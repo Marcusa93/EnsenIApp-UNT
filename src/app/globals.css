@@ -631,3 +631,54 @@ dialog[open] {
 .em-pasito .av-arm-l { animation: em-step-l 2.4s ease-in-out; }
 .em-pasito .av-arm-r { animation: em-step-r 2.4s ease-in-out; }
 .em-pasito .av-head { animation: em-sway 2.4s ease-in-out; }
+
+/* ---------------------------------------------------------------------------
+   Alberdi bibliotecario (src/components/avatar/alberdi-npc.tsx)
+   La ilustración es fija: la vida se la dan estas transformaciones y las capas
+   de alrededor. La regla global de prefers-reduced-motion las apaga.
+--------------------------------------------------------------------------- */
+@keyframes npc-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(-0.6deg); }
+}
+.npc-float {
+  animation: npc-float 4.5s ease-in-out infinite;
+}
+
+/* Atento: se endereza, se acerca un poco y levanta la mirada */
+@keyframes npc-alert {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-10px) scale(1.06); }
+}
+.npc-alert {
+  animation: npc-float 4.5s ease-in-out infinite, npc-alert 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Hablando: cabeceo corto y rítmico, como quien explica */
+@keyframes npc-talk {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(1.2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-3px) rotate(-1.2deg); }
+}
+.npc-talk {
+  animation: npc-talk 1.1s ease-in-out infinite;
+}
+
+/* Glifos en órbita alrededor de la figura */
+@keyframes npc-orbit {
+  to { transform: rotate(360deg); }
+}
+.npc-orbit {
+  animation: npc-orbit 18s linear infinite;
+}
+
+/* Destello sobre la pluma */
+@keyframes npc-spark {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  40% { opacity: 1; transform: scale(1.15); }
+  70% { opacity: 0.5; transform: scale(0.9); }
+}
+.npc-spark {
+  animation: npc-spark 1.6s ease-in-out infinite;
+}

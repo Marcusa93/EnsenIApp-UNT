@@ -68,15 +68,18 @@ export function GameLauncher({
   games,
   classes,
   runsByGame,
+  initialClassId = "",
 }: {
   games: GameMeta[];
   classes: ClassOption[];
   runsByGame: Record<string, number>;
+  /** Preselección al venir de una mesa de la Biblioteca. */
+  initialClassId?: string;
 }) {
   const router = useRouter();
   const [phase, setPhase] = React.useState<Phase>("idle");
   const [game, setGame] = React.useState<GameMeta | null>(null);
-  const [classId, setClassId] = React.useState<string>("");
+  const [classId, setClassId] = React.useState<string>(initialClassId);
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);
   const [index, setIndex] = React.useState(0);
   const [answers, setAnswers] = React.useState<Record<string, number>>({});
