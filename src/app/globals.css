@@ -682,3 +682,23 @@ dialog[open] {
 .npc-spark {
   animation: npc-spark 1.6s ease-in-out infinite;
 }
+
+/* --- Caminata en El Patio (library-room.tsx) ------------------------------
+   El muñeco no tiene frames de sprite: la caminata es puro CSS sobre el rig
+   ya dibujado — piernas alternadas (av-leg-l/r, transform-origin en la
+   cadera), brazos en contrafase suave y un pequeño rebote del conjunto.
+   Se prende con .av-walking en el contenedor mientras dura la transición
+   de left/top, y se apaga sola al llegar. */
+@keyframes paso-a { 0%, 100% { transform: rotate(16deg); } 50% { transform: rotate(-16deg); } }
+@keyframes paso-b { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(16deg); } }
+@keyframes paso-rebote { 0%, 100% { transform: translateY(0); } 25%, 75% { transform: translateY(-2.5px); } }
+.av-walking .av-leg-l { animation: paso-a 0.5s linear infinite; }
+.av-walking .av-leg-r { animation: paso-b 0.5s linear infinite; }
+.av-walking .av-arm-l { animation: paso-b 0.5s linear infinite; }
+.av-walking .av-arm-r { animation: paso-a 0.5s linear infinite; }
+.av-walking svg { animation: paso-rebote 0.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .av-walking .av-leg-l, .av-walking .av-leg-r,
+  .av-walking .av-arm-l, .av-walking .av-arm-r,
+  .av-walking svg { animation: none; }
+}

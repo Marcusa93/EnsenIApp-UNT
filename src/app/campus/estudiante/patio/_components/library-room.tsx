@@ -13,7 +13,7 @@ import { EMOTES, EMOTE_BY_ID, isEmoteUnlocked, type EmoteProgress } from "@/lib/
 import { cn } from "@/lib/utils";
 
 /**
- * La Biblioteca: un salón por el que se camina, con mesas por clase y el
+ * El Patio: un salón por el que se camina, con mesas por clase y el
  * mostrador de Alberdi.
  *
  * Presencia y posiciones van por Realtime. La posición se manda con freno y sólo
@@ -67,6 +67,25 @@ const ALCANCE = 190;
 const EMOTE_MS = 2600;
 /** Freno de posición: 5 mensajes por segundo alcanzan y sobran. */
 const ENVIO_MS = 200;
+/**
+ * Velocidad de caminata en unidades del salón por segundo. La duración de cada
+ * trayecto sale de acá (distancia / velocidad), así caminar cerca es un pasito
+ * y cruzar el salón toma su tiempo — con los 700ms fijos de antes, lo lejano
+ * era un teletransporte y lo cercano un arrastre.
+ */
+const VELOCIDAD = 300;
+const PASO_MIN_MS = 250;
+
+/** Cuánto dura el trayecto entre dos puntos, a velocidad constante. */
+function duracionPaso(d: number) {
+  return Math.max(PASO_MIN_MS, Math.round((d / VELOCIDAD) * 1000));
+}
+
+/** Hacia dónde mira alguien que camina en esa dirección (ángulos del rig). */
+function anguloDeMarcha(dx: number, dy: number) {
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 90 : 270;
+  return dy >= 0 ? 0 : 180;
+}
 
 /** Dónde va cada mesa. Se reparten en dos filas para que quede lugar de paso. */
 function lugarDeMesa(i: number, total: number) {
@@ -89,9 +108,14 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
   const [mostrador, setMostrador] = React.useState(false);
   /** Con quién tocaste para ver quién es. */
   const [inspeccionando, setInspeccionando] = React.useState<Persona | null>(null);
+  /** Quién está caminando ahora: duración del trayecto y hacia dónde mira. */
+  const [andando, setAndando] = React.useState<Record<string, { durMs: number; angulo: number }>>({});
 
   const canal = React.useRef<RealtimeChannel | null>(null);
   const timers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const timersPaso = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  /** Última posición conocida de cada uno, para calcular distancia y rumbo. */
+  const ultimaPos = React.useRef<Record<string, { x: number; y: number }>>({});
   const ultimoEnvio = React.useRef(0);
   const envioPendiente = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const posRef = React.useRef(pos);
@@ -102,10 +126,31 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
     [tables],
   );
 
+  /** Marca a alguien como caminando hacia (x, y) y lo frena al llegar. */
+  const marcarPaso = React.useCallback((studentId: string, x: number, y: number) => {
+    const desde = ultimaPos.current[studentId];
+    ultimaPos.current[studentId] = { x, y };
+    if (!desde) return;
+    const dx = x - desde.x;
+    const dy = y - desde.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 4) return;
+    const durMs = duracionPaso(d);
+    setAndando((prev) => ({ ...prev, [studentId]: { durMs, angulo: anguloDeMarcha(dx, dy) } }));
+    clearTimeout(timersPaso.current[studentId]);
+    timersPaso.current[studentId] = setTimeout(() => {
+      setAndando((prev) => {
+        const n = { ...prev };
+        delete n[studentId];
+        return n;
+      });
+    }, durMs);
+  }, []);
+
   // ------------------------------------------------------------- conexión
   React.useEffect(() => {
     const supabase = createClient();
-    const channel = supabase.channel(`biblioteca:${courseId}`, {
+    const channel = supabase.channel(`patio:${courseId}`, {
       config: { presence: { key: me.studentId } },
     });
     canal.current = channel;
@@ -124,6 +169,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
       .on("broadcast", { event: "mover" }, ({ payload }) => {
         const { studentId, x, y } = (payload ?? {}) as { studentId?: string; x?: number; y?: number };
         if (!studentId || studentId === me.studentId || typeof x !== "number" || typeof y !== "number") return;
+        marcarPaso(studentId, x, y);
         setOtros((prev) => prev.map((p) => (p.studentId === studentId ? { ...p, x, y } : p)));
       })
       .on("broadcast", { event: "emote" }, ({ payload }) => {
@@ -150,12 +196,14 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
       });
 
     const pendientes = timers.current;
+    const pasos = timersPaso.current;
     return () => {
       Object.values(pendientes).forEach(clearTimeout);
+      Object.values(pasos).forEach(clearTimeout);
       if (envioPendiente.current) clearTimeout(envioPendiente.current);
       void supabase.removeChannel(channel);
     };
-  }, [courseId, me.studentId, me.callsign, me.config, me.progress.level]);
+  }, [courseId, me.studentId, me.callsign, me.config, me.progress.level, marcarPaso]);
 
   // ------------------------------------------------------------ movimiento
   const enviarPos = React.useCallback((x: number, y: number) => {
@@ -184,6 +232,10 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
       x: Math.max(40, Math.min(SALON.w - 40, x)),
       y: Math.max(150, Math.min(SALON.h - 40, y)),
     };
+    // La posición previa propia se registra acá y no en un efecto: marcarPaso
+    // necesita el "desde" para calcular rumbo y duración del trayecto.
+    ultimaPos.current[me.studentId] = ultimaPos.current[me.studentId] ?? { ...posRef.current };
+    marcarPaso(me.studentId, destino.x, destino.y);
     setPos(destino);
     enviarPos(destino.x, destino.y);
   }
@@ -222,6 +274,13 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
   const angulos = React.useMemo(() => {
     const map: Record<string, number> = {};
     for (const p of todos) {
+      // Caminando, se mira hacia donde se va: si no, el muñeco se desliza de
+      // costado o de espaldas y la caminata deja de leerse como caminata.
+      const paso = andando[p.studentId];
+      if (paso) {
+        map[p.studentId] = paso.angulo;
+        continue;
+      }
       let masCerca: Persona | null = null;
       let mejorDist = RADIO_SALUDO;
       for (const q of todos) {
@@ -235,7 +294,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
       map[p.studentId] = masCerca ? (masCerca.x >= p.x ? 90 : 270) : 0;
     }
     return map;
-  }, [todos]);
+  }, [todos, andando]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -246,10 +305,10 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
           {estado === "sin-conexion" && <WifiOff className="size-4 text-warning" aria-hidden />}
           {estado === "en-linea" && <Users className="size-4 text-accent-2" aria-hidden />}
           {estado === "en-linea"
-            ? `${todos.length} ${todos.length === 1 ? "operador" : "operadores"} en la sala`
+            ? `${todos.length} ${todos.length === 1 ? "operador" : "operadores"} en el patio`
             : estado === "conectando"
               ? "Entrando…"
-              : "Sin conexión con la sala"}
+              : "Sin conexión con el patio"}
         </p>
         <p className="text-[11px] text-muted">Tocá el piso para caminar</p>
       </div>
@@ -338,9 +397,11 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
           </div>
         </div>
 
-        {/* Operadores: se giran de perfil hacia quien tengan más cerca */}
+        {/* Operadores: cuerpo entero, caminan mirando hacia donde van y parados
+            se giran hacia quien tengan más cerca */}
         {todos.map((p) => {
           const soyYo = p.studentId === me.studentId;
+          const paso = andando[p.studentId];
           return (
             <button
               key={p.studentId}
@@ -349,23 +410,31 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
                 e.stopPropagation();
                 if (!soyYo) setInspeccionando(p);
               }}
-              className="absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center transition-[left,top] duration-700 ease-linear"
-              style={{ left: `${(p.x / SALON.w) * 100}%`, top: `${(p.y / SALON.h) * 100}%`, width: "11%" }}
+              className={cn(
+                "absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center transition-[left,top] ease-linear",
+                paso && "av-walking",
+              )}
+              style={{
+                left: `${(p.x / SALON.w) * 100}%`,
+                top: `${(p.y / SALON.h) * 100}%`,
+                width: "13%",
+                transitionDuration: `${paso?.durMs ?? PASO_MIN_MS}ms`,
+              }}
               aria-label={soyYo ? "Vos" : `Ver a ${p.callsign}`}
             >
               <OperatorAvatar
                 config={p.config}
-                size={64}
-                bust
+                size={96}
+                bare
                 angle={angulos[p.studentId] ?? 0}
                 emoteClass={emotes[p.studentId] ?? null}
                 emoteKey={emotes[p.studentId] ? 1 : 0}
                 title={p.callsign}
-                className={cn("h-auto w-full rounded-full transition-transform duration-500", soyYo && "ring-2 ring-accent")}
+                className="h-auto w-full"
               />
               <span
                 className={cn(
-                  "max-w-full truncate font-mono text-[8px] uppercase tracking-wider sm:text-[10px]",
+                  "-mt-1 max-w-full truncate font-mono text-[8px] uppercase tracking-wider sm:text-[10px]",
                   soyYo ? "text-accent" : "text-muted",
                 )}
               >

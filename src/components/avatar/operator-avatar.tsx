@@ -39,6 +39,12 @@ export interface OperatorAvatarProps {
   /** Recorta a cabeza y hombros: para chips y listados. */
   bust?: boolean;
   /**
+   * Cuerpo entero SIN el medallón (disco de fondo, aro y recorte circular):
+   * para escenas donde el muñeco está parado sobre un piso propio, como El
+   * Patio, donde el marco redondo lo haría ver como una ficha y no un personaje.
+   */
+  bare?: boolean;
+  /**
    * Ranura que se está probando sin tener desbloqueado el ítem: se dibuja como
    * proyección, para que se vea cómo quedaría sin hacerlo pasar por propio.
    */
@@ -63,6 +69,7 @@ export function OperatorAvatar({
   size = 240,
   angle = 0,
   bust = false,
+  bare = false,
   ghostSlot = null,
   emoteClass = null,
   emoteKey = 0,
@@ -79,7 +86,7 @@ export function OperatorAvatar({
   const catalog = (base: unknown, extra: unknown) =>
     ({ ...(base as Record<string, Part>), ...(extra as Record<string, Part>) }) as Record<string, Part>;
 
-  const Fondo = bust ? null : pick(catalog(FONDOS, TEMATICOS.fondo), eq.fondo);
+  const Fondo = bust || bare ? null : pick(catalog(FONDOS, TEMATICOS.fondo), eq.fondo);
   const Aura = bust ? null : pick(catalog(AURAS, TEMATICOS.aura), eq.aura);
   const Companion = bust ? null : pick(catalog(COMPANIONS, TEMATICOS.companion), eq.companion);
   const Toga = pick(catalog(TOGAS, TEMATICOS.toga), eq.toga);
@@ -128,8 +135,8 @@ export function OperatorAvatar({
         </clipPath>
       </defs>
 
-      <g clipPath={bust ? undefined : `url(#${clipId})`}>
-        {Fondo ? <Fondo p={p} rig={rig} /> : !bust && <circle cx="120" cy="120" r="118" fill="#12151f" />}
+      <g clipPath={bust || bare ? undefined : `url(#${clipId})`}>
+        {Fondo ? <Fondo p={p} rig={rig} /> : !bust && !bare && <circle cx="120" cy="120" r="118" fill="#12151f" />}
         {Aura && wrap("aura", <Aura p={p} rig={rig} />)}
 
         {/* Sombra en el piso: ancla la figura al escenario */}
@@ -152,7 +159,7 @@ export function OperatorAvatar({
         {Companion && wrap("companion", <Companion p={p} rig={rig} />)}
       </g>
 
-      {!bust && <circle cx="120" cy="120" r="117" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.32" />}
+      {!bust && !bare && <circle cx="120" cy="120" r="117" fill="none" stroke={p.glow} strokeWidth="2" opacity="0.32" />}
     </svg>
   );
 }

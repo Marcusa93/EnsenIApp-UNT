@@ -36,10 +36,10 @@ export function Legs({ p, rig }: { p: Palette; rig: Rig }) {
   const legW = proj(rig, DIM.leg[0], DIM.leg[1]);
   const spread = 14;
 
-  const leg = (lateral: number, key: string) => {
+  const leg = (lateral: number, key: string, cls: string) => {
     const cx = place(rig, lateral);
     return (
-      <g key={key}>
+      <g key={key} className={cls} style={{ transformOrigin: `${cx}px ${Y.hip - 6}px` }}>
         <rect x={cx - legW / 2} y={Y.hip - 6} width={legW} height={Y.foot - Y.hip} rx={legW / 2.6} fill={p.clothDark} />
         <rect x={cx - legW / 2} y={Y.knee} width={legW} height="9" rx="3" fill={p.shellDark} />
         {/* Bota: se alarga hacia adelante cuando lo vemos de perfil */}
@@ -52,9 +52,10 @@ export function Legs({ p, rig }: { p: Palette; rig: Rig }) {
     );
   };
 
-  // La pierna más lejana se dibuja primero.
+  // La pierna más lejana se dibuja primero. Las clases av-leg-l/r existen para
+  // que el ciclo de caminata (CSS) las balancee alternadas, igual que av-arm.
   const legs = [-spread, spread].sort((a, b) => depthAt(rig, a) - depthAt(rig, b));
-  return <g>{legs.map((l, i) => leg(l, `leg-${i}`))}</g>;
+  return <g>{legs.map((l, i) => leg(l, `leg-${i}`, l < 0 ? "av-leg av-leg-l" : "av-leg av-leg-r"))}</g>;
 }
 
 export function Arm({ p, rig, side }: { p: Palette; rig: Rig; side: -1 | 1 }) {
