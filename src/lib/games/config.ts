@@ -62,6 +62,11 @@ export function xpForRun(correct: number, total: number): number {
   return correct === total && total > 0 ? base + XP_PERFECT_BONUS : base;
 }
 
+/** Bonus para quien gana un reto contra un compañero, arriba del XP de la partida. */
+export const DUEL_WIN_BONUS = 25;
+/** Si empatan, un consuelo para los dos — nadie sale con las manos vacías. */
+export const DUEL_DRAW_BONUS = 10;
+
 export interface Level {
   n: number;
   name: string;

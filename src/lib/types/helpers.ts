@@ -95,4 +95,6 @@ export type UsageEventType =
   | "offline_queued"
   | "offline_flushed"
   | "game_started"
-  | "game_finished";
+  | "game_finished"
+  | "duel_created"
+  | "duel_finished";

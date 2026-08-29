@@ -12,6 +12,7 @@ import { OperatorAvatar } from "@/components/avatar/operator-avatar";
 import { GameLauncher } from "./_components/game-launcher";
 import { OperatorGate } from "./_components/operator-gate";
 import { WeeklyCard } from "./_components/weekly-card";
+import { RetosPanel } from "./_components/retos-panel";
 import { getWeeklyStatus } from "@/lib/games/weekly";
 
 export const metadata: Metadata = { title: "Juegos · EnsenIA UNT" };
@@ -53,7 +54,7 @@ export default async function JuegosPage({
 
   const weekly = await getWeeklyStatus(supabase, user.id, course.id);
 
-  const [statsRes, configRes, classesRes, boardRes, countsRes] = await Promise.all([
+  const [statsRes, configRes, classesRes, boardRes, countsRes, classmatesRes, duelsRes] = await Promise.all([
     supabase
       .from("student_game_stats")
       .select("xp, runs, correct, answered, streak_days, best_streak")
@@ -68,6 +69,13 @@ export default async function JuegosPage({
       .order("class_date", { ascending: false }),
     supabase.rpc("game_leaderboard", { p_course: course.id, p_limit: 5 }),
     supabase.from("game_runs").select("game").eq("student_id", user.id).eq("course_id", course.id),
+    supabase.from("v_classmates").select("student_id, callsign").eq("course_id", course.id),
+    supabase
+      .from("game_duels")
+      .select("*, classes(topic, class_date)")
+      .or(`challenger_id.eq.${user.id},opponent_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(30),
   ]);
 
   const stats = statsRes.data;
@@ -107,6 +115,29 @@ export default async function JuegosPage({
   for (const r of countsRes.data ?? []) {
     runsByGame.set(r.game, (runsByGame.get(r.game) ?? 0) + 1);
   }
+
+  const callsignById = new Map(
+    (classmatesRes.data ?? []).filter((c) => c.student_id != null).map((c) => [c.student_id as string, c.callsign ?? "Operador"]),
+  );
+  const classmates = [...callsignById.entries()]
+    .filter(([id]) => id !== user.id)
+    .map(([id, callsign]) => ({ id, callsign }));
+
+  const duels = (duelsRes.data ?? []).map((d) => ({
+    id: d.id,
+    game: d.game as GameKey,
+    classTopic: (d.classes as { topic: string | null } | null)?.topic ?? "Clase",
+    isChallenger: d.challenger_id === user.id,
+    otherCallsign: callsignById.get(d.challenger_id === user.id ? d.opponent_id : d.challenger_id) ?? "Operador",
+    status: d.status as "pendiente" | "completado" | "rechazado",
+    myCorrect: d.challenger_id === user.id ? d.challenger_correct : d.opponent_correct,
+    myTotal: d.challenger_id === user.id ? d.challenger_total : d.opponent_total,
+    otherCorrect: d.challenger_id === user.id ? d.opponent_correct : d.challenger_correct,
+    otherTotal: d.challenger_id === user.id ? d.opponent_total : d.challenger_total,
+    iAnswered: d.challenger_id === user.id ? d.challenger_run_id != null : d.opponent_run_id != null,
+    won: d.winner_id === user.id,
+    draw: d.status === "completado" && d.winner_id === null,
+  }));
 
   return (
     <>
@@ -199,6 +230,11 @@ export default async function JuegosPage({
 
             {/* Juegos */}
             <GameLauncher games={available} classes={classes} runsByGame={Object.fromEntries(runsByGame)} initialClassId={claseInicial} />
+
+            {/* Retos entre compañeros */}
+            <Reveal delay={0.1}>
+              <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} />
+            </Reveal>
           </div>
 
           {/* Tabla de posiciones */}

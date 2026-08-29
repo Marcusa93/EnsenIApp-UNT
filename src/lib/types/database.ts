@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -1221,6 +1221,132 @@ export type Database = {
             columns: ["recording_id"]
             isOneToOne: false
             referencedRelation: "v_recording_status"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_duels: {
+        Row: {
+          challenge_ids: string[]
+          challenger_correct: number | null
+          challenger_duration_seconds: number | null
+          challenger_id: string
+          challenger_run_id: string | null
+          challenger_total: number | null
+          class_id: string
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          game: Database["public"]["Enums"]["game_key"]
+          id: string
+          opponent_correct: number | null
+          opponent_duration_seconds: number | null
+          opponent_id: string
+          opponent_run_id: string | null
+          opponent_total: number | null
+          responded_at: string | null
+          status: string
+          winner_id: string | null
+        }
+        Insert: {
+          challenge_ids: string[]
+          challenger_correct?: number | null
+          challenger_duration_seconds?: number | null
+          challenger_id: string
+          challenger_run_id?: string | null
+          challenger_total?: number | null
+          class_id: string
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          game: Database["public"]["Enums"]["game_key"]
+          id?: string
+          opponent_correct?: number | null
+          opponent_duration_seconds?: number | null
+          opponent_id: string
+          opponent_run_id?: string | null
+          opponent_total?: number | null
+          responded_at?: string | null
+          status?: string
+          winner_id?: string | null
+        }
+        Update: {
+          challenge_ids?: string[]
+          challenger_correct?: number | null
+          challenger_duration_seconds?: number | null
+          challenger_id?: string
+          challenger_run_id?: string | null
+          challenger_total?: number | null
+          class_id?: string
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          game?: Database["public"]["Enums"]["game_key"]
+          id?: string
+          opponent_correct?: number | null
+          opponent_duration_seconds?: number | null
+          opponent_id?: string
+          opponent_run_id?: string | null
+          opponent_total?: number | null
+          responded_at?: string | null
+          status?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_duels_challenger_id_fkey"
+            columns: ["challenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_duels_challenger_run_id_fkey"
+            columns: ["challenger_run_id"]
+            isOneToOne: false
+            referencedRelation: "game_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_duels_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_duels_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_duels_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "game_duels_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_duels_opponent_run_id_fkey"
+            columns: ["opponent_run_id"]
+            isOneToOne: false
+            referencedRelation: "game_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_duels_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2725,6 +2851,36 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_course_engagement"
             referencedColumns: ["course_id"]
+          },
+        ]
+      }
+      v_classmates: {
+        Row: {
+          callsign: string | null
+          course_id: string | null
+          student_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_course_engagement"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
