@@ -2189,6 +2189,38 @@ export type Database = {
           },
         ]
       }
+      research_consent: {
+        Row: {
+          accepted: boolean
+          decided_at: string
+          updated_at: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          accepted: boolean
+          decided_at?: string
+          updated_at?: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          accepted?: boolean
+          decided_at?: string
+          updated_at?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_consent_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roster: {
         Row: {
           course_id: string

@@ -4,6 +4,8 @@ import { getPrimaryCourse } from "@/lib/courses";
 import { CampusShell } from "@/components/shell/campus-shell";
 import { BadgeCelebration } from "@/components/gamification/badge-celebration";
 import { FloatingAlberdi } from "@/components/alberdi/floating-alberdi";
+import { ConsentGate } from "@/components/consentimiento/consent-gate";
+import { faltaDecidir } from "@/lib/consentimiento/actions";
 
 export default async function CampusLayout({ children }: { children: React.ReactNode }) {
   const { user, profile } = await requireUser("/campus");
@@ -26,12 +28,17 @@ export default async function CampusLayout({ children }: { children: React.React
 
   const classes = (classRows ?? []).map((c) => ({ id: c.id, topic: c.topic, date: c.class_date }));
 
+  // El consentimiento se pregunta una sola vez por versión del texto; quien ya
+  // decidió (sí o no) no lo vuelve a ver.
+  const pedirConsentimiento = await faltaDecidir();
+
   return (
     <CampusShell
       profile={profile}
       overlays={
         <>
           {isStudent && <BadgeCelebration userId={user.id} />}
+          {pedirConsentimiento && <ConsentGate />}
           {/* Círculo flotante y arrastrable: disponible en cualquier pantalla del campus,
               no sólo dentro de una clase, para poder consultar sobre lo que sea en cualquier
               momento. Va en `overlays` (fuera de la transición entre páginas) para no perder
