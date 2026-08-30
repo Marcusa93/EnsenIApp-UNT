@@ -217,3 +217,27 @@ export async function notifyCourse(
   const ids = (data ?? []).map((r) => r.student_id);
   return notifyUsers(ids, { ...input, courseId });
 }
+
+/**
+ * Igual que notifyCourse, pero para el equipo docente de la comisión.
+ *
+ * Sirve para lo que aparece del lado del estudiante y necesita una persona del
+ * otro lado: una consulta nueva, una entrega para corregir. Sin esto el docente
+ * se entera sólo si entra a mirar el panel.
+ */
+export async function notifyTeachers(
+  courseId: string,
+  input: { kind: Enums<"notification_kind">; title: string; body?: string; url?: string; createdBy?: string },
+): Promise<SendResult> {
+  const admin = createAdminClient();
+  const { data, error } = await admin.from("teacher_assignments").select("teacher_id").eq("course_id", courseId);
+
+  if (error) {
+    console.error("[push] no se pudo listar el equipo docente", error);
+    return EMPTY;
+  }
+
+  // Quien disparó el aviso no necesita que se lo avisen a sí mismo.
+  const ids = (data ?? []).map((r) => r.teacher_id).filter((id) => id !== input.createdBy);
+  return notifyUsers(ids, { ...input, courseId });
+}

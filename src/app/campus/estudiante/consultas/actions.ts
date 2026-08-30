@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { notifyTeachers } from "@/lib/push/send";
 
 const askSchema = z.object({
   courseId: z.guid("Curso inválido."),
@@ -93,6 +94,16 @@ export async function askQuestion(input: AskQuestionInput): Promise<AskQuestionR
           : "No pudimos registrar tu consulta. Probá de nuevo en unos segundos.",
     };
   }
+
+  // Avisarle a la cátedra: una consulta a las once de la noche no debería
+  // esperar a que alguien entre al panel por casualidad. Se manda el enunciado
+  // recortado, nunca el nombre: la consulta puede ser anónima.
+  void notifyTeachers(data.courseId, {
+    kind: "aviso",
+    title: "Consulta nueva de un estudiante",
+    body: data.question.slice(0, 140),
+    url: "/campus/docente/consultas",
+  }).catch((err) => console.error("[consultas] aviso a la cátedra", err));
 
   revalidatePath("/campus/estudiante/consultas");
   revalidatePath("/campus/estudiante");

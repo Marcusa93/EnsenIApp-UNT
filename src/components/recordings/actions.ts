@@ -67,7 +67,10 @@ function revalidateClass(classId: string) {
 }
 
 /** Publica o despublica la grabación (los estudiantes sólo ven las publicadas). */
-export async function setRecordingPublished(recordingId: string, published: boolean): Promise<ActionResult> {
+export async function setRecordingPublished(
+  recordingId: string,
+  published: boolean,
+): Promise<ActionResult<{ faltanDesafios: boolean }>> {
   try {
     const rec = await assertTeacherOfRecording(recordingId);
     const supabase = await createClient();
@@ -90,7 +93,21 @@ export async function setRecordingPublished(recordingId: string, published: bool
       }).catch((err) => console.error("[recordings] aviso de publicación", err));
     }
 
-    return { ok: true, data: undefined };
+    // Publicar la clase sin generar los desafíos la deja sin mesa en el Aula
+    // Magna, sin retos y sin nada que le pregunten los Botudiantes. Se avisa
+    // acá y los genera el cliente: la generación puede tardar minutos y no
+    // corresponde que el botón de publicar se quede esperando.
+    let faltanDesafios = false;
+    if (published) {
+      const { count, error: countError } = await supabase
+        .from("game_challenges")
+        .select("id", { count: "exact", head: true })
+        .eq("recording_id", rec.id);
+      if (countError) console.error("[recordings] contar desafíos", countError);
+      else faltanDesafios = (count ?? 0) === 0;
+    }
+
+    return { ok: true, data: { faltanDesafios } };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };
   }

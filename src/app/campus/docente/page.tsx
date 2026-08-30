@@ -6,6 +6,7 @@ import {
   BookOpenCheck,
   CalendarDays,
   CalendarPlus,
+  ClipboardCheck,
   Gauge,
   MessageCircleQuestion,
   Radio,
@@ -93,7 +94,7 @@ export default async function DocentePanelPage({
         }
       />
 
-      <RevealGroup className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" stagger={0.05}>
+      <RevealGroup className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" stagger={0.05}>
         <RevealItem>
           <Stat label="Inscriptos" value={enrolled} icon={<Users />} hint="Con inscripción activa" />
         </RevealItem>
@@ -125,7 +126,54 @@ export default async function DocentePanelPage({
             hint="Escala 1–5 en check-ins"
           />
         </RevealItem>
+        <RevealItem>
+          <Stat
+            label="Sin corregir"
+            value={data.pendingGradingTotal}
+            icon={<ClipboardCheck />}
+            tone={data.pendingGradingTotal > 0 ? "accent-3" : "muted"}
+            hint={
+              data.pendingGradingTotal === 0
+                ? "Estás al día"
+                : `En ${data.pendingGrading.length} ${data.pendingGrading.length === 1 ? "actividad" : "actividades"}`
+            }
+          />
+        </RevealItem>
       </RevealGroup>
+
+      {data.pendingGrading.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle eyebrow="Para corregir">Entregas esperando devolución</CardTitle>
+            <CardDescription>
+              Son las que necesitan tu lectura: los cuestionarios ya se corrigen solos.
+            </CardDescription>
+          </CardHeader>
+          <ul className="flex flex-col gap-2">
+            {data.pendingGrading.map((a) => (
+              <li key={a.activityId}>
+                <Link
+                  href={`/campus/docente/actividades/${a.activityId}`}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/50 px-3.5 py-3 transition hover:border-accent/45 hover:bg-surface-2"
+                >
+                  <Badge tone="accent-3" size="sm">
+                    {a.pendientes}
+                  </Badge>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{a.title}</span>
+                    {a.dueAt && (
+                      <span className="block font-mono text-[10px] uppercase tracking-widest text-muted">
+                        Venció {formatRelative(a.dueAt)}
+                      </span>
+                    )}
+                  </span>
+                  <ArrowRight className="size-4 shrink-0 text-muted" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[3fr_2fr]">
         <div className="flex min-w-0 flex-col gap-4">

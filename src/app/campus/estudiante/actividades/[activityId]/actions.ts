@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { notifyTeachers } from "@/lib/push/send";
 import { errorMessage } from "@/lib/utils";
 import type { Json } from "@/lib/types/database";
 import type { TablesUpdate } from "@/lib/types/helpers";
@@ -179,6 +180,17 @@ export async function submitActivity(raw: SubmitInput): Promise<ActionResult<Sub
         auto_score: autoScore,
       });
       if (error) throw new Error(`No se pudo registrar la entrega: ${error.message}`);
+    }
+
+    // Sólo las entregas que necesitan ojo humano: el cuestionario ya se corrige
+    // solo y la lectura no se corrige, avisar por eso sería puro ruido.
+    if (type === "entrega") {
+      void notifyTeachers(activity.course_id, {
+        kind: "aviso",
+        title: "Entrega nueva para corregir",
+        body: activity.title,
+        url: `/campus/docente/actividades/${input.activityId}`,
+      }).catch((err) => console.error("[actividades] aviso a la cátedra", err));
     }
 
     revalidatePath(STUDENT_BASE);

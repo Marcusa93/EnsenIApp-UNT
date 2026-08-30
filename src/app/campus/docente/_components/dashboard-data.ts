@@ -46,6 +46,14 @@ export interface DifficultyByClass {
   count: number;
 }
 
+/** Una actividad con entregas esperando corrección. */
+export interface PendingGrading {
+  activityId: string;
+  title: string;
+  pendientes: number;
+  dueAt: string | null;
+}
+
 export interface DashboardData {
   engagement: Views<"v_course_engagement"> | null;
   alerts: AlertRow[];
@@ -55,6 +63,8 @@ export interface DashboardData {
   usageByDay: UsageDay[];
   usageTruncated: boolean;
   difficultyByClass: DifficultyByClass[];
+  pendingGrading: PendingGrading[];
+  pendingGradingTotal: number;
 }
 
 export const USAGE_DAYS = 14;
@@ -251,6 +261,30 @@ export async function getDashboardData(supabase: DbClient, courseId: string): Pr
     student_name: q.is_anonymous ? null : (one(q.student)?.full_name ?? null),
   }));
 
+  // Entregas esperando corrección: es el trabajo más concreto y con fecha que
+  // tiene el docente, y hasta acá había que entrar actividad por actividad para
+  // enterarse. Sólo cuentan las que necesitan ojo humano ("entrega"): el
+  // cuestionario ya se corrige solo.
+  const { data: pendRows, error: pendError } = await supabase
+    .from("activity_submissions")
+    .select("id, activity:activities!inner(id, title, type, course_id, due_at)")
+    .eq("status", "entregada")
+    .eq("activity.course_id", courseId)
+    .eq("activity.type", "entrega")
+    .limit(500);
+  if (pendError) console.error("[docente] entregas pendientes", pendError);
+
+  const porActividad = new Map<string, PendingGrading>();
+  for (const row of pendRows ?? []) {
+    const a = row.activity as unknown as { id: string; title: string; due_at: string | null } | null;
+    if (!a) continue;
+    const acc = porActividad.get(a.id) ?? { activityId: a.id, title: a.title, pendientes: 0, dueAt: a.due_at };
+    acc.pendientes += 1;
+    porActividad.set(a.id, acc);
+  }
+  const pendingGrading = [...porActividad.values()].sort((x, y) => y.pendientes - x.pendientes);
+  const pendingGradingTotal = pendingGrading.reduce((n, a) => n + a.pendientes, 0);
+
   return {
     engagement: engagementRes.data ?? null,
     alerts,
@@ -260,5 +294,7 @@ export async function getDashboardData(supabase: DbClient, courseId: string): Pr
     usageByDay,
     usageTruncated: usageRes.truncated,
     difficultyByClass,
+    pendingGrading,
+    pendingGradingTotal,
   };
 }

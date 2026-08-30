@@ -148,8 +148,60 @@ export function RecordingRow({ recording, ordinal }: { recording: RecordingRowDa
     }
   };
 
-  const togglePublish = () =>
-    run("publish", () => setRecordingPublished(recording.id, !state.published), () => mergeLive({ status: state.status, published: !state.published }));
+  /**
+   * Publicar y, si esa clase todavía no tiene desafíos, generarlos solos.
+   *
+   * Sin desafíos la clase no tiene mesa en el Aula Magna, no se puede retar a
+   * nadie sobre ella y los Botudiantes no tienen qué preguntar; hasta acá había
+   * que acordarse de ir a Juegos y apretar Generar. La generación va aparte del
+   * publicar —puede tardar minutos— y si falla se avisa sin deshacer nada: la
+   * clase ya quedó publicada y los desafíos se pueden generar a mano.
+   */
+  const [generando, setGenerando] = React.useState(false);
+  const [avisoJuegos, setAvisoJuegos] = React.useState<string | null>(null);
+
+  const togglePublish = async () => {
+    const publicando = !state.published;
+    setAvisoJuegos(null);
+    setPending("publish");
+    setActionError(null);
+    setMenuOpen(false);
+    try {
+      const res = await setRecordingPublished(recording.id, publicando);
+      if (!res.ok) {
+        setActionError(res.error);
+        return;
+      }
+      mergeLive({ status: state.status, published: publicando });
+      router.refresh();
+
+      if (publicando && res.data.faltanDesafios) {
+        setGenerando(true);
+        try {
+          const gen = await fetch("/api/games/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ recordingId: recording.id }),
+          });
+          const body = await gen.json().catch(() => null);
+          setAvisoJuegos(
+            gen.ok
+              ? `Listo: se generaron los desafíos de esta clase (${body?.total ?? "varios"}).`
+              : `La clase quedó publicada, pero no se pudieron generar los desafíos: ${body?.error ?? "error desconocido"}. Podés generarlos desde Juegos.`,
+          );
+          if (gen.ok) router.refresh();
+        } catch {
+          setAvisoJuegos("La clase quedó publicada, pero no se pudieron generar los desafíos. Probá desde Juegos.");
+        } finally {
+          setGenerando(false);
+        }
+      }
+    } catch (err) {
+      setActionError(errorMessage(err));
+    } finally {
+      setPending(null);
+    }
+  };
 
   const doReprocess = (mode: ReprocessMode) =>
     run(
@@ -305,6 +357,16 @@ export function RecordingRow({ recording, ordinal }: { recording: RecordingRowDa
         <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
           {actionError}
         </p>
+      )}
+
+      {generando && (
+        <p className="rounded-xl border border-accent-2/30 bg-accent-2/10 px-3 py-2 text-xs text-accent-2">
+          Generando los desafíos de esta clase con la IA… puede tardar un rato, podés seguir trabajando.
+        </p>
+      )}
+
+      {avisoJuegos && !generando && (
+        <p className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs text-muted">{avisoJuegos}</p>
       )}
 
       <div className="flex flex-wrap items-center gap-2">
