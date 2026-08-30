@@ -36,7 +36,7 @@ export const NAV: NavItem[] = [
   // Juegos entra en la bottom nav mobile (5 primeros): es una función de uso
   // frecuente y corto, justo lo que se abre desde el celular entre clase y clase.
   { href: "/campus/estudiante/juegos", label: "Juegos", icon: "Gamepad2", roles: ["estudiante"] },
-  { href: "/campus/estudiante/patio", label: "El Patio", icon: "BookOpen", roles: ["estudiante"] },
+  { href: "/campus/estudiante/aula-magna", label: "Aula Magna", icon: "BookOpen", roles: ["estudiante"] },
   { href: "/campus/estudiante/actividades", label: "Actividades", icon: "ClipboardList", roles: ["estudiante"] },
   { href: "/campus/estudiante/consultas", label: "Consultas", icon: "MessageCircleQuestion", roles: ["estudiante"] },
   // Debates es compartida pero se declara por rol para controlar el orden:
