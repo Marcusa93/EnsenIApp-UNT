@@ -68,6 +68,92 @@ export async function setUserRole(input: unknown): Promise<ActionResult> {
   }
 }
 
+/**
+ * Alta de usuario desde el panel. Se puede dar de alta por email real o por
+ * usuario a secas: el formulario de login resuelve un identificador sin "@"
+ * contra este mismo dominio interno, así el docente entra escribiendo sólo su
+ * usuario. Mantener las dos puntas en sincronía (ver login-form.tsx).
+ */
+const INTERNAL_EMAIL_DOMAIN = "ensenia-unt.local";
+
+const createUserSchema = z.object({
+  /** Email real o usuario suelto ("mlopez" → mlopez@ensenia-unt.local). */
+  identifier: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, "Ingresá un email o un usuario.")
+    .max(160, "Demasiado largo.")
+    .refine(
+      (v) => (v.includes("@") ? z.string().email().safeParse(v).success : /^[a-z0-9._-]+$/.test(v)),
+      "Usá un email válido, o un usuario sin espacios (letras, números, punto, guion).",
+    ),
+  fullName: z.string().trim().min(3, "Ingresá el nombre completo.").max(120, "Nombre demasiado largo."),
+  role: roleSchema,
+  /** Supabase Auth exige 6+; el tope de 72 es el del hash de bcrypt. */
+  password: z.string().min(6, "La contraseña necesita al menos 6 caracteres.").max(72, "Contraseña demasiado larga."),
+  /** Opcional: deja al usuario listo para trabajar, sin un segundo paso. */
+  courseId: uuid.nullable().optional(),
+});
+
+export async function createUser(input: unknown): Promise<ActionResult<{ id: string; email: string }>> {
+  const parsed = createUserSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const { identifier, fullName, role, password, courseId } = parsed.data;
+  const email = identifier.includes("@") ? identifier : `${identifier}@${INTERNAL_EMAIL_DOMAIN}`;
+
+  try {
+    const { db } = await requireAdmin();
+
+    const { data: created, error: createError } = await db.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName, role },
+    });
+    if (createError) {
+      // El mensaje que devuelve Supabase acá es en inglés y poco claro.
+      if (/already|registered|exists/i.test(createError.message)) {
+        return { ok: false, error: "Ya existe una cuenta con ese email o usuario." };
+      }
+      throw createError;
+    }
+    const userId = created.user.id;
+
+    // El trigger handle_new_user crea el perfil desde el metadata; se fuerza
+    // igual para no depender del orden y dejarlo validado de entrada.
+    const { error: profileError } = await db
+      .from("profiles")
+      .update({ role, status: "validado", full_name: fullName })
+      .eq("id", userId);
+    if (profileError) throw profileError;
+
+    if (courseId) {
+      const { error: linkError } =
+        role === "estudiante"
+          ? await db
+              .from("enrollments")
+              .upsert({ student_id: userId, course_id: courseId, status: "active" }, { onConflict: "student_id,course_id" })
+          : await db
+              .from("teacher_assignments")
+              .upsert({ teacher_id: userId, course_id: courseId }, { onConflict: "teacher_id,course_id" });
+      // La cuenta ya existe: si falla sólo el vínculo, se avisa sin perderla.
+      if (linkError) {
+        console.error("[admin] createUser vínculo con comisión", linkError);
+        return {
+          ok: false,
+          error: "La cuenta se creó, pero no pudimos asociarla a la comisión. Hacelo desde la pestaña correspondiente.",
+        };
+      }
+    }
+
+    revalidateAdmin();
+    return { ok: true, data: { id: userId, email } };
+  } catch (err) {
+    return failed("createUser", err, "No se pudo crear el usuario.");
+  }
+}
+
 const setStatusSchema = z.object({ userId: uuid, status: statusSchema });
 
 export async function setUserStatus(input: unknown): Promise<ActionResult> {

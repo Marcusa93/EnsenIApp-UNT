@@ -4,6 +4,7 @@ import { Badge, Card } from "@/components/ui";
 import { Markdown } from "@/components/markdown";
 import { formatDate, formatRelative } from "@/lib/format";
 import type { Enums } from "@/lib/types/helpers";
+import { ConsultaThread, type ThreadMessage } from "@/components/consultas/thread";
 import { QUESTION_STATUS_LABEL, QUESTION_STATUS_TONE } from "../../_components/student-data";
 
 export interface QuestionItem {
@@ -20,6 +21,8 @@ export interface QuestionItem {
   class: { id: string; topic: string; class_date: string } | null;
   /** Para consultas de compañeros: nombre visible (null si anónima o sin permiso). */
   author_name?: string | null;
+  /** El ida y vuelta con el equipo docente. Sólo viene en las consultas propias. */
+  messages?: ThreadMessage[];
 }
 
 export function QuestionCard({ item, mine = true }: { item: QuestionItem; mine?: boolean }) {
@@ -108,6 +111,17 @@ export function QuestionCard({ item, mine = true }: { item: QuestionItem; mine?:
               ? "Todavía sin respuesta: la IA la intenta apenas la enviás y el equipo docente la ve en su panel."
               : "Todavía sin respuesta."}
           </p>
+        )}
+
+        {/* El hilo va sólo en las propias: la consulta de un compañero se lee,
+            no se interviene. */}
+        {mine && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="eyebrow mb-2 text-[10px]">
+              {item.messages?.length ? "Conversación con el equipo docente" : "¿Te quedó una duda?"}
+            </p>
+            <ConsultaThread questionId={item.id} messages={item.messages ?? []} viewerRole="estudiante" />
+          </div>
         )}
       </article>
     </Card>

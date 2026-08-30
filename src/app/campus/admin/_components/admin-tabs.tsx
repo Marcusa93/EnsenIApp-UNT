@@ -50,7 +50,7 @@ export function AdminTabs({ initialTab, data, system }: { initialTab: AdminTab; 
         </TabsTrigger>
       </TabsList>
       <TabsContent value="usuarios">
-        <UsersTab profiles={data.profiles} />
+        <UsersTab profiles={data.profiles} courses={data.courses} />
       </TabsContent>
       <TabsContent value="cursos">
         <CoursesTab subjects={data.subjects} courses={data.courses} />

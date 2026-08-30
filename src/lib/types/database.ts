@@ -2029,6 +2029,48 @@ export type Database = {
           },
         ]
       }
+      question_messages: {
+        Row: {
+          author_id: string
+          author_role: Database["public"]["Enums"]["user_role"]
+          body: string
+          created_at: string
+          id: string
+          question_id: string
+        }
+        Insert: {
+          author_id: string
+          author_role: Database["public"]["Enums"]["user_role"]
+          body: string
+          created_at?: string
+          id?: string
+          question_id: string
+        }
+        Update: {
+          author_id?: string
+          author_role?: Database["public"]["Enums"]["user_role"]
+          body?: string
+          created_at?: string
+          id?: string
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_messages_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "student_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recording_chunks: {
         Row: {
           chunk_index: number
@@ -2481,6 +2523,8 @@ export type Database = {
           id: string
           is_anonymous: boolean
           is_public: boolean
+          last_author_role: Database["public"]["Enums"]["user_role"] | null
+          last_message_at: string | null
           question: string
           recording_id: string | null
           status: Database["public"]["Enums"]["question_status"]
@@ -2497,6 +2541,8 @@ export type Database = {
           id?: string
           is_anonymous?: boolean
           is_public?: boolean
+          last_author_role?: Database["public"]["Enums"]["user_role"] | null
+          last_message_at?: string | null
           question: string
           recording_id?: string | null
           status?: Database["public"]["Enums"]["question_status"]
@@ -2513,6 +2559,8 @@ export type Database = {
           id?: string
           is_anonymous?: boolean
           is_public?: boolean
+          last_author_role?: Database["public"]["Enums"]["user_role"] | null
+          last_message_at?: string | null
           question?: string
           recording_id?: string | null
           status?: Database["public"]["Enums"]["question_status"]

@@ -7,6 +7,7 @@ import { Avatar, Badge, Button, Card, EmptyState, Input, Switch, Textarea, type 
 import { Markdown } from "@/components/markdown";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ConsultaThread } from "@/components/consultas/thread";
 import { answerQuestion, setQuestionClosed, setQuestionPublic } from "../actions";
 import type { QuestionItem, QuestionStatus } from "./consultas-data";
 
@@ -287,6 +288,22 @@ function QuestionCard({ item }: { item: QuestionItem }) {
               </Button>
             )}
           </span>
+        </div>
+      )}
+
+      {/* El ida y vuelta con el estudiante: para repreguntas cortas, sin tener
+          que reeditar la respuesta formal de arriba. */}
+      {!editing && item.status !== "cerrada" && (
+        <div className="mt-3 border-t border-border pt-3">
+          <p className="eyebrow mb-2 text-[10px]">
+            {item.messages.length > 0 ? "Conversación" : "Responder por chat"}
+          </p>
+          <ConsultaThread
+            questionId={item.id}
+            messages={item.messages}
+            viewerRole="docente"
+            hideStudentName={item.is_anonymous}
+          />
         </div>
       )}
     </Card>

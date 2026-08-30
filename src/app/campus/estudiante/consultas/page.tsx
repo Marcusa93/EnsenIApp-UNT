@@ -8,6 +8,7 @@ import { RevealGroup, RevealItem } from "@/components/shell";
 import { PageViewTracker } from "../_components/page-view-tracker";
 import type { ClassOption } from "./_components/ask-question-form";
 import { QuestionCard, type QuestionItem } from "./_components/question-card";
+import type { ThreadMessage } from "@/components/consultas/thread";
 
 export const metadata = { title: "Consultas · EnsenIA UNT" };
 
@@ -122,6 +123,35 @@ export default async function ConsultasPage({
 
   const mine = ((mineRes.data ?? []) as unknown as RawQuestion[]).map(toItem);
   const publicOnes = ((publicRes.data ?? []) as unknown as RawQuestion[]).map(toItem);
+
+  // El ida y vuelta de las consultas propias, en una sola consulta para todas.
+  if (mine.length > 0) {
+    const { data: msgs, error: msgsError } = await supabase
+      .from("question_messages")
+      .select("id, question_id, body, author_role, created_at, author:profiles!question_messages_author_id_fkey(full_name)")
+      .in(
+        "question_id",
+        mine.map((q) => q.id),
+      )
+      .order("created_at", { ascending: true });
+    if (msgsError) console.error("[consultas] mensajes", msgsError);
+
+    const porConsulta = new Map<string, ThreadMessage[]>();
+    for (const m of msgs ?? []) {
+      const autor = one(m.author as { full_name: string } | { full_name: string }[] | null);
+      const hilo = porConsulta.get(m.question_id) ?? [];
+      hilo.push({
+        id: m.id,
+        body: m.body,
+        author_role: m.author_role,
+        // Del lado del estudiante sólo se nombra al docente; lo propio se rotula "Vos" en la burbuja.
+        author_name: m.author_role === "estudiante" ? null : (autor?.full_name ?? null),
+        created_at: m.created_at,
+      });
+      porConsulta.set(m.question_id, hilo);
+    }
+    for (const q of mine) q.messages = porConsulta.get(q.id) ?? [];
+  }
 
   const open = mine.filter((q) => q.status === "abierta").length;
   const byTeacher = mine.filter((q) => q.status === "respondida_docente").length;

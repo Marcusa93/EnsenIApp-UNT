@@ -1,5 +1,6 @@
 import type { DbClient } from "@/lib/courses";
 import type { Enums } from "@/lib/types/helpers";
+import type { ThreadMessage } from "@/components/consultas/thread";
 
 export type QuestionStatus = Enums<"question_status">;
 export type PollStatus = Enums<"poll_status">;
@@ -18,6 +19,8 @@ export interface QuestionItem {
   student_name: string | null;
   class_topic: string | null;
   answered_by_name: string | null;
+  /** El ida y vuelta con el estudiante, en orden. */
+  messages: ThreadMessage[];
 }
 
 export interface PollOptionResult {
@@ -104,7 +107,40 @@ export async function getConsultasData(supabase: DbClient, courseId: string): Pr
     student_name: q.is_anonymous ? null : (one(q.student as NameEmbed | NameEmbed[] | null)?.full_name ?? null),
     class_topic: topicOf(q.class_id),
     answered_by_name: one(q.answerer as NameEmbed | NameEmbed[] | null)?.full_name ?? null,
+    messages: [],
   }));
+
+  // Los hilos de todas las consultas visibles, en una sola consulta.
+  if (questions.length > 0) {
+    const { data: msgs, error: msgsError } = await supabase
+      .from("question_messages")
+      .select("id, question_id, body, author_role, created_at, author:profiles!question_messages_author_id_fkey(full_name)")
+      .in(
+        "question_id",
+        questions.map((q) => q.id),
+      )
+      .order("created_at", { ascending: true });
+    if (msgsError) console.error("[consultas] mensajes", msgsError);
+
+    const anonimas = new Set(questions.filter((q) => q.is_anonymous).map((q) => q.id));
+    const porConsulta = new Map<string, ThreadMessage[]>();
+    for (const m of msgs ?? []) {
+      const hilo = porConsulta.get(m.question_id) ?? [];
+      hilo.push({
+        id: m.id,
+        body: m.body,
+        author_role: m.author_role,
+        // En una consulta anónima el docente tampoco ve quién responde del otro lado.
+        author_name:
+          m.author_role === "estudiante" && anonimas.has(m.question_id)
+            ? null
+            : (one(m.author as NameEmbed | NameEmbed[] | null)?.full_name ?? null),
+        created_at: m.created_at,
+      });
+      porConsulta.set(m.question_id, hilo);
+    }
+    for (const q of questions) q.messages = porConsulta.get(q.id) ?? [];
+  }
 
   const pollRows = pollsRes.data ?? [];
   const pollIds = pollRows.map((p) => p.id);
