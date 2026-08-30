@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpenCheck, ClipboardCheck, Gauge, GraduationCap, Layers, MessageCircleQuestion, Sparkles, Trophy } from "lucide-react";
+import { BookOpenCheck, ClipboardCheck, Gauge, GraduationCap, Layers, MessageCircleQuestion, Sparkles, Target, Trophy } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getPrimaryCourse } from "@/lib/courses";
 import { createClient } from "@/lib/supabase/server";
@@ -13,6 +13,7 @@ import { CardsRadial, WeeklyActivityChart, type WeekBucket } from "./_components
 import { GenerateFeedbackButton } from "./_components/generate-feedback-button";
 import { FeedbackList, type FeedbackRow } from "./_components/feedback-list";
 import { Medallero } from "@/components/gamification/medallero";
+import { DominioClases, type DominioClase } from "./_components/dominio-clases";
 
 export const metadata = { title: "Mi progreso · EnsenIA UNT" };
 
@@ -49,7 +50,7 @@ export default async function ProgresoPage() {
 
   const [classesRes, eventsRes, recordingsRes, progressRes, activitiesRes, submissionsRes, checkinsRes, questionsRes, feedbackRes] =
     await Promise.all([
-      supabase.from("classes").select("id, class_date").eq("course_id", course.id),
+      supabase.from("classes").select("id, topic, class_date").eq("course_id", course.id),
       supabase
         .from("usage_events")
         .select("event_type, entity_id, created_at")
@@ -98,6 +99,39 @@ export default async function ProgresoPage() {
 
   // --- Clases abiertas vs dictadas ---
   const classes = classesRes.data ?? [];
+
+  // Dominio por clase: se arma con las partidas ya jugadas (game_runs guarda la
+  // clase y los aciertos). Se piden al menos 4 respuestas por clase para que el
+  // porcentaje signifique algo.
+  const { data: runsPorClase, error: runsError } = await supabase
+    .from("game_runs")
+    .select("class_id, correct, total")
+    .eq("student_id", user.id)
+    .eq("course_id", course.id)
+    .not("class_id", "is", null)
+    .gt("total", 0)
+    .limit(2000);
+  if (runsError) console.error("[progreso] dominio por clase", runsError);
+
+  const topicPorClase = new Map(classes.map((c) => [c.id, c.topic]));
+  const acumulado = new Map<string, { correct: number; answered: number }>();
+  for (const r of runsPorClase ?? []) {
+    if (!r.class_id) continue;
+    const acc = acumulado.get(r.class_id) ?? { correct: 0, answered: 0 };
+    acc.correct += r.correct;
+    acc.answered += r.total;
+    acumulado.set(r.class_id, acc);
+  }
+  const dominio: DominioClase[] = [...acumulado.entries()]
+    .filter(([classId, a]) => a.answered >= 4 && topicPorClase.has(classId))
+    .map(([classId, a]) => ({
+      classId,
+      topic: topicPorClase.get(classId) ?? "Clase",
+      correct: a.correct,
+      answered: a.answered,
+    }))
+    // Lo más flojo primero: es lo que hay que ir a estudiar.
+    .sort((a, b) => a.correct / a.answered - b.correct / b.answered);
   const classIds = new Set(classes.map((c) => c.id));
   const pastClasses = classes.filter((c) => c.class_date <= today);
   const events = eventsRes.data ?? [];
@@ -252,6 +286,16 @@ export default async function ProgresoPage() {
           <CardsRadial known={knownCards} total={totalCards} />
         </div>
       </div>
+
+      <section aria-labelledby="dominio" className="mt-10">
+        <div className="mb-4 flex items-center gap-2">
+          <Target className="size-4 text-accent-3" aria-hidden />
+          <h2 id="dominio" className="eyebrow">
+            Qué te falta estudiar
+          </h2>
+        </div>
+        <DominioClases clases={dominio} />
+      </section>
 
       <section aria-labelledby="medallero" className="mt-10">
         <div className="mb-4 flex items-center gap-2">

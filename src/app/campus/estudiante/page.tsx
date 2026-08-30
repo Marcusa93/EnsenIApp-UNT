@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Button, EmptyState } from "@/components/ui";
 import { CheckinCard } from "@/components/checkin/checkin-card";
 import { Greeting } from "./_components/greeting";
+import { PrimerosPasos, type PasoEstado } from "./_components/primeros-pasos";
 import { HoyTracker } from "./_components/hoy-tracker";
 import { NextClassCard, type NextClassData } from "./_components/next-class-card";
 import { LastClassCard, type LastClassData, type RecordingAccess } from "./_components/last-class-card";
@@ -220,12 +221,43 @@ export default async function StudentHomePage() {
 
   const activity = summarizeActivity((eventsRes.data ?? []).map((e) => e.created_at));
 
+  // Primeros pasos: se marcan solos con lo que el estudiante ya hizo. Se
+  // consultan sólo si la cuenta es nueva (poca actividad), para no pagar tres
+  // consultas por cada visita de alguien que ya conoce el campus.
+  const pocaActividad = (eventsRes.data ?? []).length < 25;
+  let primerosPasos: PasoEstado | null = null;
+  if (pocaActividad) {
+    const [avatarRes, alberdiRes, runsRes, claseVistaRes] = await Promise.all([
+      supabase.from("student_avatars").select("student_id").eq("student_id", user.id).maybeSingle(),
+      supabase.from("alberdi_conversations").select("id").eq("student_id", user.id).limit(1),
+      supabase.from("game_runs").select("id").eq("student_id", user.id).limit(1),
+      supabase
+        .from("usage_events")
+        .select("id")
+        .eq("student_id", user.id)
+        .eq("event_type", "class_opened")
+        .limit(1),
+    ]);
+    primerosPasos = {
+      vioClase: (claseVistaRes.data ?? []).length > 0,
+      usoAlberdi: (alberdiRes.data ?? []).length > 0,
+      tieneOperador: Boolean(avatarRes.data),
+      jugo: (runsRes.data ?? []).length > 0,
+    };
+  }
+
   return (
     <>
       <HoyTracker studentId={user.id} />
       <Greeting profile={profile} courseName={course.name} streak={activity.streak} />
 
       <DashboardGrid>
+        {primerosPasos && (
+          <DashboardItem className="lg:col-span-12">
+            <PrimerosPasos estado={primerosPasos} nextClassId={nextClass?.id ?? null} />
+          </DashboardItem>
+        )}
+
         <DashboardItem className="lg:col-span-7">
           <NextClassCard data={nextClass} />
         </DashboardItem>
