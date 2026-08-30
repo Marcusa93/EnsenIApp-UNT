@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROUND_SIZE, xpForRun, type GameKey } from "@/lib/games/config";
 import { BOTUDIANTE_BY_ID } from "@/lib/games/botudiantes";
+import { registrarRepaso } from "@/lib/games/repaso";
 
 /**
  * Corrige la práctica contra un Botudiante. El lado del estudiante se corrige
@@ -64,6 +65,12 @@ export async function POST(request: Request) {
     console.error("[botudiantes] corregir", error);
     return NextResponse.json({ error: "No pudimos corregir la práctica." }, { status: 500 });
   }
+
+  await registrarRepaso(
+    admin,
+    ctx.user.id,
+    challenges.map((c) => ({ challengeId: c.id, acerto: byId.get(c.id) === c.correct_index })),
+  );
 
   const correct = challenges.filter((c) => byId.get(c.id) === c.correct_index).length;
   const total = challenges.length;

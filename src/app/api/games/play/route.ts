@@ -4,6 +4,7 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROUND_SIZE, type GameKey } from "@/lib/games/config";
+import { elegirPorRepaso } from "@/lib/games/repaso";
 
 /**
  * Arma una partida. Devuelve los desafíos SIN la respuesta correcta: el estudiante
@@ -73,14 +74,11 @@ export async function POST(request: Request) {
     );
   }
 
-  // Barajado Fisher-Yates y recorte a la ronda.
-  const shuffled = [...pool];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
+  // La ronda se arma por repaso espaciado, no al azar: primero lo que ya tocaba
+  // repasar (empezando por lo que fallaste), después lo que nunca viste.
+  const elegidas = await elegirPorRepaso(admin, ctx.user.id, pool, ROUND_SIZE);
 
-  const challenges = shuffled.slice(0, ROUND_SIZE).map((c) => ({
+  const challenges = elegidas.map((c) => ({
     id: c.id,
     prompt: c.prompt,
     options: Array.isArray(c.options) ? (c.options as string[]) : [],

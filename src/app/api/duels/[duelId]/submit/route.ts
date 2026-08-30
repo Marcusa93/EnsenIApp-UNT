@@ -4,6 +4,7 @@ import { getOptionalUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROUND_SIZE, DUEL_WIN_BONUS, DUEL_DRAW_BONUS, xpForRun, type GameKey } from "@/lib/games/config";
 import { notifyUsers } from "@/lib/push/send";
+import { registrarRepaso } from "@/lib/games/repaso";
 
 /**
  * Corrige la respuesta de UNO de los dos lados del reto (challenger u opponent,
@@ -112,6 +113,12 @@ export async function POST(request: Request, ctx: { params: Promise<{ duelId: st
     console.error("[retos] corregir", chError);
     return NextResponse.json({ error: "No pudimos corregir el reto." }, { status: 500 });
   }
+
+  await registrarRepaso(
+    admin,
+    authCtx.user.id,
+    challenges.map((c) => ({ challengeId: c.id, acerto: byId.get(c.id) === c.correct_index })),
+  );
 
   const correct = challenges.filter((c) => byId.get(c.id) === c.correct_index).length;
   const total = challenges.length;

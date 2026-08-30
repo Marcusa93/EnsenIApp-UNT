@@ -561,6 +561,48 @@ export type Database = {
           },
         ]
       }
+      challenge_reviews: {
+        Row: {
+          challenge_id: string
+          correct_streak: number
+          due_at: string
+          last_seen_at: string
+          seen: number
+          student_id: string
+        }
+        Insert: {
+          challenge_id: string
+          correct_streak?: number
+          due_at?: string
+          last_seen_at?: string
+          seen?: number
+          student_id: string
+        }
+        Update: {
+          challenge_id?: string
+          correct_streak?: number
+          due_at?: string
+          last_seen_at?: string
+          seen?: number
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_reviews_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "game_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_reviews_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_materials: {
         Row: {
           class_id: string

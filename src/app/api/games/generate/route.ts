@@ -20,7 +20,12 @@ const schema = z.object({
   recordingId: z.guid(),
   /** Si no viene, genera para todos los juegos habilitados en la comisión. */
   games: z.array(z.enum(["duelo", "momento", "glosario"])).optional(),
-  countPerGame: z.number().int().min(3).max(10).default(6),
+  /**
+   * Con 6 por juego y rondas de 5, el estudiante veía casi siempre las mismas
+   * preguntas: un banco chico hace que el repaso espaciado no tenga de dónde
+   * elegir. 12 da margen para varias rondas distintas por clase.
+   */
+  countPerGame: z.number().int().min(3).max(30).default(12),
 });
 
 /** Transcripción agrupada en líneas "[mm:ss] texto", como la que ve Alberdi. */

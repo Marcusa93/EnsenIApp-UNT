@@ -4,6 +4,7 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROUND_SIZE, xpForRun, levelFor, type GameKey } from "@/lib/games/config";
+import { registrarRepaso } from "@/lib/games/repaso";
 
 /**
  * Corrige la partida y la registra. La corrección es SIEMPRE del lado del servidor
@@ -74,6 +75,13 @@ export async function POST(request: Request) {
       classId: c.class_id,
     };
   });
+
+  // Reprograma cada pregunta: lo que acertó se espacia, lo que falló vuelve pronto.
+  await registrarRepaso(
+    admin,
+    ctx.user.id,
+    results.map((r) => ({ challengeId: r.id, acerto: r.correct })),
+  );
 
   const correct = results.filter((r) => r.correct).length;
   const total = results.length;
