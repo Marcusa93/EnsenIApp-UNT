@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getOptionalUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROUND_SIZE, DUEL_WIN_BONUS, DUEL_DRAW_BONUS, xpForRun, type GameKey } from "@/lib/games/config";
+import { notifyUsers } from "@/lib/push/send";
 
 /**
  * Corrige la respuesta de UNO de los dos lados del reto (challenger u opponent,
@@ -205,6 +206,26 @@ export async function POST(request: Request, ctx: { params: Promise<{ duelId: st
     .eq("id", duel.id);
 
   if (updateError) console.error("[retos] cerrar reto", updateError);
+
+  // Cuando se cierra, el otro se enteró del resultado sin haber estado presente.
+  if (bothDone) {
+    const otroId = isChallenger ? duel.opponent_id : duel.challenger_id;
+    const { data: yo } = await admin
+      .from("student_avatars")
+      .select("callsign")
+      .eq("student_id", authCtx.user.id)
+      .maybeSingle();
+    const alias = yo?.callsign ?? "Tu rival";
+    const gano = winnerId === otroId;
+    void notifyUsers([otroId], {
+      kind: "reto",
+      title: winnerId === null ? `Empataste con ${alias}` : gano ? `Le ganaste a ${alias}` : `${alias} te ganó el reto`,
+      body: `Terminó ${correct} a ${isChallenger ? (duel.opponent_correct ?? 0) : (duel.challenger_correct ?? 0)}.`,
+      url: "/campus/estudiante/juegos",
+      courseId: duel.course_id,
+      createdBy: authCtx.user.id,
+    }).catch((err) => console.error("[retos] aviso de resultado", err));
+  }
 
   return NextResponse.json({
     correct,

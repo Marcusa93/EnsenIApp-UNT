@@ -3153,6 +3153,7 @@ export type Database = {
         | "alerta_docente"
         | "manual"
         | "sistema"
+        | "reto"
       poll_status: "draft" | "open" | "closed"
       profile_status: "pendiente" | "validado" | "bloqueado"
       question_status:
@@ -3354,6 +3355,7 @@ export const Constants = {
         "alerta_docente",
         "manual",
         "sistema",
+        "reto",
       ],
       poll_status: ["draft", "open", "closed"],
       profile_status: ["pendiente", "validado", "bloqueado"],

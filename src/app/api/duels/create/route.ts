@@ -4,6 +4,7 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROUND_SIZE, type GameKey } from "@/lib/games/config";
+import { notifyUsers } from "@/lib/push/send";
 
 /**
  * Manda un reto: arma la misma ronda que /api/games/play (Fisher-Yates sobre el
@@ -101,6 +102,22 @@ export async function POST(request: Request) {
     console.error("[retos] crear reto", insertError);
     return NextResponse.json({ error: "No pudimos crear el reto." }, { status: 500 });
   }
+
+  // Avisarle al rival: sin esto el reto sólo aparece si entra a Juegos de
+  // casualidad, y el reto asincrónico se muere ahí.
+  const { data: yo } = await admin
+    .from("student_avatars")
+    .select("callsign")
+    .eq("student_id", ctx.user.id)
+    .maybeSingle();
+  void notifyUsers([opponentId], {
+    kind: "reto",
+    title: `${yo?.callsign ?? "Alguien de tu comisión"} te retó`,
+    body: "Cinco preguntas de la clase. Jugalas cuando puedas y se define quién gana.",
+    url: "/campus/estudiante/juegos",
+    courseId,
+    createdBy: ctx.user.id,
+  }).catch((err) => console.error("[retos] aviso al rival", err));
 
   const challenges = picked.map((c) => ({
     id: c.id,

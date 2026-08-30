@@ -15,6 +15,7 @@ import { NavIcon } from "./nav-icon";
 import { OfflineBanner } from "./offline-banner";
 import { PageTransition } from "./page-transition";
 import { ROLE_LABEL, UserMenu, roleTone } from "./user-menu";
+import { AvisosBell } from "./avisos-bell";
 
 export interface CampusShellProps {
   profile: Profile;
@@ -128,6 +129,7 @@ export function CampusShell({ profile, children, overlays }: CampusShellProps) {
                   Pendiente
                 </Badge>
               )}
+              <AvisosBell />
               <UserMenu profile={profile} />
             </div>
           </div>

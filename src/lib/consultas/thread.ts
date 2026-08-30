@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { notifyUsers } from "@/lib/push/send";
 
 /**
  * Réplicas de una consulta: el ida y vuelta entre el estudiante y su docente.
@@ -46,6 +47,26 @@ export async function replyToQuestion(input: unknown): Promise<ReplyResult> {
     // 42501 = la policy rechazó la escritura: no es un hilo de quien escribe.
     if (error.code === "42501") return { ok: false, error: "No podés escribir en esta consulta." };
     return { ok: false, error: "No pudimos enviar tu mensaje." };
+  }
+
+  // Cuando responde la cátedra, el estudiante se entera aunque no esté mirando.
+  // Al revés no hace falta: el docente ve el panel con las pendientes.
+  if (ctx.profile.role !== "estudiante") {
+    const { data: consulta } = await supabase
+      .from("student_questions")
+      .select("student_id, course_id")
+      .eq("id", parsed.data.questionId)
+      .maybeSingle();
+    if (consulta) {
+      void notifyUsers([consulta.student_id], {
+        kind: "consulta_respondida",
+        title: "Te respondieron la consulta",
+        body: parsed.data.body.slice(0, 140),
+        url: "/campus/estudiante/consultas",
+        courseId: consulta.course_id,
+        createdBy: ctx.user.id,
+      }).catch((err) => console.error("[consultas] aviso de respuesta", err));
+    }
   }
 
   revalidatePath("/campus/estudiante/consultas");
