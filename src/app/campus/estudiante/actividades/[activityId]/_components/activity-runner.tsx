@@ -20,6 +20,14 @@ import {
   type SubmissionStatus,
 } from "@/components/activities/model";
 import { saveProgress, submitActivity } from "../actions";
+import {
+  borrarBorradorLocal,
+  borrarEntregaPendiente,
+  guardarBorradorLocal,
+  guardarEntregaPendiente,
+  leerBorradorLocal,
+  leerEntregaPendiente,
+} from "@/lib/offline/entrega";
 
 export interface ActivityRunnerProps {
   activityId: string;
@@ -46,9 +54,21 @@ export function ActivityRunner(props: ActivityRunnerProps) {
   const { activityId, type, studentId } = props;
   const router = useRouter();
 
-  const [reading, setReading] = React.useState<ReadingAnswers>(() => parseReadingAnswers(props.initialAnswers));
-  const [quiz, setQuiz] = React.useState<QuizAnswers>(() => parseQuizAnswers(props.initialAnswers));
-  const [essay, setEssay] = React.useState<EssayAnswers>(() => parseEssayAnswers(props.initialAnswers));
+  // Si hay un borrador local más nuevo que lo que trajo el servidor (quedó de
+  // una sesión sin señal), se restaura: lo que escribiste en el colectivo no se
+  // pierde. Sólo mientras la entrega siga editable — jamás pisa una entregada.
+  const editable = props.initialStatus === null || props.initialStatus === "en_progreso" || props.initialStatus === "reabierta";
+  const espejo = React.useMemo(
+    () => (typeof window !== "undefined" && editable ? leerBorradorLocal(activityId) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  const base = espejo?.answers ?? props.initialAnswers;
+
+  const [reading, setReading] = React.useState<ReadingAnswers>(() => parseReadingAnswers(base));
+  const [quiz, setQuiz] = React.useState<QuizAnswers>(() => parseQuizAnswers(base));
+  const [essay, setEssay] = React.useState<EssayAnswers>(() => parseEssayAnswers(base));
+  const [entregaPendiente, setEntregaPendiente] = React.useState(false);
 
   const [saveState, setSaveState] = React.useState<SaveState>("idle");
   const [savedAt, setSavedAt] = React.useState<Date | null>(null);
@@ -58,7 +78,7 @@ export function ActivityRunner(props: ActivityRunnerProps) {
   const [pending, startTransition] = React.useTransition();
 
   // Tiempo dedicado: acumulado total (arranca en lo ya registrado) mientras la pestaña está visible.
-  const timeRef = React.useRef(props.initialTimeSpent);
+  const timeRef = React.useRef(Math.max(props.initialTimeSpent, espejo?.timeSpentSeconds ?? 0));
   const startedRef = React.useRef(props.initialStatus !== null);
   const dirtyRef = React.useRef(false);
   const savingRef = React.useRef(false);
@@ -72,7 +92,10 @@ export function ActivityRunner(props: ActivityRunnerProps) {
   const answersRef = React.useRef(currentAnswers());
   React.useEffect(() => {
     answersRef.current = currentAnswers();
-  }, [currentAnswers]);
+    if (startedRef.current) {
+      guardarBorradorLocal(activityId, { answers: answersRef.current as unknown as Json, timeSpentSeconds: timeRef.current });
+    }
+  }, [currentAnswers, activityId]);
 
   useFocusTracking("activity", activityId);
   React.useEffect(() => {
@@ -128,6 +151,8 @@ export function ActivityRunner(props: ActivityRunnerProps) {
   /** Marca cambios: dispara activity_started la primera vez y programa el autosave. */
   const markChanged = React.useCallback(() => {
     setError(null);
+    // Primero el teléfono, después la red: el espejo local nunca depende de la señal.
+    guardarBorradorLocal(activityId, { answers: answersRef.current as unknown as Json, timeSpentSeconds: timeRef.current });
     if (!startedRef.current) {
       startedRef.current = true;
       void track("activity_started", { entity_type: "activity", entity_id: activityId });
@@ -182,21 +207,78 @@ export function ActivityRunner(props: ActivityRunnerProps) {
   const submit = () => {
     startTransition(async () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
-      const res = await submitActivity({ activityId, answers: answersRef.current, timeSpentSeconds: timeRef.current });
-      if (!res.ok) {
+      try {
+        const res = await submitActivity({ activityId, answers: answersRef.current, timeSpentSeconds: timeRef.current });
+        if (!res.ok) {
+          setConfirmOpen(false);
+          setError(res.error);
+          return;
+        }
+        borrarBorradorLocal(activityId);
+        borrarEntregaPendiente(activityId);
+        void track("activity_submitted", {
+          entity_type: "activity",
+          entity_id: activityId,
+          metadata: { auto_score: res.data.autoScore, time_spent_seconds: timeRef.current },
+        });
         setConfirmOpen(false);
-        setError(res.error);
-        return;
+        router.refresh();
+      } catch {
+        // Sin señal: la entrega queda en el teléfono y se envía sola al volver.
+        guardarEntregaPendiente(activityId, {
+          answers: answersRef.current as unknown as Json,
+          timeSpentSeconds: timeRef.current,
+        });
+        setEntregaPendiente(true);
+        setConfirmOpen(false);
       }
-      void track("activity_submitted", {
-        entity_type: "activity",
-        entity_id: activityId,
-        metadata: { auto_score: res.data.autoScore, time_spent_seconds: timeRef.current },
-      });
-      setConfirmOpen(false);
-      router.refresh();
     });
   };
+
+  /** Reintenta una entrega que quedó guardada sin conexión. */
+  const reintentarEntrega = React.useCallback(async () => {
+    const pendiente = leerEntregaPendiente(activityId);
+    if (!pendiente) return;
+    try {
+      const res = await submitActivity({
+        activityId,
+        answers: pendiente.answers as never,
+        timeSpentSeconds: pendiente.timeSpentSeconds,
+      });
+      if (res.ok) {
+        borrarEntregaPendiente(activityId);
+        borrarBorradorLocal(activityId);
+        setEntregaPendiente(false);
+        void track("activity_submitted", {
+          entity_type: "activity",
+          entity_id: activityId,
+          metadata: { auto_score: res.data.autoScore, offline_retry: true },
+        });
+        router.refresh();
+      } else {
+        // Rechazada de verdad (cerrada, inválida): no insistir en silencio.
+        borrarEntregaPendiente(activityId);
+        setEntregaPendiente(false);
+        setError(res.error);
+      }
+    } catch {
+      // Sigue sin señal: queda para el próximo intento.
+    }
+  }, [activityId, router]);
+
+  // Al montar y al recuperar señal: enviar lo pendiente y subir el borrador.
+  React.useEffect(() => {
+    if (leerEntregaPendiente(activityId)) {
+      setEntregaPendiente(true);
+      void reintentarEntrega();
+    }
+    const alVolver = () => {
+      void reintentarEntrega();
+      if (startedRef.current) void doSave();
+    };
+    window.addEventListener("online", alVolver);
+    return () => window.removeEventListener("online", alVolver);
+  }, [activityId, reintentarEntrega, doSave]);
 
   const uploadFile = async (file: File) => {
     if (file.size > MAX_FILE_BYTES) {
@@ -234,6 +316,14 @@ export function ActivityRunner(props: ActivityRunnerProps) {
           </CardTitle>
           <SaveIndicator state={saveState} savedAt={savedAt} />
         </CardHeader>
+
+        {entregaPendiente && (
+          <p className="flex items-start gap-2 rounded-xl border border-warning/35 bg-warning/10 px-3 py-2 text-sm text-warning" role="status">
+            <CloudOff className="mt-0.5 size-4 shrink-0" aria-hidden />
+            Tu entrega quedó guardada en este dispositivo. Se envía sola apenas vuelvas a tener conexión — dejá la
+            página abierta o volvé a entrar más tarde.
+          </p>
+        )}
 
         {props.reopened && (
           <p className="rounded-xl border border-accent-3/30 bg-accent-3/10 px-3 py-2 text-xs text-accent-3">
