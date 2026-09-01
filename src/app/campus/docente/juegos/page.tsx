@@ -28,37 +28,52 @@ export default async function DocenteJuegosPage({
     );
   }
 
-  const [configRes, recordingsRes, challengesRes, statsRes] = await Promise.all([
+  // El banco se arma por CLASE, no por grabación: no todas las clases se graban
+  // y una clase con apunte tiene material igual de válido para generar.
+  const [configRes, classesRes, challengesRes, statsRes] = await Promise.all([
     supabase.from("course_games").select("game, enabled").eq("course_id", course.id),
     supabase
-      .from("class_recordings")
-      .select("id, title, status, published, class_id, classes(id, topic, class_date, course_id)")
-      .eq("status", "ready")
-      .order("created_at", { ascending: false }),
-    supabase.from("game_challenges").select("recording_id, game").eq("course_id", course.id),
+      .from("classes")
+      .select(
+        "id, topic, class_date, recordings:class_recordings(id, status, published, created_at), note:class_notes(published)",
+      )
+      .eq("course_id", course.id)
+      .order("class_date", { ascending: false }),
+    supabase.from("game_challenges").select("class_id, game").eq("course_id", course.id),
     supabase.from("game_runs").select("student_id, correct, total, game").eq("course_id", course.id),
   ]);
 
   const config = new Map((configRes.data ?? []).map((r) => [r.game, r.enabled]));
   const enabled = GAMES.map((g) => ({ ...g, enabled: config.get(g.key) ?? true }));
 
-  // Sólo las grabaciones de ESTA comisión (el filtro por curso va sobre la clase).
-  const recordings = (recordingsRes.data ?? [])
-    .map((r) => {
-      const cls = r.classes as { id: string; topic: string; class_date: string; course_id: string } | null;
-      return cls && cls.course_id === course.id
-        ? { id: r.id, title: r.title, published: r.published, classTopic: cls.topic, classDate: cls.class_date }
-        : null;
-    })
-    .filter((r): r is NonNullable<typeof r> => r != null);
-
-  const byRecording = new Map<string, Record<string, number>>();
+  const byClass = new Map<string, Record<string, number>>();
   for (const c of challengesRes.data ?? []) {
-    if (!c.recording_id) continue;
-    const entry = byRecording.get(c.recording_id) ?? {};
+    if (!c.class_id) continue;
+    const entry = byClass.get(c.class_id) ?? {};
     entry[c.game] = (entry[c.game] ?? 0) + 1;
-    byRecording.set(c.recording_id, entry);
+    byClass.set(c.class_id, entry);
   }
+
+  // Sólo las clases que tienen de dónde generar: grabación procesada o apunte.
+  const fuentes = (classesRes.data ?? [])
+    .map((c) => {
+      const recs = (c.recordings ?? []) as { id: string; status: string; published: boolean; created_at: string }[];
+      const lista = [...recs].sort((a, b) => b.created_at.localeCompare(a.created_at));
+      const rec = lista.find((r) => r.status === "ready") ?? null;
+      const note = c.note as { published: boolean } | { published: boolean }[] | null;
+      const tieneApunte = Array.isArray(note) ? note.length > 0 : note != null;
+      if (!rec && !tieneApunte) return null;
+      return {
+        classId: c.id,
+        topic: c.topic,
+        classDate: c.class_date,
+        recordingId: rec?.id ?? null,
+        recordingPublished: rec?.published ?? false,
+        tieneApunte,
+        counts: byClass.get(c.id) ?? {},
+      };
+    })
+    .filter((c): c is NonNullable<typeof c> => c != null);
 
   const runs = statsRes.data ?? [];
   const players = new Set(runs.map((r) => r.student_id)).size;
@@ -71,7 +86,7 @@ export default async function DocenteJuegosPage({
       <PageHeader
         eyebrow="El Expediente"
         title="Juegos de la materia"
-        description="Los desafíos se generan con IA desde el material real de cada grabación: transcripción, resumen y glosario. Podés prender y apagar cada juego para la comisión."
+        description="Los desafíos se generan con IA desde el material real de cada clase: la grabación (transcripción, resumen y glosario) o, si no se grabó, el apunte que escribiste. Podés prender y apagar cada juego para la comisión."
         actions={<CourseSwitcher courses={courses} activeCourseId={course.id} />}
       />
 
@@ -82,7 +97,7 @@ export default async function DocenteJuegosPage({
       </div>
 
       <div className="mt-4">
-        <GamesPanel courseId={course.id} games={enabled} recordings={recordings} challengeCounts={Object.fromEntries(byRecording)} />
+        <GamesPanel courseId={course.id} games={enabled} fuentes={fuentes} />
       </div>
 
       <Card className="mt-4">
@@ -91,11 +106,12 @@ export default async function DocenteJuegosPage({
         </CardTitle>
         <ol className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
           <li>
-            <strong className="text-foreground">1.</strong> Subís y procesás la grabación como siempre.
+            <strong className="text-foreground">1.</strong> Subís y procesás la grabación como siempre — o, si esa
+            clase no se grabó, escribís el apunte desde la ficha de la clase.
           </li>
           <li>
             <strong className="text-foreground">2.</strong> Tocás <em>Generar</em> y la IA arma los desafíos con lo que
-            se dijo en esa clase. Cada uno queda con la cita textual que lo respalda.
+            dice ese material. Cada uno queda con la cita textual que lo respalda.
           </li>
           <li>
             <strong className="text-foreground">3.</strong> Los estudiantes juegan partidas de cinco preguntas, suman

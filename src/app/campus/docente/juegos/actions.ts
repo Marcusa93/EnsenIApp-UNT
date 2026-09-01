@@ -39,17 +39,25 @@ export async function setGameEnabled(input: z.input<typeof toggleSchema>): Promi
   }
 }
 
-const deleteSchema = z.object({ course_id: z.guid(), recording_id: z.guid() });
+const deleteSchema = z.object({ course_id: z.guid(), class_id: z.guid() });
 
-/** Borra el banco de desafíos de una grabación (para regenerarlo de cero). */
+/**
+ * Borra el banco de desafíos de una clase (para regenerarlo de cero).
+ * Va por clase y no por grabación: una clase puede tener desafíos hechos desde
+ * la grabación y desde el apunte, y el docente los piensa como uno solo.
+ */
 export async function deleteChallenges(input: z.input<typeof deleteSchema>): Promise<ActionResult> {
   const parsed = deleteSchema.safeParse(input);
   if (!parsed.success) return fail("Datos inválidos.");
-  const { course_id, recording_id } = parsed.data;
+  const { course_id, class_id } = parsed.data;
 
   try {
     const { supabase } = await requireTeacherOf(course_id);
-    const { error } = await supabase.from("game_challenges").delete().eq("recording_id", recording_id);
+    const { error } = await supabase
+      .from("game_challenges")
+      .delete()
+      .eq("course_id", course_id)
+      .eq("class_id", class_id);
     if (error) {
       console.error("[juegos] borrar desafíos", error);
       return fail("No se pudieron borrar los desafíos.");

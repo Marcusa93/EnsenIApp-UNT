@@ -45,6 +45,8 @@ export interface ClassListItem {
   teacher: TeacherRef | null;
   recordings_count: number;
   materials_count: number;
+  /** Apunte publicado: la clase tiene contenido aunque no se haya grabado. */
+  has_note: boolean;
   state: ClassTemporalState;
 }
 
@@ -101,6 +103,8 @@ export interface ClassDetail {
   state: ClassTemporalState;
   announcements: Pick<Tables<"announcements">, "id" | "title" | "body" | "created_at">[];
   materials: MaterialItem[];
+  /** El texto de la clase escrito por el equipo docente (RLS ya filtra borradores). */
+  note: { body_md: string; updated_at: string } | null;
   recordings: RecordingContent[];
   checkin: Pick<Tables<"student_checkins">, "id" | "difficulty" | "comment" | "created_at"> | null;
 }
@@ -159,6 +163,7 @@ interface RawClassRow {
   sort_order: number;
   recordings: { id: string }[] | null;
   materials: { id: string }[] | null;
+  notes: { class_id: string }[] | { class_id: string } | null;
 }
 
 function one<T>(v: T | T[] | null | undefined): T | null {
@@ -196,7 +201,7 @@ export async function getStudentClasses(
     supabase
       .from("classes")
       .select(
-        "id, course_id, teacher_id, class_date, topic, summary, sort_order, recordings:class_recordings(id), materials:class_materials(id)",
+        "id, course_id, teacher_id, class_date, topic, summary, sort_order, recordings:class_recordings(id), materials:class_materials(id), notes:class_notes(class_id)",
       )
       .in(
         "course_id",
@@ -223,6 +228,7 @@ export async function getStudentClasses(
     teacher: r.teacher_id ? (faculty.get(r.teacher_id) ?? null) : null,
     recordings_count: r.recordings?.length ?? 0,
     materials_count: r.materials?.length ?? 0,
+    has_note: Array.isArray(r.notes) ? r.notes.length > 0 : r.notes != null,
   }));
   return withTemporalState(rows);
 }
@@ -391,7 +397,7 @@ export async function getClassDetail(
   };
   const course = one(raw.course);
 
-  const [annRes, matRes, recRes, checkinRes, faculty] = await Promise.all([
+  const [annRes, matRes, noteRes, recRes, checkinRes, faculty] = await Promise.all([
     supabase
       .from("announcements")
       .select("id, title, body, created_at")
@@ -402,6 +408,7 @@ export async function getClassDetail(
       .select("id, title, kind, url, storage_path")
       .eq("class_id", classId)
       .order("created_at", { ascending: true }),
+    supabase.from("class_notes").select("body_md, updated_at").eq("class_id", classId).maybeSingle(),
     supabase
       .from("class_recordings")
       .select(RECORDING_SELECT)
@@ -421,6 +428,7 @@ export async function getClassDetail(
 
   if (annRes.error) console.error("[clases] announcements", { classId, error: annRes.error });
   if (matRes.error) console.error("[clases] materials", { classId, error: matRes.error });
+  if (noteRes.error) console.error("[clases] apunte", { classId, error: noteRes.error });
   if (recRes.error) {
     console.error("[clases] recordings", { classId, error: recRes.error });
     throw new Error("No se pudieron cargar las grabaciones de la clase.");
@@ -454,6 +462,7 @@ export async function getClassDetail(
     state: stated.state === "futura" ? "proxima" : stated.state,
     announcements: annRes.data ?? [],
     materials,
+    note: noteRes.data ?? null,
     recordings: rawRecordings.map((r) => toRecordingContent(r, progress.get(r.id) ?? [], audio.get(r.id) ?? [])),
     checkin: checkinRes.data ?? null,
   };

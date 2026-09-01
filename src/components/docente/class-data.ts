@@ -29,6 +29,8 @@ export interface TeacherClassRow {
   recordings_count: number;
   materials_count: number;
   checkins_count: number;
+  /** Tiene apunte cargado: la clase tiene contenido aunque no se haya grabado. */
+  has_note: boolean;
   state: ClassTemporalState;
 }
 
@@ -78,6 +80,13 @@ export interface StudentVoice {
   questions: ClassQuestion[];
 }
 
+/** El apunte de la clase: el texto que reemplaza (o acompaña) a la grabación. */
+export interface ClassNote {
+  body_md: string;
+  published: boolean;
+  updated_at: string;
+}
+
 export interface TeacherClassDetail {
   id: string;
   course_id: string;
@@ -90,6 +99,9 @@ export interface TeacherClassDetail {
   state: ClassTemporalState;
   announcements: ClassAnnouncement[];
   materials: TeacherMaterial[];
+  note: ClassNote | null;
+  /** Grabaciones cargadas (publicadas o no): define si el apunte es la única fuente. */
+  recordings_count: number;
   voice: StudentVoice;
 }
 
@@ -167,6 +179,7 @@ interface RawClassRow {
     | null;
   materials: { id: string }[] | null;
   checkins: { id: string }[] | null;
+  note: { published: boolean }[] | { published: boolean } | null;
 }
 
 /** Cronograma completo del curso con estado de grabación y conteos, para el docente. */
@@ -174,7 +187,7 @@ export async function getCourseClasses(supabase: DbClient, courseId: string): Pr
   const { data, error } = await supabase
     .from("classes")
     .select(
-      "id, course_id, class_date, topic, summary, sort_order, teacher_id, teacher:profiles(full_name), recordings:class_recordings(id, status, published, progress, created_at), materials:class_materials(id), checkins:student_checkins(id)",
+      "id, course_id, class_date, topic, summary, sort_order, teacher_id, teacher:profiles(full_name), recordings:class_recordings(id, status, published, progress, created_at), materials:class_materials(id), checkins:student_checkins(id), note:class_notes(published)",
     )
     .eq("course_id", courseId)
     .order("class_date", { ascending: true })
@@ -203,6 +216,7 @@ export async function getCourseClasses(supabase: DbClient, courseId: string): Pr
       recordings_count: r.recordings?.length ?? 0,
       materials_count: r.materials?.length ?? 0,
       checkins_count: r.checkins?.length ?? 0,
+      has_note: Array.isArray(r.note) ? r.note.length > 0 : r.note != null,
       state,
     };
   });
@@ -242,13 +256,15 @@ export async function getTeacherClassDetail(
 ): Promise<TeacherClassDetail | null> {
   const { data: cls, error } = await supabase
     .from("classes")
-    .select("id, course_id, class_date, topic, summary, sort_order, teacher_id, teacher:profiles(full_name)")
+    .select(
+      "id, course_id, class_date, topic, summary, sort_order, teacher_id, teacher:profiles(full_name), recordings:class_recordings(id)",
+    )
     .eq("id", classId)
     .maybeSingle();
   if (error) logAndThrow("detail", error, "No se pudo cargar la clase.");
   if (!cls) return null;
 
-  const [annRes, matRes, checkinRes, questionRes] = await Promise.all([
+  const [annRes, matRes, noteRes, checkinRes, questionRes] = await Promise.all([
     supabase
       .from("announcements")
       .select("id, title, body, created_at, class_id, author:profiles(full_name)")
@@ -261,6 +277,11 @@ export async function getTeacherClassDetail(
       .select("id, title, kind, url, storage_path, created_at")
       .eq("class_id", classId)
       .order("created_at", { ascending: true }),
+    supabase
+      .from("class_notes")
+      .select("body_md, published, updated_at")
+      .eq("class_id", classId)
+      .maybeSingle(),
     supabase
       .from("student_checkins")
       .select("id, difficulty, comment, created_at, student:profiles!student_checkins_student_id_fkey(full_name)")
@@ -277,6 +298,8 @@ export async function getTeacherClassDetail(
 
   if (annRes.error) logAndThrow("announcements", annRes.error, "No se pudieron cargar los avisos.");
   if (matRes.error) logAndThrow("materials", matRes.error, "No se pudieron cargar los materiales.");
+  // El apunte no bloquea la pantalla: si falla, la clase se muestra igual.
+  if (noteRes.error) console.error("[docente/clases] apunte", { classId, error: noteRes.error });
   if (checkinRes.error) logAndThrow("checkins", checkinRes.error, "No se pudieron cargar los check-ins.");
   if (questionRes.error) logAndThrow("questions", questionRes.error, "No se pudieron cargar las consultas.");
 
@@ -320,6 +343,8 @@ export async function getTeacherClassDetail(
       author_name: one(a.author)?.full_name ?? null,
     })),
     materials,
+    note: noteRes.data ?? null,
+    recordings_count: (cls.recordings as { id: string }[] | null)?.length ?? 0,
     voice: {
       distribution,
       total,

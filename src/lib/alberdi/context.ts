@@ -10,6 +10,8 @@ import type { DbClient } from "@/lib/courses";
 /** Recorte por fuente para que el prompt no se dispare con clases largas. */
 const LIMITS = {
   summaryMd: 2500,
+  /** El apunte de una clase sin grabar: es TODO lo que hay de esa clase. */
+  note: 6000,
   simplified: 2000,
   /**
    * Sólo cuando la consulta está anclada a una clase concreta. Alto a propósito:
@@ -21,7 +23,7 @@ const LIMITS = {
 } as const;
 
 export interface ContextSource {
-  kind: "clase" | "resumen" | "material" | "transcripcion";
+  kind: "clase" | "resumen" | "material" | "transcripcion" | "apunte";
   class_id: string | null;
   label: string;
 }
@@ -198,6 +200,23 @@ export async function buildAlberdiContext(
           }
         }
       }
+    }
+
+    // Apuntes: para las clases que no se grabaron, esto es el contenido de la
+    // clase. Sin esto Alberdi contestaría "no tengo esa clase" sobre clases que
+    // sí se dieron. RLS ya deja afuera los borradores.
+    const { data: notes } = await supabase
+      .from("class_notes")
+      .select("class_id, body_md")
+      .in("class_id", classIds);
+
+    for (const n of notes ?? []) {
+      const cls = byClass.get(n.class_id);
+      const heading = cls ? `${cls.class_date} · ${cls.topic}` : "Clase";
+      // La clase enfocada va entera; el resto, recortado, para no comerse el prompt.
+      const limite = classId && n.class_id === classId ? LIMITS.transcript : LIMITS.note;
+      parts.push(`## Apunte de clase (esta clase no se grabó)\n### ${heading}\n${clamp(n.body_md, limite)}`);
+      sources.push({ kind: "apunte", class_id: n.class_id, label: heading });
     }
 
     const { data: materials } = await supabase

@@ -145,7 +145,7 @@ export default async function StudentHomePage() {
   let lastClass: LastClassData | null = null;
   let needsCheckin = false;
   if (lastClassRes.data) {
-    const [recordingsRes, checkinRes] = await Promise.all([
+    const [recordingsRes, checkinRes, noteRes] = await Promise.all([
       supabase
         .from("v_recording_status")
         .select("id, title, status, published, has_summary, has_cards, has_simplified, has_transcript, duration_seconds")
@@ -159,6 +159,8 @@ export default async function StudentHomePage() {
         .eq("class_id", lastClassRes.data.id)
         .limit(1)
         .maybeSingle(),
+      // Sin grabación la clase puede tener apunte: RLS ya filtra los borradores.
+      supabase.from("class_notes").select("class_id").eq("class_id", lastClassRes.data.id).maybeSingle(),
     ]);
     if (recordingsRes.error) console.error("[estudiante/hoy] v_recording_status", recordingsRes.error);
     if (checkinRes.error) console.error("[estudiante/hoy] student_checkins", checkinRes.error);
@@ -174,7 +176,12 @@ export default async function StudentHomePage() {
         has_transcript: Boolean(r.has_transcript),
         duration_seconds: r.duration_seconds ?? null,
       }));
-    lastClass = { ...lastClassRes.data, teacher: teacherFor(lastClassRes.data.teacher_id), recordings };
+    lastClass = {
+      ...lastClassRes.data,
+      teacher: teacherFor(lastClassRes.data.teacher_id),
+      recordings,
+      has_note: noteRes.data != null,
+    };
     needsCheckin = !checkinRes.data;
   }
 

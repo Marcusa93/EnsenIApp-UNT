@@ -168,7 +168,7 @@ export function ClassList({ courseId, classes, staff }: ClassListProps) {
                   </td>
                   <td className="truncate px-4 py-3 text-muted">{c.teacher_name ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <RecordingStatusBadge status={c.recording?.status} published={c.recording?.published} />
+                    <RecordingStatusBadge status={c.recording?.status} published={c.recording?.published} hasNote={c.has_note} />
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-xs tabular-nums">{c.checkins_count}</td>
                   <td className="px-4 py-3 text-right font-mono text-xs tabular-nums">{c.materials_count}</td>
@@ -274,7 +274,7 @@ function ClassTimelineItem({ row, onEdit, onDelete }: { row: TeacherClassRow; on
             <Badge tone={state.tone} size="sm" dot={isLive} live={isLive}>
               {state.label}
             </Badge>
-            <RecordingStatusBadge status={row.recording?.status} published={row.recording?.published} />
+            <RecordingStatusBadge status={row.recording?.status} published={row.recording?.published} hasNote={row.has_note} />
           </div>
           <Link
             href={`/campus/docente/clases/${row.id}`}

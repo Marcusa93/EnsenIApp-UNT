@@ -3,17 +3,17 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, CalendarDays, Paperclip, PlayCircle, SearchX, UserRound } from "lucide-react";
+import { ArrowRight, CalendarDays, NotebookText, Paperclip, PlayCircle, SearchX, UserRound } from "lucide-react";
 import { Badge, Card, EmptyState, Select } from "@/components/ui";
 import { TIME_ZONE, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { ClassListItem, ClassTemporalState } from "../_lib/data";
 
-type Filter = "todas" | "grabadas" | "proximas" | "pasadas";
+type Filter = "todas" | "con-material" | "proximas" | "pasadas";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "todas", label: "Todas" },
-  { value: "grabadas", label: "Con grabación" },
+  { value: "con-material", label: "Con contenido" },
   { value: "proximas", label: "Próximas" },
   { value: "pasadas", label: "Pasadas" },
 ];
@@ -36,8 +36,9 @@ function localNoon(ymd: string): Date {
 
 function matches(c: ClassListItem, filter: Filter): boolean {
   switch (filter) {
-    case "grabadas":
-      return c.recordings_count > 0;
+    case "con-material":
+      // Grabación o apunte: para el que estudia, las dos son contenido.
+      return c.recordings_count > 0 || c.has_note;
     case "proximas":
       return c.state !== "pasada";
     case "pasadas":
@@ -120,7 +121,11 @@ export function ClassTimeline({ classes, courses }: { classes: ClassListItem[]; 
           tone="muted"
           icon={SearchX}
           title="No hay clases con ese filtro"
-          description={filter === "grabadas" ? "Cuando el equipo docente publique una grabación, va a aparecer acá." : "Probá con otro filtro."}
+          description={
+            filter === "con-material"
+              ? "Cuando el equipo docente publique una grabación o el apunte de una clase, va a aparecer acá."
+              : "Probá con otro filtro."
+          }
         />
       ) : (
         <AnimatePresence initial={false} mode="popLayout">
@@ -197,17 +202,28 @@ export function ClassTimeline({ classes, courses }: { classes: ClassListItem[]; 
                                   <dd className="truncate">{c.teacher.full_name}</dd>
                                 </div>
                               )}
-                              <div className={cn("flex items-center gap-1.5", c.recordings_count > 0 ? "text-success" : "")}>
-                                <PlayCircle className="size-3.5" aria-hidden />
-                                <dt className="sr-only">Grabación</dt>
-                                <dd>
-                                  {c.recordings_count > 0
-                                    ? c.recordings_count === 1
-                                      ? "Grabación publicada"
-                                      : `${c.recordings_count} grabaciones`
-                                    : "Sin grabación"}
-                                </dd>
-                              </div>
+                              {c.recordings_count > 0 ? (
+                                <div className="flex items-center gap-1.5 text-success">
+                                  <PlayCircle className="size-3.5" aria-hidden />
+                                  <dt className="sr-only">Grabación</dt>
+                                  <dd>
+                                    {c.recordings_count === 1 ? "Grabación publicada" : `${c.recordings_count} grabaciones`}
+                                  </dd>
+                                </div>
+                              ) : c.has_note ? (
+                                /* Sin grabación pero con apunte: la clase tiene contenido igual. */
+                                <div className="flex items-center gap-1.5 text-accent-2">
+                                  <NotebookText className="size-3.5" aria-hidden />
+                                  <dt className="sr-only">Apunte</dt>
+                                  <dd>Apunte de clase</dd>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5">
+                                  <PlayCircle className="size-3.5" aria-hidden />
+                                  <dt className="sr-only">Grabación</dt>
+                                  <dd>Sin grabación</dd>
+                                </div>
+                              )}
                               {c.materials_count > 0 && (
                                 <div className="flex items-center gap-1.5">
                                   <Paperclip className="size-3.5" aria-hidden />

@@ -651,6 +651,48 @@ export type Database = {
           },
         ]
       }
+      class_notes: {
+        Row: {
+          body_md: string
+          class_id: string
+          created_at: string
+          published: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body_md: string
+          class_id: string
+          created_at?: string
+          published?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body_md?: string
+          class_id?: string
+          created_at?: string
+          published?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_notes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: true
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_recordings: {
         Row: {
           chunks_done: number

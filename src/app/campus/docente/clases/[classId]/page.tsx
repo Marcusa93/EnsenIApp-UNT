@@ -13,6 +13,7 @@ import { RecordingsPanel } from "@/components/recordings/recordings-panel";
 import { ClassHeaderActions } from "./_components/class-header-actions";
 import { AnnouncementsPanel } from "./_components/announcements-panel";
 import { MaterialsPanel } from "./_components/materials-panel";
+import { ApuntePanel } from "./_components/apunte-panel";
 import { StudentVoice } from "./_components/student-voice";
 
 export const metadata: Metadata = { title: "Clase · EnsenIA UNT" };
@@ -93,6 +94,10 @@ export default async function DocenteClasePage({ params }: { params: Promise<{ c
         <div className="flex min-w-0 flex-col gap-4">
           <Reveal inView={false} delay={0.05}>
             <RecordingsPanel classId={cls.id} courseId={cls.course_id} />
+          </Reveal>
+
+          <Reveal inView={false} delay={0.075}>
+            <ApuntePanel classId={cls.id} note={cls.note} tieneGrabacion={cls.recordings_count > 0} />
           </Reveal>
 
           <Reveal inView={false} delay={0.1}>

@@ -26,14 +26,22 @@ const IN_PROGRESS: ReadonlySet<RecordingStatus> = new Set(["uploaded", "transcri
 export interface RecordingStatusBadgeProps {
   status: RecordingStatus | null | undefined;
   published?: boolean | null;
-  /** Sin grabación: muestra "Sin grabación". */
+  /**
+   * La clase tiene apunte. Sin grabación, eso no es un hueco: es la otra forma
+   * de que la clase tenga contenido, y la pastilla lo dice así.
+   */
+  hasNote?: boolean;
   size?: "sm" | "md";
 }
 
 /** Pastilla de estado del pipeline de una grabación (con punto pulsante si está en proceso). */
-export function RecordingStatusBadge({ status, published, size = "sm" }: RecordingStatusBadgeProps) {
+export function RecordingStatusBadge({ status, published, hasNote, size = "sm" }: RecordingStatusBadgeProps) {
   if (!status) {
-    return (
+    return hasNote ? (
+      <Badge tone="accent-2" size={size}>
+        Apunte
+      </Badge>
+    ) : (
       <Badge tone="muted" size={size}>
         Sin grabación
       </Badge>

@@ -215,3 +215,91 @@ export async function deleteMaterial(classId: string, materialId: string): Promi
     return fail(errorMessage(err, "No se pudo eliminar el material."));
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Apunte de la clase                                                   */
+/* ------------------------------------------------------------------ */
+
+const noteSchema = z.object({
+  class_id: uuidSchema,
+  body_md: z
+    .string()
+    .trim()
+    .min(80, "Escribí un poco más: con menos de 80 caracteres la IA no tiene de dónde sacar preguntas.")
+    .max(60_000, "El apunte es demasiado largo. Partilo en dos clases o subilo como material."),
+  published: z.boolean().default(true),
+});
+
+export type ClassNoteInput = z.input<typeof noteSchema>;
+
+/**
+ * Guarda el apunte de la clase (uno por clase: se pisa el anterior).
+ *
+ * Es la vía de contenido para las clases que no se graban. Si está publicado,
+ * la comisión lo ve en la página de la clase y Alberdi lo usa para responder.
+ */
+export async function saveClassNotes(input: ClassNoteInput): Promise<ActionResult<{ published: boolean }>> {
+  const parsed = noteSchema.safeParse(input);
+  if (!parsed.success) return fail("Revisá el apunte.", fieldErrors(parsed.error));
+  try {
+    const { supabase, ctx, courseId } = await requireTeacherOfClass(parsed.data.class_id);
+    const yaHabia = await supabase
+      .from("class_notes")
+      .select("published")
+      .eq("class_id", parsed.data.class_id)
+      .maybeSingle();
+
+    const { error } = await supabase.from("class_notes").upsert(
+      {
+        class_id: parsed.data.class_id,
+        body_md: parsed.data.body_md,
+        published: parsed.data.published,
+        updated_by: ctx.user.id,
+      },
+      { onConflict: "class_id" },
+    );
+    if (error) throw error;
+    revalidateClass(parsed.data.class_id);
+    revalidatePath("/campus/docente/juegos");
+
+    // Se avisa sólo cuando el apunte APARECE (primera publicación): guardar una
+    // corrección de tipeo no tiene que sonarle el celular a toda la comisión.
+    const reciénPublicado = parsed.data.published && !yaHabia.data?.published;
+    if (reciénPublicado) {
+      const { data: cls } = await supabase
+        .from("classes")
+        .select("topic")
+        .eq("id", parsed.data.class_id)
+        .maybeSingle();
+      void notifyCourse(courseId, {
+        kind: "aviso",
+        title: "Apunte de clase publicado",
+        body: cls?.topic ? `Ya podés leer el apunte de «${cls.topic}».` : "Hay apunte nuevo para leer.",
+        url: `/campus/estudiante/clases/${parsed.data.class_id}`,
+        createdBy: ctx.user.id,
+      }).catch((e) => console.error("[docente/clase] aviso de apunte", e));
+    }
+
+    return succeed({ published: parsed.data.published });
+  } catch (err) {
+    console.error("[docente/clase] saveClassNotes", { err });
+    return fail(errorMessage(err, "No se pudo guardar el apunte."));
+  }
+}
+
+/** Borra el apunte. Los desafíos que se generaron con él quedan: ya son propios. */
+export async function deleteClassNotes(classId: string): Promise<ActionResult> {
+  const id = uuidSchema.safeParse(classId);
+  if (!id.success) return fail("Clase inválida.");
+  try {
+    const { supabase } = await requireTeacherOfClass(id.data);
+    const { error } = await supabase.from("class_notes").delete().eq("class_id", id.data);
+    if (error) throw error;
+    revalidateClass(id.data);
+    revalidatePath("/campus/docente/juegos");
+    return succeed(undefined);
+  } catch (err) {
+    console.error("[docente/clase] deleteClassNotes", { classId, err });
+    return fail(errorMessage(err, "No se pudo borrar el apunte."));
+  }
+}

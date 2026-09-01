@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Bell, CalendarDays, Check, Clock, Feather, MessageCircleQuestion, Paperclip, UserRound } from "lucide-react";
+import { ArrowLeft, Bell, CalendarDays, Check, Clock, Feather, Gamepad2, MessageCircleQuestion, NotebookText, Paperclip, UserRound } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Button, Card, CardDescription, CardTitle, EmptyState, PageHeader } from "@/components/ui";
@@ -41,6 +41,9 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
   const badge = STATE_BADGE[cls.state];
   const hasRecordings = cls.recordings.length > 0;
   const isPast = cls.state === "pasada";
+  // No todas las clases se graban: cuando hay apunte, ESE es el contenido de la
+  // clase y se muestra como tal, no como un premio consuelo.
+  const hasNote = cls.note != null;
 
   return (
     <>
@@ -118,22 +121,49 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
             </Reveal>
           )}
 
+          {cls.note && (
+            <Reveal delay={0.03}>
+              <Card>
+                <CardTitle eyebrow={hasRecordings ? "Apunte de la clase" : "Esta clase no se grabó"} as="h2" className="flex items-center gap-2">
+                  <NotebookText className="size-4 text-accent-2" aria-hidden />
+                  {hasRecordings ? "Notas del equipo docente" : "Lo que se dio en clase"}
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {hasRecordings
+                    ? "Notas que el equipo docente sumó a la grabación."
+                    : "El equipo docente dejó el apunte con el contenido de la clase. Cuenta igual: podés jugar sobre esta clase y preguntarle a Alberdi."}
+                </CardDescription>
+                <div className="mt-3">
+                  <Markdown size="sm">{cls.note.body_md}</Markdown>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+                  <Button asChild size="sm" variant="secondary" leftIcon={<Gamepad2 />}>
+                    <Link href={`/campus/estudiante/juegos?clase=${cls.id}`}>Jugar con esta clase</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="ghost" leftIcon={<Feather />}>
+                    <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntarle a Alberdi</Link>
+                  </Button>
+                </div>
+              </Card>
+            </Reveal>
+          )}
+
           {hasRecordings ? (
             cls.recordings.map((rec, i) => (
               <Reveal key={rec.id} delay={0.05 * (i + 1)}>
                 <RecordingBlock recording={rec} classId={cls.id} ordinal={cls.recordings.length > 1 ? i + 1 : undefined} />
               </Reveal>
             ))
-          ) : (
+          ) : hasNote ? null : (
             <Reveal delay={0.05}>
               <EmptyState
                 icon={Clock}
                 tone={isPast ? "accent" : "accent-2"}
-                title={isPast ? "El equipo docente está procesando la clase" : "La grabación llega después de la clase"}
+                title={isPast ? "Esta clase todavía no tiene contenido cargado" : "El contenido llega después de la clase"}
                 description={
                   isPast
-                    ? "Cuando se publique la grabación vas a encontrar acá el resumen, las placas interactivas, la versión simple y la transcripción. Mientras tanto podés revisar los materiales y avisos."
-                    : "Después de la clase, el equipo docente sube la grabación y la IA genera el resumen, las placas y la versión simple. Te avisamos en Hoy cuando esté lista."
+                    ? "No todas las clases se graban. Cuando el equipo docente suba la grabación o deje el apunte, aparece acá. Mientras tanto tenés los materiales, los avisos y a Alberdi."
+                    : "Después de la clase, el equipo docente sube la grabación o deja el apunte. Te avisamos en Hoy cuando esté."
                 }
                 action={
                   <Button asChild variant="secondary" size="sm" leftIcon={<MessageCircleQuestion />}>

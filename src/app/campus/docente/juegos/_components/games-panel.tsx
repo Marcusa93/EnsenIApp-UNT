@@ -1,31 +1,33 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, NotebookText, PlayCircle, Sparkles, Trash2 } from "lucide-react";
 import { Badge, Button, Card, CardTitle, Switch } from "@/components/ui";
-import { cn } from "@/lib/utils";
 import type { GameMeta } from "@/lib/games/config";
 import { setGameEnabled, deleteChallenges } from "../actions";
 
-interface RecordingRow {
-  id: string;
-  title: string | null;
-  published: boolean;
-  classTopic: string;
+/** Una clase con material del que se pueden sacar desafíos. */
+export interface FuenteClase {
+  classId: string;
+  topic: string;
   classDate: string;
+  /** Grabación procesada, si la hay. Null cuando la clase no se grabó. */
+  recordingId: string | null;
+  recordingPublished: boolean;
+  tieneApunte: boolean;
+  counts: Record<string, number>;
 }
 
 export function GamesPanel({
   courseId,
   games,
-  recordings,
-  challengeCounts,
+  fuentes,
 }: {
   courseId: string;
   games: (GameMeta & { enabled: boolean })[];
-  recordings: RecordingRow[];
-  challengeCounts: Record<string, Record<string, number>>;
+  fuentes: FuenteClase[];
 }) {
   const router = useRouter();
   const [pending, setPending] = React.useState<string | null>(null);
@@ -49,15 +51,18 @@ export function GamesPanel({
     setPending(null);
   }
 
-  async function generate(recordingId: string) {
-    setPending(`gen-${recordingId}`);
+  async function generate(f: FuenteClase) {
+    setPending(`gen-${f.classId}`);
     setError(null);
     setNote(null);
     try {
+      // La grabación manda cuando existe: tiene minutos, y con minutos hay
+      // «¿en qué minuto?». El apunte es la fuente de las clases sin grabar.
+      const payload = f.recordingId ? { recordingId: f.recordingId } : { classId: f.classId };
       const res = await fetch("/api/games/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recordingId }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error ?? "No se pudieron generar los desafíos.");
@@ -65,9 +70,7 @@ export function GamesPanel({
       const detail = Object.entries(data.generated as Record<string, number>)
         .map(([g, n]) => `${n} de ${g}`)
         .join(", ");
-      setNote(
-        `Listo: ${detail}.${data.problems?.length ? ` Pendiente: ${(data.problems as string[]).join(" ")}` : ""}`,
-      );
+      setNote(`Listo: ${detail}.${data.problems?.length ? ` Pendiente: ${(data.problems as string[]).join(" ")}` : ""}`);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudieron generar los desafíos.");
@@ -76,11 +79,11 @@ export function GamesPanel({
     }
   }
 
-  async function remove(recordingId: string) {
-    setPending(`del-${recordingId}`);
+  async function remove(classId: string) {
+    setPending(`del-${classId}`);
     setError(null);
     setNote(null);
-    const res = await deleteChallenges({ course_id: courseId, recording_id: recordingId });
+    const res = await deleteChallenges({ course_id: courseId, class_id: classId });
     if (!res.ok) setError(res.error);
     else router.refresh();
     setPending(null);
@@ -113,40 +116,52 @@ export function GamesPanel({
 
       <Card>
         <CardTitle eyebrow="Banco de desafíos" as="h2">
-          Generar desde las grabaciones
+          Generar desde el material de cada clase
         </CardTitle>
 
-        {recordings.length === 0 ? (
+        {fuentes.length === 0 ? (
           <p className="mt-3 text-sm text-muted">
-            Todavía no hay grabaciones procesadas en esta comisión. Subí una clase y, cuando termine el procesamiento,
-            vas a poder generar los desafíos acá.
+            Todavía no hay clases con material en esta comisión. Subí una grabación y esperá a que termine de
+            procesarse, o escribí el apunte de una clase desde su ficha en el cronograma.
           </p>
         ) : (
           <ul className="mt-3 flex flex-col gap-2.5">
-            {recordings.map((r) => {
-              const counts = challengeCounts[r.id] ?? {};
-              const total = Object.values(counts).reduce((a, b) => a + b, 0);
-              const busy = pending === `gen-${r.id}`;
+            {fuentes.map((f) => {
+              const total = Object.values(f.counts).reduce((a, b) => a + b, 0);
+              const busy = pending === `gen-${f.classId}`;
               return (
-                <li key={r.id} className="rounded-2xl border border-border bg-surface-2/40 p-3.5">
+                <li key={f.classId} className="rounded-2xl border border-border bg-surface-2/40 p-3.5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-snug">{r.classTopic}</p>
-                      <p className="mt-0.5 font-mono text-[11px] uppercase tracking-widest text-muted">
-                        {r.classDate}
-                        {!r.published && " · sin publicar"}
-                      </p>
+                      <Link
+                        href={`/campus/docente/clases/${f.classId}`}
+                        className="text-sm font-medium leading-snug underline-offset-4 hover:text-accent-2 hover:underline"
+                      >
+                        {f.topic}
+                      </Link>
+                      <p className="mt-0.5 font-mono text-[11px] uppercase tracking-widest text-muted">{f.classDate}</p>
 
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        {f.recordingId ? (
+                          <Badge size="sm" tone="success">
+                            <PlayCircle className="mr-1 inline size-3" aria-hidden />
+                            Grabación{!f.recordingPublished && " (sin publicar)"}
+                          </Badge>
+                        ) : (
+                          <Badge size="sm" tone="accent-2">
+                            <NotebookText className="mr-1 inline size-3" aria-hidden />
+                            Apunte
+                          </Badge>
+                        )}
                         {total === 0 ? (
                           <Badge size="sm" tone="muted">
                             Sin desafíos
                           </Badge>
                         ) : (
                           games.map((g) =>
-                            counts[g.key] ? (
-                              <Badge key={g.key} size="sm" tone="accent-2">
-                                {g.emoji} {counts[g.key]}
+                            f.counts[g.key] ? (
+                              <Badge key={g.key} size="sm" tone="accent">
+                                {g.emoji} {f.counts[g.key]}
                               </Badge>
                             ) : null,
                           )
@@ -159,9 +174,9 @@ export function GamesPanel({
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label="Borrar los desafíos de esta clase"
-                          onClick={() => remove(r.id)}
-                          disabled={pending === `del-${r.id}`}
+                          aria-label={`Borrar los desafíos de ${f.topic}`}
+                          onClick={() => remove(f.classId)}
+                          disabled={pending === `del-${f.classId}`}
                         >
                           <Trash2 className="size-4" />
                         </Button>
@@ -169,7 +184,7 @@ export function GamesPanel({
                       <Button
                         size="sm"
                         variant={total > 0 ? "secondary" : "primary"}
-                        onClick={() => generate(r.id)}
+                        onClick={() => generate(f)}
                         disabled={busy}
                         leftIcon={busy ? <Loader2 className="animate-spin" /> : <Sparkles />}
                       >
@@ -183,9 +198,9 @@ export function GamesPanel({
           </ul>
         )}
 
-        <p className={cn("mt-3 text-xs leading-relaxed", "text-muted")}>
-          Generar puede tardar hasta un minuto por clase: la IA lee la transcripción completa para que las preguntas
-          salgan de lo que realmente se dijo.
+        <p className="mt-3 text-xs leading-relaxed text-muted">
+          Generar puede tardar hasta un minuto por clase: la IA lee todo el material para que las preguntas salgan de
+          lo que realmente se dio. Desde un apunte no se genera «¿en qué minuto?» — ese juego necesita la grabación.
         </p>
 
         {note && <p className="mt-3 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-xs text-success">{note}</p>}

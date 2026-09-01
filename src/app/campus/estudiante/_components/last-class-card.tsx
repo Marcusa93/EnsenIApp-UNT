@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenText, FileText, Layers, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpenText, FileText, Layers, MessageCircleQuestion, NotebookText, Sparkles } from "lucide-react";
 import { Badge, Button, Card, CardDescription, CardTitle } from "@/components/ui";
 import { formatDate, formatDuration } from "@/lib/format";
 
@@ -20,6 +20,8 @@ export interface LastClassData {
   class_date: string;
   teacher: { full_name: string; position: string } | null;
   recordings: RecordingAccess[];
+  /** Apunte publicado: la clase tiene contenido aunque no se haya grabado. */
+  has_note: boolean;
 }
 
 export function LastClassCard({ data }: { data: LastClassData }) {
@@ -36,6 +38,10 @@ export function LastClassCard({ data }: { data: LastClassData }) {
         {rec ? (
           <Badge tone="success" size="sm" dot>
             Grabación publicada
+          </Badge>
+        ) : data.has_note ? (
+          <Badge tone="accent-2" size="sm">
+            Apunte de clase
           </Badge>
         ) : (
           <Badge tone="muted" size="sm">
@@ -93,10 +99,14 @@ export function LastClassCard({ data }: { data: LastClassData }) {
             />
           </ul>
         </>
+      ) : data.has_note ? (
+        <p className="mt-4 flex items-start gap-2 text-sm text-muted">
+          <NotebookText className="mt-0.5 size-4 shrink-0 text-accent-2" aria-hidden />
+          <span>Esta clase no se grabó, pero el equipo docente dejó el apunte con todo lo que se dio.</span>
+        </p>
       ) : (
         <p className="mt-4 text-sm text-muted">
-          Cuando el equipo docente publique la grabación vas a tener acá el resumen, las placas interactivas y la
-          transcripción.
+          Cuando el equipo docente publique la grabación o el apunte vas a tener acá el material de la clase.
         </p>
       )}
 
