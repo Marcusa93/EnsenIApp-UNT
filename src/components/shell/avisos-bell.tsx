@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Bell, Loader2 } from "lucide-react";
 import { formatRelative } from "@/lib/format";
+import { createClient } from "@/lib/supabase/client";
 import { listarAvisos, marcarLeidos, type AvisoItem } from "@/lib/notifications/actions";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils";
  * Se cargan al abrir, no al montar: es una lista que casi nunca se mira, y no
  * vale una consulta por pantalla cargada.
  */
-export function AvisosBell() {
+export function AvisosBell({ userId }: { userId: string }) {
   const router = useRouter();
   const [abierto, setAbierto] = React.useState(false);
   const [avisos, setAvisos] = React.useState<AvisoItem[]>([]);
@@ -46,6 +47,27 @@ export function AvisosBell() {
       vivo = false;
     };
   }, []);
+
+  // Y de ahí en más, en vivo: si te retan o te responden mientras estás
+  // adentro, el globito sube solo — sin esto había que recargar para enterarse.
+  React.useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`avisos:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const fila = payload.new as AvisoItem;
+          setSinLeer((n) => (n ?? 0) + 1);
+          setAvisos((prev) => (prev.some((a) => a.id === fila.id) ? prev : [fila, ...prev]));
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   React.useEffect(() => {
     if (!abierto) return;

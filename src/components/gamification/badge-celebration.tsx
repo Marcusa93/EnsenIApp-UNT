@@ -17,9 +17,16 @@ interface NewBadge {
 
 const TIER_LABEL: Record<NewBadge["tier"], string> = { bronce: "Bronce", plata: "Plata", oro: "Oro" };
 
+/** Cuánto vive el toast de una medalla menor antes de marcarse vista sola. */
+const TOAST_MS = 6000;
+
 /**
- * Al entrar al campus, muestra (de a una) las medallas nuevas y las marca vistas.
- * Vive en el layout del campus para que la celebración aparezca en cualquier página.
+ * Al entrar al campus, celebra (de a una) las medallas nuevas y las marca vistas.
+ *
+ * La celebración es proporcional al logro: una medalla de oro interrumpe con el
+ * modal a pantalla completa; bronce y plata pasan como toast que se va solo.
+ * Antes TODO era modal: cada ingreso arrancaba cerrando ventanas — la fatiga de
+ * celebración es real, y una medalla por entrar al campus no amerita frenarte.
  */
 export function BadgeCelebration({ userId }: { userId: string }) {
   const [queue, setQueue] = React.useState<NewBadge[]>([]);
@@ -45,26 +52,40 @@ export function BadgeCelebration({ userId }: { userId: string }) {
   }, [userId]);
 
   const current = queue[0] ?? null;
+  const esModal = current?.tier === "oro";
 
-  async function dismiss() {
-    if (!current) return;
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("student_badges")
-      .update({ seen: true })
-      .eq("student_id", userId)
-      .eq("badge_id", current.id);
-    if (error) console.error("[medallas] marcar vista", error);
-    setQueue((q) => q.slice(1));
-  }
+  const dismiss = React.useCallback(async () => {
+    setQueue((q) => {
+      const [primera, ...resto] = q;
+      if (primera) {
+        const supabase = createClient();
+        void supabase
+          .from("student_badges")
+          .update({ seen: true })
+          .eq("student_id", userId)
+          .eq("badge_id", primera.id)
+          .then(({ error }) => {
+            if (error) console.error("[medallas] marcar vista", error);
+          });
+      }
+      return resto;
+    });
+  }, [userId]);
+
+  // Los toasts se van solos; el modal espera el clic.
+  React.useEffect(() => {
+    if (!current || esModal) return;
+    const t = window.setTimeout(() => void dismiss(), TOAST_MS);
+    return () => window.clearTimeout(t);
+  }, [current, esModal, dismiss]);
 
   // Portal a document.body: vive dentro de la transición de página, cuyo
   // motion.div anima "y" (deja un transform aplicado) y así se convierte en el
-  // marco de referencia de este overlay "fixed inset-0" — quedaba encajado en
-  // el contenedor angosto/con padding del contenido en vez de cubrir la pantalla.
+  // marco de referencia de este overlay — quedaba encajado en el contenedor del
+  // contenido en vez de posicionarse contra la pantalla.
   return createPortal(
     <AnimatePresence>
-      {current && (
+      {current && esModal && (
         // El fondo NO se anima: si la animación se interrumpe (cambiar de pestaña
         // justo al aparecer), quedaba un overlay casi invisible tapando toda la
         // pantalla y comiéndose los clics. Sólo anima la tarjeta de adentro.
@@ -94,13 +115,44 @@ export function BadgeCelebration({ userId }: { userId: string }) {
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">{current.name}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">{current.description}</p>
             <div className="mt-6 flex items-center justify-center gap-2">
-              <Button onClick={dismiss}>{queue.length > 1 ? `Siguiente (${queue.length - 1} más)` : "¡Genial!"}</Button>
-              <Button asChild variant="ghost" size="sm" onClick={dismiss}>
+              <Button onClick={() => void dismiss()}>
+                {queue.length > 1 ? `Siguiente (${queue.length - 1} más)` : "¡Genial!"}
+              </Button>
+              <Button asChild variant="ghost" size="sm" onClick={() => void dismiss()}>
                 <Link href="/campus/estudiante/progreso">Ver medallero</Link>
               </Button>
             </div>
           </motion.div>
         </div>
+      )}
+
+      {current && !esModal && (
+        <motion.button
+          key={current.id}
+          type="button"
+          onClick={() => void dismiss()}
+          initial={{ opacity: 0, y: 16, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 8, scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22 }}
+          className="border-gradient fixed bottom-20 right-4 z-[90] flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl border border-transparent bg-surface px-4 py-3 text-left shadow-xl sm:bottom-6"
+          aria-label={`Nueva medalla: ${current.name}. Tocar para cerrar.`}
+        >
+          <span
+            className="flex size-11 shrink-0 items-center justify-center rounded-full border border-accent-2/40 bg-accent-2/10 text-2xl"
+            aria-hidden
+          >
+            {current.icon}
+          </span>
+          <span className="min-w-0">
+            <span className="eyebrow block text-[10px] text-accent-2">
+              Medalla · {TIER_LABEL[current.tier]}
+              {queue.length > 1 && ` · ${queue.length - 1} más`}
+            </span>
+            <span className="block truncate text-sm font-semibold">{current.name}</span>
+            <span className="block truncate text-xs text-muted">{current.description}</span>
+          </span>
+        </motion.button>
       )}
     </AnimatePresence>,
     document.body,

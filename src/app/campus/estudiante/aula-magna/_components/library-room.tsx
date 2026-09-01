@@ -563,58 +563,58 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
             </button>
           );
         })}
-      </div>
 
-      {/* Acciones según dónde estés parado */}
-      <div className="flex flex-wrap gap-2">
-        {cercaDelMostrador && (
-          <Button size="sm" leftIcon={<BookOpenText />} onClick={() => setMostrador(true)}>
-            Hablar con Alberdi
-          </Button>
-        )}
-        {mesaCerca && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => router.push(`/campus/estudiante/juegos?clase=${mesaCerca.id}`)}
-          >
-            Jugar esta mesa
-          </Button>
-        )}
-        {botCerca && (
-          <Button size="sm" variant="secondary" onClick={() => setBotActivo(botCerca)}>
-            Practicar contra {botCerca.nombre} · {NIVEL_LABEL[botCerca.nivel]}
-          </Button>
-        )}
-        {!cercaDelMostrador && !mesaCerca && !botCerca && (
-          <p className="text-[11px] text-muted">
-            Acercate al estrado para pedirle algo a Alberdi, a una mesa para jugar esa clase, o a un Botudiante
-            (estudiante bot) para practicar y sumar XP.
-          </p>
-        )}
-      </div>
-
-      {/* Emotes */}
-      <Card padding="sm">
-        <div className="flex items-baseline justify-between gap-2">
-          <p className="text-sm font-medium">Saludar</p>
-          <p className="text-[11px] text-muted">Lo ven todos los que están</p>
-        </div>
-        <div className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {EMOTES.filter((e) => isEmoteUnlocked(e, me.progress)).map((e) => (
-            <button
-              key={e.id}
-              type="button"
-              onClick={() => saludar(e.id)}
-              title={e.description}
-              className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-2/50 text-xl transition hover:border-accent/45"
+        {/* HUD: los controles viven ADENTRO del salón, como en un juego. Antes
+            los emotes eran una tarjeta aparte que en el celular quedaba fuera de
+            pantalla: para saludar scrolleabas y perdías de vista a quién
+            saludabas. stopPropagation en todo el HUD: tocarlo no es caminar. */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center gap-1.5 pb-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {cercaDelMostrador && (
+            <Button size="sm" leftIcon={<BookOpenText />} onClick={() => setMostrador(true)} className="shadow-lg">
+              Hablar con Alberdi
+            </Button>
+          )}
+          {mesaCerca && (
+            <Button
+              size="sm"
+              onClick={() => router.push(`/campus/estudiante/juegos?clase=${mesaCerca.id}`)}
+              className="shadow-lg"
             >
-              <span aria-hidden>{e.emoji}</span>
-              <span className="sr-only">{e.name}</span>
-            </button>
-          ))}
+              Jugar esta mesa
+            </Button>
+          )}
+          {botCerca && (
+            <Button size="sm" onClick={() => setBotActivo(botCerca)} className="shadow-lg">
+              Practicar contra {botCerca.nombre} · {NIVEL_LABEL[botCerca.nivel]}
+            </Button>
+          )}
+
+          <div className="flex max-w-[94%] gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-black/45 px-2 py-1.5 backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {EMOTES.filter((e) => isEmoteUnlocked(e, me.progress)).map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => saludar(e.id)}
+                title={e.description}
+                className="flex size-8 shrink-0 items-center justify-center rounded-xl text-lg transition hover:bg-white/15 sm:size-9"
+              >
+                <span aria-hidden>{e.emoji}</span>
+                <span className="sr-only">{e.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </Card>
+      </div>
+
+      {!cercaDelMostrador && !mesaCerca && !botCerca && (
+        <p className="text-[11px] text-muted">
+          Acercate al estrado para pedirle algo a Alberdi, a una mesa para jugar esa clase, o a un Botudiante
+          (estudiante bot) para practicar y sumar XP. Los emotes los ven todos los que están.
+        </p>
+      )}
 
       <AnimatePresence>
         {inspeccionando && (

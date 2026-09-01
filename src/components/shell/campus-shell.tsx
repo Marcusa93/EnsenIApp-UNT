@@ -129,7 +129,7 @@ export function CampusShell({ profile, children, overlays }: CampusShellProps) {
                   Pendiente
                 </Badge>
               )}
-              <AvisosBell />
+              <AvisosBell userId={profile.id} />
               <UserMenu profile={profile} />
             </div>
           </div>
