@@ -59,7 +59,7 @@ Nunca importar `admin.ts` desde un componente cliente.
 | Dominio | Tablas |
 |---|---|
 | Identidad | `profiles`, `roster` (padrón), `faculty` (cuerpo docente público) |
-| Cursada | `subjects`, `courses` (enrollment_code), `teacher_assignments`, `enrollments`, `classes` (cronograma: fecha, tema, docente, resumen), `announcements`, `class_materials` |
+| Cursada | `subjects`, `courses` (enrollment_code), `teacher_assignments`, `enrollments`, `classes` (cronograma: fecha, tema, docente, resumen), `announcements`, `class_materials`, `class_notes` (apunte: una fila por clase, `published` para el borrador — es el contenido de las clases que no se graban) |
 | Grabaciones + IA | `class_recordings` (status, progress, current_step, chunks_total/done, published), `recording_chunks`, `transcripts` (full_text, segments[]), `class_summaries` (summary_md, key_points[], sections[], glossary[]), `interactive_cards` (cards[]), `simplified_content` (level facil/intermedio), `ai_feedback` (por estudiante) |
 | Lógica docente | `activities` (type lectura/cuestionario/placas/entrega/debate/encuesta; status draft/published/closed; target todos/seleccionados; content jsonb), `activity_assignments`, `activity_submissions` (answers jsonb, auto_score, score, teacher_feedback_md, ai_feedback_md, status) |
 | Voz del estudiante | `student_checkins` (difficulty 1-5 + comentario por clase), `student_questions` (consultas; ai_answer_md, teacher_answer_md, status), `polls` + `poll_responses`, `card_progress` |
@@ -142,6 +142,21 @@ palabras) y seedean la clase de Ciberdelitos con sus 6 disparadoras. `008` auto-
    Modelos (`src/lib/openrouter.ts`): `reasoning = anthropic/claude-sonnet-5`, `fast = anthropic/claude-haiku-4.5`, `audio = google/gemini-3.7-flash`.
    Overridables por env `OPENROUTER_MODEL_REASONING`, `OPENROUTER_MODEL_FAST`.
 5. El docente **publica** (`class_recordings.published = true`) cuando revisó; hasta entonces el estudiante no la ve (RLS).
+
+### 6.1 La otra puerta: el apunte (clases que no se graban)
+
+No todas las clases se graban, y sin grabación la clase quedaba sin contenido y sin banco de desafíos. `class_notes`
+(una fila por clase, markdown, `published`) es la fuente alternativa: la escribe el docente desde la ficha de la clase.
+
+- **La lee el estudiante** en la página de la clase, presentada como "Esta clase no se grabó · Lo que se dio en clase".
+- **La lee Alberdi**: `buildAlberdiContext` la inyecta como `## Apunte de clase` (source kind `apunte`).
+- **Genera desafíos**: `POST /api/games/generate` acepta `{ recordingId }` **o** `{ classId }` (excluyentes). Desde el apunte
+  no hay transcripción, así que `momento` ("¿en qué minuto?") queda afuera y `source_seconds` es null; las filas se guardan
+  con `recording_id = null`. Regenerar borra sólo lo de esa misma fuente, así una clase puede tener banco de grabación y de apunte.
+- **Sólo si está publicado**: generar desde un borrador dejaría al estudiante jugando sobre un texto que no puede leer,
+  y la pantalla de repaso le mostraría igual la cita textual. La API responde 409 y los botones quedan deshabilitados.
+
+El panel `/campus/docente/juegos` lista **clases**, no grabaciones: una clase puede tener grabación, apunte o las dos.
 
 ## 7. Diseño — "campus tech, innovador, dinámico"
 
