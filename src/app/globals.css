@@ -702,3 +702,27 @@ dialog[open] {
   .av-walking .av-arm-l, .av-walking .av-arm-r,
   .av-walking svg { animation: none; }
 }
+
+/* Aplauso cerrado: los dos brazos convergen al frente, repetido. Sin diagonales. */
+@keyframes em-clap-l {
+  0%, 100% { transform: rotate(0deg); }
+  15%, 45%, 75% { transform: rotate(-38deg); }
+  30%, 60%, 90% { transform: rotate(-18deg); }
+}
+@keyframes em-clap-r {
+  0%, 100% { transform: rotate(0deg); }
+  15%, 45%, 75% { transform: rotate(38deg); }
+  30%, 60%, 90% { transform: rotate(18deg); }
+}
+.em-aplauso .av-arm-l { animation: em-clap-l 1.8s ease-in-out; }
+.em-aplauso .av-arm-r { animation: em-clap-r 1.8s ease-in-out; }
+
+/* No ha lugar: negación lenta de cabeza, dos vueltas. */
+@keyframes em-niega {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-11deg); }
+  35% { transform: rotate(11deg); }
+  55% { transform: rotate(-9deg); }
+  75% { transform: rotate(7deg); }
+}
+.em-nohalugar .av-head { animation: em-niega 1.6s ease-in-out; transform-origin: 120px 96px; }

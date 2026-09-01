@@ -71,20 +71,23 @@ export function RetosPanel({
   classes,
   classmates,
   duels,
+  initialOpponentId = "",
 }: {
   games: GameMeta[];
   classes: ClassOption[];
   classmates: Classmate[];
   duels: DuelRow[];
+  /** Rival preseleccionado (viniendo de tocar a alguien en el Aula Magna). */
+  initialOpponentId?: string;
 }) {
   const router = useRouter();
-  const [phase, setPhase] = React.useState<Phase>("list");
+  const [phase, setPhase] = React.useState<Phase>(initialOpponentId ? "form" : "list");
   const [error, setError] = React.useState<string | null>(null);
 
   // Formulario para mandar un reto nuevo.
   const [formGame, setFormGame] = React.useState<GameKey | "">(games[0]?.key ?? "");
   const [formClass, setFormClass] = React.useState(classes[0]?.id ?? "");
-  const [formOpponent, setFormOpponent] = React.useState(classmates[0]?.id ?? "");
+  const [formOpponent, setFormOpponent] = React.useState(initialOpponentId || (classmates[0]?.id ?? ""));
 
   const [active, setActive] = React.useState<ActiveDuel | null>(null);
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);

@@ -177,6 +177,39 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
   const [inspeccionando, setInspeccionando] = React.useState<Persona | null>(null);
   /** Contra qué Botudiante estás por practicar. */
   const [botActivo, setBotActivo] = React.useState<Botudiante | null>(null);
+  /**
+   * Los Botudiantes se pasean: cada tanto, uno da unos pasos alrededor de su
+   * asiento. Es teatro puramente local (cada navegador ve su propia función,
+   * no se sincroniza nada) — alcanza para que el aula nunca se vea congelada
+   * y no cuesta un solo mensaje de red.
+   */
+  const [botPos, setBotPos] = React.useState<Record<string, { x: number; y: number }>>(BOT_POS);
+  const [botAndando, setBotAndando] = React.useState<Record<string, number>>({});
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      const bots = Object.keys(BOT_POS);
+      const elegido = bots[Math.floor(Math.random() * bots.length)];
+      const base = BOT_POS[elegido];
+      if (!base) return;
+      setBotPos((prev) => {
+        const actual = prev[elegido] ?? base;
+        // Un paso corto en un rumbo cualquiera, sin alejarse del asiento.
+        const destino = {
+          x: Math.max(60, Math.min(SALON.w - 60, base.x + (Math.random() - 0.5) * 160)),
+          y: Math.max(240, Math.min(SALON.h - 40, base.y + (Math.random() - 0.5) * 110)),
+        };
+        const d = dist(actual.x, actual.y, destino.x, destino.y);
+        setBotAndando((a) => ({ ...a, [elegido]: duracionPaso(d) }));
+        window.setTimeout(() => setBotAndando((a) => {
+          const resto = { ...a };
+          delete resto[elegido];
+          return resto;
+        }), duracionPaso(d));
+        return { ...prev, [elegido]: destino };
+      });
+    }, 7000);
+    return () => window.clearInterval(id);
+  }, []);
   /** Quién está caminando ahora: duración del trayecto y hacia dónde mira. */
   const [andando, setAndando] = React.useState<Record<string, { durMs: number; angulo: number }>>({});
 
@@ -330,7 +363,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
   const mesaCerca = mesas.find((m) => dist(pos.x, pos.y, m.x, m.y) < 120) ?? null;
   const botCerca =
     BOTUDIANTES.find((b) => {
-      const p = BOT_POS[b.id];
+      const p = botPos[b.id];
       return p && dist(pos.x, pos.y, p.x, p.y) < BOT_CERCA;
     }) ?? null;
 
@@ -489,9 +522,10 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
 
         {/* Botudiantes: estudiantes bot para practicar, sentados en las gradas */}
         {BOTUDIANTES.map((b) => {
-          const p = BOT_POS[b.id];
+          const p = botPos[b.id];
           if (!p) return null;
           const activo = botCerca?.id === b.id;
+          const pasoBot = botAndando[b.id];
           return (
             <button
               key={b.id}
@@ -500,8 +534,16 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
                 e.stopPropagation();
                 setBotActivo(b);
               }}
-              className="absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center"
-              style={{ left: `${(p.x / SALON.w) * 100}%`, top: `${(p.y / SALON.h) * 100}%`, width: "12%" }}
+              className={cn(
+                "absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center transition-[left,top] ease-linear",
+                pasoBot && "av-walking",
+              )}
+              style={{
+                left: `${(p.x / SALON.w) * 100}%`,
+                top: `${(p.y / SALON.h) * 100}%`,
+                width: "12%",
+                transitionDuration: `${pasoBot ?? PASO_MIN_MS}ms`,
+              }}
               aria-label={`Practicar contra ${b.nombre} (bot, nivel ${NIVEL_LABEL[b.nivel].toLowerCase()})`}
             >
               <OperatorAvatar config={b.config} size={88} bare title={b.nombre} className="h-auto w-full" />
@@ -660,6 +702,7 @@ function InspectorCard({
   onClose: () => void;
   onSaludar: (emoteId: string) => void;
 }) {
+  const router = useRouter();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -695,6 +738,16 @@ function InspectorCard({
         </div>
 
         <p className="mt-3 text-[11px] leading-relaxed text-muted">Sólo se comparte el alias, nunca el nombre real.</p>
+
+        {/* Del encuentro al duelo en un toque: lo ves en el aula, lo retás. El
+            formulario de Juegos se abre con este rival ya elegido. */}
+        <Button
+          size="sm"
+          className="mt-3 w-full"
+          onClick={() => router.push(`/campus/estudiante/juegos?rival=${persona.studentId}`)}
+        >
+          Retar a {persona.callsign}
+        </Button>
 
         <div className="-mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {EMOTES.filter((e) => isEmoteUnlocked(e, progress)).slice(0, 6).map((e) => (

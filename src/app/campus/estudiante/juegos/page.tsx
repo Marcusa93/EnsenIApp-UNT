@@ -13,6 +13,7 @@ import { GameLauncher } from "./_components/game-launcher";
 import { OperatorGate } from "./_components/operator-gate";
 import { WeeklyCard } from "./_components/weekly-card";
 import { RetosPanel } from "./_components/retos-panel";
+import { AulaPresencia } from "./_components/aula-presencia";
 import { getWeeklyStatus } from "@/lib/games/weekly";
 
 export const metadata: Metadata = { title: "Juegos · EnsenIA UNT" };
@@ -20,7 +21,7 @@ export const metadata: Metadata = { title: "Juegos · EnsenIA UNT" };
 export default async function JuegosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ clase?: string }>;
+  searchParams: Promise<{ clase?: string; rival?: string }>;
 }) {
   const { user, profile } = await requireRole("estudiante");
   const supabase = await createClient();
@@ -107,8 +108,9 @@ export default async function JuegosPage({
     build: string | null;
     equipped: Record<string, string> | null;
   }[];
-  // Si venís de sentarte en una mesa de la Biblioteca, la clase llega elegida.
-  const { clase } = await searchParams;
+  // Si venís de una mesa del Aula, la clase llega elegida; si venís de tocar a
+  // un operador, el rival llega elegido y el panel de retos se abre solo.
+  const { clase, rival } = await searchParams;
   const claseInicial = clase && classes.some((c) => c.id === clase) ? clase : "";
 
   const runsByGame = new Map<string, number>();
@@ -140,6 +142,7 @@ export default async function JuegosPage({
   }));
 
   const hayRetosEntrantes = duels.some((d) => !d.isChallenger && d.status === "pendiente" && !d.iAnswered);
+  const rivalInicial = rival && classmates.some((c) => c.id === rival) ? rival : "";
 
   return (
     <>
@@ -167,11 +170,13 @@ export default async function JuegosPage({
       ) : (
         <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
           <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
+            <AulaPresencia courseId={course.id} />
+
             {/* Si te retaron, eso va PRIMERO: enterrado cinco pantallas abajo,
                 el reto asincrónico se moría sin que el rival lo viera. */}
-            {hayRetosEntrantes && (
+            {(hayRetosEntrantes || rivalInicial) && (
               <Reveal>
-                <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} />
+                <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} initialOpponentId={rivalInicial} />
               </Reveal>
             )}
 
@@ -242,9 +247,9 @@ export default async function JuegosPage({
             <GameLauncher games={available} classes={classes} runsByGame={Object.fromEntries(runsByGame)} initialClassId={claseInicial} />
 
             {/* Retos entre compañeros (si hay entrantes, el panel ya está arriba) */}
-            {!hayRetosEntrantes && (
+            {!hayRetosEntrantes && !rivalInicial && (
               <Reveal delay={0.1}>
-                <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} />
+                <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} initialOpponentId={rivalInicial} />
               </Reveal>
             )}
           </div>
