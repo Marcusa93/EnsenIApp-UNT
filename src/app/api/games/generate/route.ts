@@ -273,10 +273,20 @@ async function desdeApunte(supabase: Client, classId: string): Promise<Fuente> {
     .maybeSingle();
   if (!cls) boom(404, "No encontramos esa clase.");
 
-  const { data: note } = await supabase.from("class_notes").select("body_md").eq("class_id", classId).maybeSingle();
+  const { data: note } = await supabase
+    .from("class_notes")
+    .select("body_md, published")
+    .eq("class_id", classId)
+    .maybeSingle();
   const apunte = note?.body_md?.trim() ?? "";
   if (apunte.length < 80) {
     boom(409, "Esta clase no tiene apunte. Escribilo desde la clase y volvé a intentar.");
+  }
+  // Con el apunte en borrador, el estudiante no puede leerlo — pero al fallar una
+  // pregunta el repaso le muestra la cita textual de donde salió. Sería filtrar
+  // por la ventana lo que la puerta no deja pasar.
+  if (!note?.published) {
+    boom(409, "El apunte está en borrador. Publicalo y después generá: si no, el estudiante juega sobre algo que no puede leer.");
   }
 
   const material = [cls.summary ? `Resumen del cronograma:\n${cls.summary}` : "", apunte]

@@ -17,6 +17,8 @@ export interface FuenteClase {
   recordingId: string | null;
   recordingPublished: boolean;
   tieneApunte: boolean;
+  /** Un apunte en borrador no sirve de fuente: el estudiante no puede leerlo. */
+  apuntePublicado: boolean;
   counts: Record<string, number>;
 }
 
@@ -129,6 +131,7 @@ export function GamesPanel({
             {fuentes.map((f) => {
               const total = Object.values(f.counts).reduce((a, b) => a + b, 0);
               const busy = pending === `gen-${f.classId}`;
+              const soloBorrador = !f.recordingId && !f.apuntePublicado;
               return (
                 <li key={f.classId} className="rounded-2xl border border-border bg-surface-2/40 p-3.5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -148,9 +151,9 @@ export function GamesPanel({
                             Grabación{!f.recordingPublished && " (sin publicar)"}
                           </Badge>
                         ) : (
-                          <Badge size="sm" tone="accent-2">
+                          <Badge size="sm" tone={f.apuntePublicado ? "accent-2" : "muted"}>
                             <NotebookText className="mr-1 inline size-3" aria-hidden />
-                            Apunte
+                            Apunte{!f.apuntePublicado && " (borrador)"}
                           </Badge>
                         )}
                         {total === 0 ? (
@@ -185,7 +188,8 @@ export function GamesPanel({
                         size="sm"
                         variant={total > 0 ? "secondary" : "primary"}
                         onClick={() => generate(f)}
-                        disabled={busy}
+                        disabled={busy || soloBorrador}
+                        title={soloBorrador ? "Publicá el apunte para poder generar desafíos." : undefined}
                         leftIcon={busy ? <Loader2 className="animate-spin" /> : <Sparkles />}
                       >
                         {busy ? "Generando…" : total > 0 ? "Regenerar" : "Generar"}

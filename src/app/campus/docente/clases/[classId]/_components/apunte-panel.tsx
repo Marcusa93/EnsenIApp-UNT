@@ -52,6 +52,9 @@ export function ApuntePanel({
   const limpio = body.trim();
   const cambio = limpio !== (note?.body_md ?? "").trim() || publicado !== (note?.published ?? true);
   const corto = limpio.length > 0 && limpio.length < MINIMO;
+  // Generar desde un borrador dejaría al estudiante jugando sobre un texto que
+  // no puede leer (y el repaso le mostraría la cita igual).
+  const enBorrador = note != null && !note.published;
 
   async function guardar() {
     setGuardando(true);
@@ -212,7 +215,7 @@ export function ApuntePanel({
                 size="sm"
                 variant="secondary"
                 onClick={() => void generarDesafios()}
-                disabled={generando || cambio}
+                disabled={generando || cambio || enBorrador}
                 leftIcon={generando ? <Loader2 className="animate-spin" /> : <Sparkles />}
               >
                 {generando ? "Generando…" : "Generar desafíos con este apunte"}
@@ -240,6 +243,12 @@ export function ApuntePanel({
         {cambio && note && (
           <p className="text-xs text-muted">
             Guardá los cambios antes de generar desafíos: la IA lee lo que está guardado, no lo que ves en pantalla.
+          </p>
+        )}
+
+        {enBorrador && !cambio && (
+          <p className="text-xs text-muted">
+            Para generar desafíos publicá el apunte: si no, el estudiante jugaría sobre un texto que no puede leer.
           </p>
         )}
 

@@ -61,15 +61,17 @@ export default async function DocenteJuegosPage({
       const lista = [...recs].sort((a, b) => b.created_at.localeCompare(a.created_at));
       const rec = lista.find((r) => r.status === "ready") ?? null;
       const note = c.note as { published: boolean } | { published: boolean }[] | null;
-      const tieneApunte = Array.isArray(note) ? note.length > 0 : note != null;
-      if (!rec && !tieneApunte) return null;
+      const nota = Array.isArray(note) ? (note[0] ?? null) : note;
+      if (!rec && !nota) return null;
       return {
         classId: c.id,
         topic: c.topic,
         classDate: c.class_date,
         recordingId: rec?.id ?? null,
         recordingPublished: rec?.published ?? false,
-        tieneApunte,
+        tieneApunte: nota != null,
+        // Desde un borrador no se genera: el estudiante no puede leerlo.
+        apuntePublicado: nota?.published ?? false,
         counts: byClass.get(c.id) ?? {},
       };
     })
