@@ -29,7 +29,11 @@ const STATE_BADGE = {
 
 export default async function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
   const { classId } = await params;
-  const { user } = await requireRole("estudiante");
+  // El docente y el admin también pueden entrar: es la única forma honesta de
+  // comprobar qué le quedó publicado al estudiante. Sus datos personales
+  // (check-in, progreso) simplemente no existen y la página lo tolera.
+  const { user, profile } = await requireRole("estudiante", "docente", "admin");
+  const esVistaDocente = profile.role !== "estudiante";
   const supabase = await createClient();
   const cls = await getClassDetail(supabase, user.id, classId);
   if (!cls) notFound();
@@ -40,7 +44,21 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
 
   return (
     <>
-      <ClassOpenedTracker classId={cls.id} recordingIds={cls.recordings.map((r) => r.id)} />
+      {!esVistaDocente && <ClassOpenedTracker classId={cls.id} recordingIds={cls.recordings.map((r) => r.id)} />}
+
+      {esVistaDocente && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-2.5">
+          <p className="text-sm">
+            <span className="font-semibold">Vista de estudiante.</span> Así ve esta clase un estudiante de la comisión.
+          </p>
+          <Link
+            href={`/campus/docente/clases/${cls.id}`}
+            className="font-mono text-[11px] uppercase tracking-widest text-accent underline-offset-4 hover:underline"
+          >
+            Volver a la vista docente
+          </Link>
+        </div>
+      )}
 
       <PageHeader
         top={
@@ -148,7 +166,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
               </Reveal>
             ) : (
               <Reveal delay={0.08}>
-                <CheckinCard classId={cls.id} classTopic={cls.topic} studentId={user.id} />
+                {!esVistaDocente && <CheckinCard classId={cls.id} classTopic={cls.topic} studentId={user.id} />}
               </Reveal>
             )
           ) : null}

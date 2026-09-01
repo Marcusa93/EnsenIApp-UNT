@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, BarChart3, ClipboardPlus, Radio, Swords } from "lucide-react";
+import { ArrowLeft, BarChart3, ClipboardPlus, Radio, Swords, Eye } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getCourseById } from "@/lib/courses";
@@ -113,6 +113,9 @@ export default async function DocenteClasePage({ params }: { params: Promise<{ c
                 </Button>
                 <Button asChild variant="secondary" leftIcon={<Radio />}>
                   <Link href={`/campus/docente/clases/${cls.id}/vivo`}>Sesión en vivo</Link>
+                </Button>
+                <Button asChild variant="ghost" leftIcon={<Eye />}>
+                  <Link href={`/campus/estudiante/clases/${cls.id}`}>Ver como estudiante</Link>
                 </Button>
               </div>
             </Card>

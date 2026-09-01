@@ -201,6 +201,20 @@ function QuestionCard({ item }: { item: QuestionItem }) {
         </details>
       )}
 
+      {/* El camino primario para responder: el chat con historial. Desde acá el
+          trigger marca la consulta como respondida — la "respuesta destacada" de
+          abajo queda para cuando amerita una explicación formal en Markdown. */}
+      {!editing && item.status !== "cerrada" && (
+        <div className="mt-3">
+          <ConsultaThread
+            questionId={item.id}
+            messages={item.messages}
+            viewerRole="docente"
+            hideStudentName={item.is_anonymous}
+          />
+        </div>
+      )}
+
       {item.teacher_answer_md && !editing && (
         <div className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3">
           <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-success">
@@ -253,12 +267,12 @@ function QuestionCard({ item }: { item: QuestionItem }) {
           {item.status !== "cerrada" && (
             <Button
               size="sm"
-              variant={item.teacher_answer_md ? "secondary" : "primary"}
+              variant="secondary"
               leftIcon={item.teacher_answer_md ? <Check /> : <Send />}
               onClick={() => startEditing(item.teacher_answer_md ?? item.ai_answer_md ?? "")}
               disabled={pending}
             >
-              {item.teacher_answer_md ? "Editar respuesta" : "Responder"}
+              {item.teacher_answer_md ? "Editar respuesta destacada" : "Respuesta destacada"}
             </Button>
           )}
           <Switch
@@ -291,21 +305,6 @@ function QuestionCard({ item }: { item: QuestionItem }) {
         </div>
       )}
 
-      {/* El ida y vuelta con el estudiante: para repreguntas cortas, sin tener
-          que reeditar la respuesta formal de arriba. */}
-      {!editing && item.status !== "cerrada" && (
-        <div className="mt-3 border-t border-border pt-3">
-          <p className="eyebrow mb-2 text-[10px]">
-            {item.messages.length > 0 ? "Conversación" : "Responder por chat"}
-          </p>
-          <ConsultaThread
-            questionId={item.id}
-            messages={item.messages}
-            viewerRole="docente"
-            hideStudentName={item.is_anonymous}
-          />
-        </div>
-      )}
     </Card>
   );
 }

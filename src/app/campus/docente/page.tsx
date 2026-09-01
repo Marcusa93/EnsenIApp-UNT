@@ -141,8 +141,45 @@ export default async function DocentePanelPage({
         </RevealItem>
       </RevealGroup>
 
+      {/* Para hoy: primero el trabajo que espera a una persona — responder y
+          corregir. La telemetría es para mirar; esto es para hacer. */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex-row items-start justify-between gap-3">
+            <div>
+              <CardTitle eyebrow="Para hoy">Consultas por responder</CardTitle>
+              <CardDescription>Esperan una respuesta docente.</CardDescription>
+            </div>
+            <Button asChild variant="ghost" size="sm" rightIcon={<ArrowRight />}>
+              <Link href="/campus/docente/consultas">Responder</Link>
+            </Button>
+          </CardHeader>
+          {data.openQuestions.length === 0 ? (
+            <EmptyState
+              compact
+              tone="accent-2"
+              icon={BookOpenCheck}
+              title="Sin consultas pendientes"
+              description="Todas las consultas de los estudiantes tienen respuesta."
+            />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.openQuestions.map((q) => (
+                <li key={q.id} className="rounded-xl border border-border bg-surface-2/60 p-3">
+                  <p className="line-clamp-2 text-sm leading-snug">{q.question}</p>
+                  <p className="mt-1.5 flex items-center gap-2 font-mono text-[11px] text-muted">
+                    <span className="truncate">{q.student_name ?? "Anónimo"}</span>
+                    <span aria-hidden>·</span>
+                    <span>{formatRelative(q.created_at)}</span>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
       {data.pendingGrading.length > 0 && (
-        <Card className="mt-6">
+        <Card>
           <CardHeader>
             <CardTitle eyebrow="Para corregir">Entregas esperando devolución</CardTitle>
             <CardDescription>
@@ -174,6 +211,7 @@ export default async function DocentePanelPage({
           </ul>
         </Card>
       )}
+      </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[3fr_2fr]">
         <div className="flex min-w-0 flex-col gap-4">
@@ -338,39 +376,6 @@ export default async function DocentePanelPage({
             )}
           </Card>
 
-          <Card>
-            <CardHeader className="flex-row items-start justify-between gap-3">
-              <div>
-                <CardTitle eyebrow="Consultas">Abiertas recientes</CardTitle>
-                <CardDescription>Esperan una respuesta docente.</CardDescription>
-              </div>
-              <Button asChild variant="ghost" size="sm" rightIcon={<ArrowRight />}>
-                <Link href="/campus/docente/consultas">Responder</Link>
-              </Button>
-            </CardHeader>
-            {data.openQuestions.length === 0 ? (
-              <EmptyState
-                compact
-                tone="accent-2"
-                icon={BookOpenCheck}
-                title="Sin consultas pendientes"
-                description="Todas las consultas de los estudiantes tienen respuesta."
-              />
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {data.openQuestions.map((q) => (
-                  <li key={q.id} className="rounded-xl border border-border bg-surface-2/60 p-3">
-                    <p className="line-clamp-2 text-sm leading-snug">{q.question}</p>
-                    <p className="mt-1.5 flex items-center gap-2 font-mono text-[11px] text-muted">
-                      <span className="truncate">{q.student_name ?? "Anónimo"}</span>
-                      <span aria-hidden>·</span>
-                      <span>{formatRelative(q.created_at)}</span>
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
         </div>
       </div>
     </>

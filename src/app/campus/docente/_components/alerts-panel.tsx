@@ -3,12 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { BellRing, Check, ShieldCheck } from "lucide-react";
+import { BellRing, Check, Send, ShieldCheck } from "lucide-react";
 import { Badge, Button, Card, CardHeader, CardTitle, CardDescription, EmptyState } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { formatRelative } from "@/lib/format";
 import type { Enums, Tables } from "@/lib/types/helpers";
-import { resolveAlert } from "./actions";
+import { notifyAlertStudent, resolveAlert } from "./actions";
 import type { AlertRow } from "./dashboard-data";
 
 const KIND_LABEL: Record<Enums<"alert_kind">, string> = {
@@ -37,6 +37,8 @@ export interface AlertsPanelProps {
 export function AlertsPanel({ courseId, initialAlerts }: AlertsPanelProps) {
   const [alerts, setAlerts] = React.useState<AlertRow[]>(initialAlerts);
   const [resolving, setResolving] = React.useState<Set<string>>(new Set());
+  /** id → "enviando" | "avisado", para que el botón cuente lo que pasó. */
+  const [avisos, setAvisos] = React.useState<Record<string, "enviando" | "avisado">>({});
   const [error, setError] = React.useState<string | null>(null);
   const [live, setLive] = React.useState(false);
 
@@ -47,6 +49,22 @@ export function AlertsPanel({ courseId, initialAlerts }: AlertsPanelProps) {
     setPrevInitial(initialAlerts);
     setAlerts(initialAlerts);
   }
+
+  const onAvisar = async (id: string) => {
+    setAvisos((prev) => ({ ...prev, [id]: "enviando" }));
+    setError(null);
+    const res = await notifyAlertStudent(id);
+    if (!res.ok) {
+      setError(res.error);
+      setAvisos((prev) => {
+        const resto = { ...prev };
+        delete resto[id];
+        return resto;
+      });
+      return;
+    }
+    setAvisos((prev) => ({ ...prev, [id]: "avisado" }));
+  };
 
   React.useEffect(() => {
     const supabase = createClient();
@@ -160,16 +178,31 @@ export function AlertsPanel({ courseId, initialAlerts }: AlertsPanelProps) {
                     <span className="text-muted"> · {a.message}</span>
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  loading={resolving.has(a.id)}
-                  onClick={() => onResolve(a.id)}
-                  leftIcon={<Check />}
-                  aria-label={`Resolver alerta de ${a.student?.full_name ?? "curso"}`}
-                >
-                  Resolver
-                </Button>
+                <span className="flex shrink-0 flex-col items-stretch gap-1.5 sm:flex-row">
+                  {a.student_id && a.kind !== "consulta_sin_responder" && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      loading={avisos[a.id] === "enviando"}
+                      disabled={avisos[a.id] === "avisado"}
+                      onClick={() => void onAvisar(a.id)}
+                      leftIcon={avisos[a.id] === "avisado" ? <Check /> : <Send />}
+                      aria-label={`Avisar a ${a.student?.full_name ?? "estudiante"}`}
+                    >
+                      {avisos[a.id] === "avisado" ? "Avisado" : "Avisar"}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={resolving.has(a.id)}
+                    onClick={() => onResolve(a.id)}
+                    leftIcon={<Check />}
+                    aria-label={`Resolver alerta de ${a.student?.full_name ?? "curso"}`}
+                  >
+                    Resolver
+                  </Button>
+                </span>
               </motion.li>
             ))}
           </AnimatePresence>
