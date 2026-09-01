@@ -1995,6 +1995,7 @@ export type Database = {
           id: string
           is_anonymous: boolean
           last_seen_at: string | null
+          must_change_password: boolean
           onboarding_done: boolean
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["profile_status"]
@@ -2008,6 +2009,7 @@ export type Database = {
           id: string
           is_anonymous?: boolean
           last_seen_at?: string | null
+          must_change_password?: boolean
           onboarding_done?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["profile_status"]
@@ -2021,6 +2023,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean
           last_seen_at?: string | null
+          must_change_password?: boolean
           onboarding_done?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["profile_status"]

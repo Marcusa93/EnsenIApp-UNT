@@ -5,6 +5,7 @@ import { CampusShell } from "@/components/shell/campus-shell";
 import { BadgeCelebration } from "@/components/gamification/badge-celebration";
 import { FloatingAlberdi } from "@/components/alberdi/floating-alberdi";
 import { ConsentGate } from "@/components/consentimiento/consent-gate";
+import { CambioClaveGate } from "@/components/cuenta/cambio-clave-gate";
 import { faltaDecidir } from "@/lib/consentimiento/actions";
 
 export default async function CampusLayout({ children }: { children: React.ReactNode }) {
@@ -38,7 +39,10 @@ export default async function CampusLayout({ children }: { children: React.React
       overlays={
         <>
           {isStudent && <BadgeCelebration userId={user.id} />}
-          {pedirConsentimiento && <ConsentGate />}
+          {/* La contraseña va PRIMERO: mientras siga la provisoria, la cuenta no
+              es del todo suya, y el consentimiento se decide sobre una cuenta
+              propia o no se decide. */}
+          {profile.must_change_password ? <CambioClaveGate /> : pedirConsentimiento && <ConsentGate />}
           {/* Círculo flotante y arrastrable: disponible en cualquier pantalla del campus,
               no sólo dentro de una clase, para poder consultar sobre lo que sea en cualquier
               momento. Va en `overlays` (fuera de la transición entre páginas) para no perder
