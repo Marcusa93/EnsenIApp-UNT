@@ -104,7 +104,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ duelId: st
   const byId = new Map(parsed.data.answers.map((a) => [a.id, a.chosen]));
   const { data: challenges, error: chError } = await admin
     .from("game_challenges")
-    .select("id, correct_index")
+    .select("id, correct_index, explanation, source_quote, source_seconds, class_id")
     .in("id", duel.challenge_ids)
     .eq("game", duel.game)
     .eq("course_id", duel.course_id);
@@ -119,6 +119,21 @@ export async function POST(request: Request, ctx: { params: Promise<{ duelId: st
     authCtx.user.id,
     challenges.map((c) => ({ challengeId: c.id, acerto: byId.get(c.id) === c.correct_index })),
   );
+
+  // El repaso por pregunta: qué se falló, por qué, y de dónde sale en la clase.
+  const detalle = challenges.map((c) => {
+    const chosen = byId.get(c.id) ?? -1;
+    return {
+      id: c.id,
+      chosen,
+      correct: chosen === c.correct_index,
+      correctIndex: c.correct_index,
+      explanation: c.explanation,
+      sourceQuote: c.source_quote,
+      sourceSeconds: c.source_seconds,
+      classId: c.class_id,
+    };
+  });
 
   const correct = challenges.filter((c) => byId.get(c.id) === c.correct_index).length;
   const total = challenges.length;
@@ -238,6 +253,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ duelId: st
     correct,
     total,
     xp,
+    results: detalle,
     bonusXp: bonusForMe,
     done: bothDone,
     ...(bothDone

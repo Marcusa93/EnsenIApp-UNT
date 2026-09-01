@@ -8,6 +8,7 @@ import { OperatorAvatar } from "@/components/avatar/operator-avatar";
 import { GAMES } from "@/lib/games/config";
 import { NIVEL_LABEL, type Botudiante } from "@/lib/games/botudiantes";
 import { track } from "@/lib/telemetry/track";
+import { RondaRepaso, type RepasoResult } from "@/components/games/ronda-repaso";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,6 +27,7 @@ interface Resultado {
   correct: number;
   total: number;
   xp: number;
+  results: RepasoResult[];
   bonusXp: number;
   bot: { correct: number; total: number };
   won: boolean;
@@ -290,6 +292,9 @@ export function BotDuel({
               <p className="mt-1 font-mono text-sm text-foreground">
                 +{resultado.xp} XP{resultado.bonusXp > 0 && ` +${resultado.bonusXp} XP de bonus`}
               </p>
+
+              <RondaRepaso challenges={challenges} results={resultado.results ?? []} className="mt-5 text-left" />
+
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 <Button onClick={empezar} leftIcon={<Play />}>
                   Otra ronda

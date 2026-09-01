@@ -7,6 +7,7 @@ import { Button, EmptyState } from "@/components/ui";
 import { CheckinCard } from "@/components/checkin/checkin-card";
 import { Greeting } from "./_components/greeting";
 import { PrimerosPasos, type PasoEstado } from "./_components/primeros-pasos";
+import { RepasoSugerido } from "./_components/repaso-sugerido";
 import { HoyTracker } from "./_components/hoy-tracker";
 import { NextClassCard, type NextClassData } from "./_components/next-class-card";
 import { LastClassCard, type LastClassData, type RecordingAccess } from "./_components/last-class-card";
@@ -246,6 +247,38 @@ export default async function StudentHomePage() {
     };
   }
 
+  // La clase más floja, para empujar el repaso desde Hoy. Umbral: menos del 60%
+  // con al menos 4 respuestas — con dos preguntas sueltas el porcentaje es ruido.
+  let repasoSugerido: { classId: string; topic: string; correct: number; answered: number } | null = null;
+  {
+    const { data: runs } = await supabase
+      .from("game_runs")
+      .select("class_id, correct, total")
+      .eq("student_id", user.id)
+      .eq("course_id", course.id)
+      .not("class_id", "is", null)
+      .gt("total", 0)
+      .limit(2000);
+    const acc = new Map<string, { correct: number; answered: number }>();
+    for (const r of runs ?? []) {
+      if (!r.class_id) continue;
+      const a = acc.get(r.class_id) ?? { correct: 0, answered: 0 };
+      a.correct += r.correct;
+      a.answered += r.total;
+      acc.set(r.class_id, a);
+    }
+    let peor: { classId: string; ratio: number; correct: number; answered: number } | null = null;
+    for (const [classId, a] of acc) {
+      if (a.answered < 4) continue;
+      const ratio = a.correct / a.answered;
+      if (ratio < 0.6 && (!peor || ratio < peor.ratio)) peor = { classId, ratio, ...a };
+    }
+    if (peor) {
+      const { data: cls } = await supabase.from("classes").select("topic").eq("id", peor.classId).maybeSingle();
+      if (cls) repasoSugerido = { classId: peor.classId, topic: cls.topic, correct: peor.correct, answered: peor.answered };
+    }
+  }
+
   return (
     <>
       <HoyTracker studentId={user.id} />
@@ -255,6 +288,12 @@ export default async function StudentHomePage() {
         {primerosPasos && (
           <DashboardItem className="lg:col-span-12">
             <PrimerosPasos estado={primerosPasos} nextClassId={nextClass?.id ?? null} />
+          </DashboardItem>
+        )}
+
+        {repasoSugerido && (
+          <DashboardItem className="lg:col-span-12">
+            <RepasoSugerido {...repasoSugerido} />
           </DashboardItem>
         )}
 

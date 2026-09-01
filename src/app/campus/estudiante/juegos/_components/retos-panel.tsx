@@ -8,6 +8,7 @@ import { Badge, Button, Card, CardTitle, Select } from "@/components/ui";
 import { track } from "@/lib/telemetry/track";
 import { cn } from "@/lib/utils";
 import type { GameKey, GameMeta } from "@/lib/games/config";
+import { RondaRepaso, type RepasoResult } from "@/components/games/ronda-repaso";
 
 interface ClassOption {
   id: string;
@@ -46,6 +47,7 @@ interface SubmitResult {
   correct: number;
   total: number;
   xp: number;
+  results: RepasoResult[];
   bonusXp: number;
   done: boolean;
   opponentCorrect?: number;
@@ -317,6 +319,11 @@ export function RetosPanel({
             +{result.xp} XP{result.bonusXp > 0 && ` +${result.bonusXp} XP de bonus`}
           </p>
         </div>
+
+        {/* El repaso es lo que enseña: qué fallaste, por qué, y el minuto de la
+            clase donde se dijo. El marcador solo no deja nada. */}
+        <RondaRepaso challenges={challenges} results={result.results ?? []} className="mt-6" />
+
         <div className="mt-5 flex justify-center">
           <Button variant="secondary" onClick={backToList}>
             Volver a Retos

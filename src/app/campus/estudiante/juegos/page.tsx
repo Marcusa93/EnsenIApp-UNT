@@ -139,6 +139,8 @@ export default async function JuegosPage({
     draw: d.status === "completado" && d.winner_id === null,
   }));
 
+  const hayRetosEntrantes = duels.some((d) => !d.isChallenger && d.status === "pendiente" && !d.iAnswered);
+
   return (
     <>
       <PageHeader
@@ -165,6 +167,14 @@ export default async function JuegosPage({
       ) : (
         <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
           <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
+            {/* Si te retaron, eso va PRIMERO: enterrado cinco pantallas abajo,
+                el reto asincrónico se moría sin que el rival lo viera. */}
+            {hayRetosEntrantes && (
+              <Reveal>
+                <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} />
+              </Reveal>
+            )}
+
             <Reveal>
               <WeeklyCard status={weekly} />
             </Reveal>
@@ -231,10 +241,12 @@ export default async function JuegosPage({
             {/* Juegos */}
             <GameLauncher games={available} classes={classes} runsByGame={Object.fromEntries(runsByGame)} initialClassId={claseInicial} />
 
-            {/* Retos entre compañeros */}
-            <Reveal delay={0.1}>
-              <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} />
-            </Reveal>
+            {/* Retos entre compañeros (si hay entrantes, el panel ya está arriba) */}
+            {!hayRetosEntrantes && (
+              <Reveal delay={0.1}>
+                <RetosPanel games={available} classes={classes} classmates={classmates} duels={duels} />
+              </Reveal>
+            )}
           </div>
 
           {/* Tabla de posiciones */}

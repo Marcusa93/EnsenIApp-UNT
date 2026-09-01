@@ -10,6 +10,7 @@ import { Reveal } from "@/components/shell/reveal";
 import { track } from "@/lib/telemetry/track";
 import { cn } from "@/lib/utils";
 import type { GameMeta, Level } from "@/lib/games/config";
+import { RondaRepaso } from "@/components/games/ronda-repaso";
 
 interface ClassOption {
   id: string;
@@ -218,55 +219,7 @@ export function GameLauncher({
           </div>
 
           {/* Repaso: qué se falló y por qué */}
-          <ul className="mt-6 flex flex-col gap-2.5">
-            {outcome.results.map((r) => {
-              const ch = challenges.find((c) => c.id === r.id);
-              if (!ch) return null;
-              return (
-                <li
-                  key={r.id}
-                  className={cn(
-                    "rounded-2xl border p-3.5",
-                    r.correct ? "border-success/30 bg-success/5" : "border-danger/30 bg-danger/5",
-                  )}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <span
-                      className={cn(
-                        "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full",
-                        r.correct ? "bg-success/20 text-success" : "bg-danger/20 text-danger",
-                      )}
-                      aria-hidden
-                    >
-                      {r.correct ? <Check className="size-3" /> : <X className="size-3" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-snug">{ch.prompt}</p>
-                      {!r.correct && (
-                        <p className="mt-1 text-[13px] text-muted">
-                          Era: <span className="text-foreground">{ch.options[r.correctIndex]}</span>
-                        </p>
-                      )}
-                      {r.explanation && <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{r.explanation}</p>}
-                      {r.sourceQuote && (
-                        <p className="mt-2 border-l-2 border-border pl-2.5 text-[12px] italic leading-relaxed text-muted">
-                          “{r.sourceQuote}”
-                          {r.sourceSeconds != null && r.classId && (
-                            <Link
-                              href={`/campus/estudiante/clases/${r.classId}`}
-                              className="ml-1.5 not-italic text-accent hover:underline"
-                            >
-                              [{mmss(r.sourceSeconds)}]
-                            </Link>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <RondaRepaso challenges={challenges} results={outcome.results} className="mt-6" />
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Button onClick={() => start(game)} leftIcon={<RotateCcw />}>

@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   const { data: challenges, error } = await admin
     .from("game_challenges")
-    .select("id, correct_index, class_id")
+    .select("id, correct_index, explanation, source_quote, source_seconds, class_id")
     .in("id", ids)
     .eq("course_id", courseId)
     .eq("game", game);
@@ -71,6 +71,20 @@ export async function POST(request: Request) {
     ctx.user.id,
     challenges.map((c) => ({ challengeId: c.id, acerto: byId.get(c.id) === c.correct_index })),
   );
+
+  const detalle = challenges.map((c) => {
+    const chosen = byId.get(c.id) ?? -1;
+    return {
+      id: c.id,
+      chosen,
+      correct: chosen === c.correct_index,
+      correctIndex: c.correct_index,
+      explanation: c.explanation,
+      sourceQuote: c.source_quote,
+      sourceSeconds: c.source_seconds,
+      classId: c.class_id,
+    };
+  });
 
   const correct = challenges.filter((c) => byId.get(c.id) === c.correct_index).length;
   const total = challenges.length;
@@ -115,5 +129,5 @@ export async function POST(request: Request) {
     if (bonusError) console.error("[botudiantes] bonus", bonusError);
   }
 
-  return NextResponse.json({ correct, total, xp, bonusXp, bot: { correct: botCorrect, total }, won, draw });
+  return NextResponse.json({ correct, total, xp, results: detalle, bonusXp, bot: { correct: botCorrect, total }, won, draw });
 }
