@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui";
 import { PushToggle } from "@/components/pwa/push-toggle";
 import { OperatorCard } from "./_components/operator-card";
 import { PasswordForm } from "./password-form";
+import { NombreForm } from "./nombre-form";
 
 export const metadata: Metadata = { title: "Mi cuenta · EnsenIA UNT" };
 
@@ -22,6 +23,7 @@ export default async function CuentaPage() {
         }
       />
       <div className="flex flex-col gap-4">
+        <NombreForm inicial={profile.full_name} />
         {profile.role === "estudiante" && <OperatorCard studentId={user.id} />}
         <PushToggle />
         {profile.email && <PasswordForm />}

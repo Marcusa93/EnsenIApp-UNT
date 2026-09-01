@@ -99,3 +99,67 @@ export async function sendStudentMessage(input: z.input<typeof messageSchema>): 
     return fail(errorMessage(err, "No se pudo enviar el mensaje."));
   }
 }
+
+const resetSchema = z.object({ course_id: z.guid(), student_id: z.guid() });
+
+/** Palabras fáciles de dictar en voz alta: sin tildes, sin ambigüedad. */
+const PALABRAS = ["aula", "toga", "fallo", "libro", "clase", "norma", "juez", "pluma"];
+
+/**
+ * Repone la contraseña de un estudiante que no puede entrar.
+ *
+ * En un aula, el docente ES el canal de recuperación: el mail de "olvidé mi
+ * contraseña" depende de que el envío funcione (hoy el proyecto usa el SMTP de
+ * prueba de Supabase, tapado en 2 mails por hora y flojo para llegar a Gmail),
+ * mientras que el docente tiene al estudiante enfrente o en el grupo.
+ *
+ * Devuelve la contraseña nueva UNA sola vez para dictarla, y deja la cuenta
+ * marcada para que el estudiante tenga que elegir la suya al entrar: la que
+ * dicta el docente nunca queda como definitiva.
+ */
+export async function resetStudentPassword(
+  input: z.input<typeof resetSchema>,
+): Promise<ActionResult<{ password: string }>> {
+  const parsed = resetSchema.safeParse(input);
+  if (!parsed.success) return fail("Datos inválidos.");
+
+  try {
+    const { supabase } = await requireTeacherOf(parsed.data.course_id);
+
+    const { data: enrolled } = await supabase
+      .from("enrollments")
+      .select("student_id")
+      .eq("course_id", parsed.data.course_id)
+      .eq("student_id", parsed.data.student_id)
+      .maybeSingle();
+    if (!enrolled) return fail("El estudiante no está inscripto en esta comisión.");
+
+    // No se le repone la contraseña a un docente o admin desde acá.
+    const { data: perfil } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", parsed.data.student_id)
+      .maybeSingle();
+    if (perfil?.role !== "estudiante") return fail("Sólo se repone la contraseña de estudiantes.");
+
+    const palabra = PALABRAS[Math.floor(Math.random() * PALABRAS.length)];
+    const numero = String(Math.floor(1000 + Math.random() * 9000));
+    const password = `${palabra}-${numero}`;
+
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const admin = createAdminClient();
+
+    const { error: authErr } = await admin.auth.admin.updateUserById(parsed.data.student_id, { password });
+    if (authErr) throw new Error(authErr.message);
+
+    const { error: profErr } = await admin
+      .from("profiles")
+      .update({ must_change_password: true })
+      .eq("id", parsed.data.student_id);
+    if (profErr) throw new Error(profErr.message);
+
+    return { ok: true, data: { password } };
+  } catch (err) {
+    return fail(errorMessage(err, "No se pudo reponer la contraseña."));
+  }
+}

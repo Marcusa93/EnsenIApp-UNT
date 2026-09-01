@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, Loader2, Send } from "lucide-react";
+import { Check, KeyRound, Loader2, Send } from "lucide-react";
 import { Button, Card, CardTitle, Textarea } from "@/components/ui";
-import { sendStudentMessage } from "../actions";
+import { resetStudentPassword, sendStudentMessage } from "../actions";
 
 /**
  * El mensaje directo de la ficha: un empujón puntual con nombre y apellido.
@@ -76,6 +76,75 @@ export function MensajeDirecto({
           </Button>
         </div>
       </form>
+
+      <ReponerClave courseId={courseId} studentId={studentId} nombre={nombre} />
     </Card>
+  );
+}
+
+/**
+ * Reposición de contraseña: para cuando alguien no puede entrar.
+ *
+ * Está detrás de una confirmación porque invalida la contraseña actual: si el
+ * estudiante sí podía entrar, después de esto no puede hasta que le pases la
+ * nueva.
+ */
+function ReponerClave({ courseId, studentId, nombre }: { courseId: string; studentId: string; nombre: string }) {
+  const [confirmando, setConfirmando] = React.useState(false);
+  const [generando, setGenerando] = React.useState(false);
+  const [nueva, setNueva] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  async function reponer() {
+    setGenerando(true);
+    setError(null);
+    const res = await resetStudentPassword({ course_id: courseId, student_id: studentId });
+    setGenerando(false);
+    setConfirmando(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setNueva(res.data.password);
+  }
+
+  return (
+    <div className="mt-4 border-t border-border pt-4">
+      {nueva ? (
+        <div className="rounded-xl border border-success/30 bg-success/10 p-3">
+          <p className="text-sm font-medium text-success">Contraseña repuesta. Pasásela a {nombre}:</p>
+          <p className="mt-1.5 select-all font-mono text-lg tracking-wide text-foreground">{nueva}</p>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+            Anotala ahora: no se puede volver a ver. Cuando entre, el campus le va a pedir que elija una propia.
+          </p>
+        </div>
+      ) : confirmando ? (
+        <div className="rounded-xl border border-warning/35 bg-warning/10 p-3">
+          <p className="text-sm">
+            Se genera una contraseña nueva y la actual deja de servir. Sólo hacelo si {nombre} no puede entrar.
+          </p>
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => void reponer()} loading={generando} leftIcon={<KeyRound />}>
+              Sí, reponer
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmando(false)} disabled={generando}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted">¿No puede entrar? Generale una contraseña nueva para pasarle.</p>
+          <Button size="sm" variant="secondary" leftIcon={<KeyRound />} onClick={() => setConfirmando(true)}>
+            Reponer contraseña
+          </Button>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
