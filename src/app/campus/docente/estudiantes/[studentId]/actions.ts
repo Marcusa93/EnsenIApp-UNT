@@ -49,3 +49,53 @@ export async function createStudentReport(input: z.input<typeof schema>): Promis
   revalidatePath("/campus/docente/informes");
   redirect(`/campus/docente/informes/${reportId}?run=1`);
 }
+
+const messageSchema = z.object({
+  course_id: z.guid(),
+  student_id: z.guid(),
+  body: z
+    .string()
+    .trim()
+    .min(3, "Escribí el mensaje antes de enviarlo.")
+    .max(500, "Máximo 500 caracteres: es un aviso, no una carta documento."),
+});
+
+/**
+ * Mensaje directo del docente al estudiante, desde su ficha. Llega a la
+ * campana (y al push si lo tiene prendido) firmado por quien lo manda. Hasta
+ * acá el docente sólo podía REACCIONAR (responder consultas, avisar desde una
+ * alerta); esto le deja iniciar el contacto: "te reabrí la entrega", "pasate
+ * por consultas", "buen trabajo con la última actividad".
+ */
+export async function sendStudentMessage(input: z.input<typeof messageSchema>): Promise<ActionResult> {
+  const parsed = messageSchema.safeParse(input);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Datos inválidos.");
+
+  try {
+    const { ctx, supabase } = await requireTeacherOf(parsed.data.course_id);
+
+    // Que sea alguien de la comisión de este docente, no cualquier uuid.
+    const { data: enrolled } = await supabase
+      .from("enrollments")
+      .select("student_id")
+      .eq("course_id", parsed.data.course_id)
+      .eq("student_id", parsed.data.student_id)
+      .maybeSingle();
+    if (!enrolled) return fail("El estudiante no está inscripto en esta comisión.");
+
+    const nombre = ctx.profile.full_name.split(" ")[0] || "la cátedra";
+    const { notifyUsers } = await import("@/lib/push/send");
+    await notifyUsers([parsed.data.student_id], {
+      kind: "aviso",
+      title: `Mensaje de ${nombre} (cátedra)`,
+      body: parsed.data.body,
+      url: "/campus/estudiante",
+      courseId: parsed.data.course_id,
+      createdBy: ctx.user.id,
+    });
+
+    return { ok: true, data: undefined };
+  } catch (err) {
+    return fail(errorMessage(err, "No se pudo enviar el mensaje."));
+  }
+}

@@ -8,6 +8,7 @@ import { fieldErrors, uuidSchema } from "@/components/docente/class-schema";
 import { MATERIAL_BUCKET } from "@/components/docente/class-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errorMessage } from "@/lib/utils";
+import { notifyCourse } from "@/lib/push/send";
 
 function revalidateClass(classId: string) {
   revalidatePath("/campus/docente");
@@ -49,6 +50,20 @@ export async function createAnnouncement(input: AnnouncementInput): Promise<Acti
       .single();
     if (error) throw error;
     revalidateClass(parsed.data.class_id);
+
+    // Publicar sin avisar era publicar a la nada: el anuncio quedaba esperando
+    // que alguien pasara por Hoy. Ahora toca la campana (y el push) del curso.
+    void notifyCourse(courseId, {
+      kind: "aviso",
+      title: parsed.data.title,
+      body: parsed.data.body.slice(0, 140),
+      url:
+        parsed.data.scope === "clase"
+          ? `/campus/estudiante/clases/${parsed.data.class_id}`
+          : "/campus/estudiante",
+      createdBy: ctx.user.id,
+    }).catch((e) => console.error("[docente/clase] aviso de anuncio", e));
+
     return succeed({ id: data.id });
   } catch (err) {
     console.error("[docente/clase] createAnnouncement", { err });

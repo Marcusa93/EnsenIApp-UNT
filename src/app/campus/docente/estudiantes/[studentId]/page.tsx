@@ -23,6 +23,7 @@ import { Avatar, Badge, Card, CardDescription, CardHeader, CardTitle, EmptyState
 import { RevealGroup, RevealItem } from "@/components/shell";
 import { getActiveCourse } from "@/components/docente/active-course";
 import { StudentStatusBadge } from "../_components/status-badge";
+import { MensajeDirecto } from "./_components/mensaje-directo";
 import { StatusActions } from "../_components/status-actions";
 import { getStudentDetail } from "./_components/student-detail-data";
 import { StudentReportButton } from "./_components/report-button";
@@ -158,6 +159,10 @@ export default async function EstudianteDetallePage({
           />
         </RevealItem>
       </RevealGroup>
+
+      <div className="mb-6">
+        <MensajeDirecto courseId={course.id} studentId={s.id} nombre={s.full_name.split(" ")[0] ?? "che"} />
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
         <div className="flex min-w-0 flex-col gap-4">
