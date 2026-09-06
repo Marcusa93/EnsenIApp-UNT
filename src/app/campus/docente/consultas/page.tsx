@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BarChart3, Bot, CheckCheck, MessageCircleQuestion } from "lucide-react";
+import { BarChart3, CheckCheck, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { EmptyState, PageHeader, Stat } from "@/components/ui";
@@ -57,13 +57,15 @@ export default async function ConsultasPage({
         actions={<CourseSwitcher courses={courses} activeCourseId={course.id} />}
       />
 
+      {/* Semáforo de la sección: lo urgente en carmesí, lo que hizo la IA en violeta,
+          lo que está en vivo en petróleo. Cuando una cifra es cero, baja a gris. */}
       <RevealGroup className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" stagger={0.05}>
         <RevealItem>
           <Stat
             label="Abiertas"
             value={open}
             icon={<MessageCircleQuestion />}
-            tone={open > 0 ? "accent-3" : "muted"}
+            tone={open > 0 ? "accent" : "muted"}
             hint="Sin ninguna respuesta"
           />
         </RevealItem>
@@ -71,13 +73,19 @@ export default async function ConsultasPage({
           <Stat
             label="Respondidas por IA"
             value={aiAnswered}
-            icon={<Bot />}
-            tone={aiAnswered > 0 ? "accent-2" : "muted"}
+            icon={<Sparkles />}
+            tone={aiAnswered > 0 ? "accent-3" : "muted"}
             hint="Esperan tu revisión"
           />
         </RevealItem>
         <RevealItem>
-          <Stat label="Respondidas por docente" value={teacherAnswered} icon={<CheckCheck />} tone="accent" hint="Con respuesta del equipo" />
+          <Stat
+            label="Respondidas por docente"
+            value={teacherAnswered}
+            icon={<CheckCheck />}
+            tone={teacherAnswered > 0 ? "accent" : "muted"}
+            hint="Con respuesta del equipo"
+          />
         </RevealItem>
         <RevealItem>
           <Stat

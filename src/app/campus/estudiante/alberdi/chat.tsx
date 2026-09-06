@@ -133,12 +133,14 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mx-auto flex max-w-2xl flex-col items-center px-1 pt-6 text-center sm:pt-12"
+            className="relative mx-auto flex max-w-2xl flex-col items-center px-1 pt-6 text-center sm:pt-12"
           >
-            <span className="glow-2 flex size-14 items-center justify-center rounded-2xl border border-accent-2/30 bg-accent-2/10 text-accent-2">
+            {/* La trama del retrato de Alberdi, apenas, detrás del saludo. */}
+            <div className="trama campus-grid-fade pointer-events-none absolute inset-x-0 top-0 h-40 opacity-60" aria-hidden />
+            <span className="glow-3 relative flex size-14 items-center justify-center rounded-2xl border border-accent-3/30 bg-accent-3/10 text-accent-3">
               <Feather className="size-7" aria-hidden />
             </span>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight sm:text-2xl">
+            <h2 className="relative mt-4 text-xl font-bold tracking-tight sm:text-2xl">
               Hola {studentFirstName}, soy Alberdi
             </h2>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
@@ -162,7 +164,7 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
                     key={s}
                     type="button"
                     onClick={() => send(s)}
-                    className="rounded-xl border border-border bg-surface-2/60 px-4 py-3 text-left text-sm transition hover:border-accent/50 hover:bg-surface-2"
+                    className="min-h-11 rounded-xl border border-border bg-surface px-4 py-3 text-left text-sm transition-colors hover:border-accent-3/50 hover:bg-accent-3/5 focus-visible:outline-2 focus-visible:outline-ring"
                   >
                     {s}
                   </button>
@@ -181,16 +183,16 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
                   className={cn("flex gap-3", m.role === "user" ? "justify-end" : "justify-start")}
                 >
                   {m.role === "assistant" && (
-                    <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-accent-2/30 bg-accent-2/10 text-accent-2">
+                    <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-accent-3/30 bg-accent-3/10 text-accent-3">
                       <Feather className="size-4" aria-hidden />
                     </span>
                   )}
                   <div
                     className={cn(
-                      "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                      "min-w-0 max-w-[85%] break-words rounded-2xl px-4 py-3 text-sm leading-relaxed",
                       m.role === "user"
                         ? "bg-accent text-white"
-                        : "border border-border bg-surface",
+                        : "paper border border-border border-l-[3px] border-l-accent-3 bg-surface",
                     )}
                   >
                     {m.role === "user" ? (
@@ -217,7 +219,7 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
                 <Check className="size-4 shrink-0" aria-hidden />
                 <span>
                   Enviado al equipo docente. Cuando te respondan lo vas a ver en{" "}
-                  <Link href="/campus/estudiante/consultas" className="underline underline-offset-4">
+                  <Link href="/campus/estudiante/consultas" className="link-editorial font-semibold">
                     tus consultas
                   </Link>
                   .
@@ -228,7 +230,7 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
                 type="button"
                 onClick={escalate}
                 disabled={escalating}
-                className="inline-flex items-center gap-1.5 text-xs text-muted underline underline-offset-4 transition hover:text-foreground disabled:opacity-60"
+                className="link-editorial inline-flex min-h-10 items-center gap-1.5 rounded-md text-xs text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60"
               >
                 {escalating ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <Share className="size-3.5" aria-hidden />}
                 ¿No te alcanzó? Enviar esta consulta al equipo docente
@@ -238,7 +240,9 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
         )}
       </div>
 
-      <div className="sticky bottom-0 border-t border-border bg-background/90 pt-3 backdrop-blur">
+      {/* En mobile la bottom-nav del shell es fija (~3.5rem + safe-area): el compositor
+          se pega justo por encima de ella; en desktop no hay nav abajo. */}
+      <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 border-t border-border bg-background/90 pt-3 backdrop-blur lg:bottom-0">
         {error && (
           <p role="alert" className="mx-auto mb-2 max-w-2xl rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
             {error}
@@ -266,12 +270,12 @@ export function AlberdiChat({ courseId, studentFirstName, focus, suggestions, ha
               }
             }}
           />
-          <Button type="submit" size="lg" disabled={!input.trim() || streaming} aria-label="Enviar consulta">
+          <Button type="submit" size="icon" className="size-11" disabled={!input.trim() || streaming} aria-label="Enviar consulta">
             {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
           </Button>
         </form>
         <p className="mx-auto mt-2 max-w-2xl pb-3 text-center text-[11px] leading-relaxed text-muted">
-          <Sparkles className="mr-1 inline size-3" aria-hidden />
+          <Sparkles className="mr-1 inline size-3 text-accent-3" aria-hidden />
           Alberdi responde sólo sobre el material de la materia y puede equivocarse: verificá lo importante con el equipo
           docente. Tus consultas ayudan a la cátedra a ver qué reforzar.
         </p>

@@ -12,10 +12,10 @@ export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(function Lab
 ) {
   return (
     <label ref={ref} className={cn("mb-1.5 flex items-baseline justify-between gap-3", className)} {...props}>
-      <span className="eyebrow text-foreground/80">
+      <span className="eyebrow text-foreground/85">
         {children}
         {required && (
-          <span className="ml-1 text-accent-3" aria-hidden>
+          <span className="ml-1 text-accent" aria-hidden>
             *
           </span>
         )}

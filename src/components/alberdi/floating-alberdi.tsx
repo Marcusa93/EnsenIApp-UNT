@@ -216,7 +216,7 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="border-gradient z-[80] flex flex-col overflow-hidden rounded-3xl border border-transparent bg-surface shadow-2xl"
+            className="border-gradient z-[80] flex flex-col overflow-hidden rounded-2xl border border-transparent bg-surface shadow-2xl"
             style={{
               // .border-gradient fija position:relative (para su ::before del degradé) y,
               // por orden de cascada, le gana a la clase "fixed" de Tailwind — el panel
@@ -231,12 +231,12 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
             role="dialog"
             aria-label={classId ? "Alberdi — consultas sobre esta clase" : "Alberdi — consultas sobre la materia"}
           >
-            <header className="flex items-center gap-2.5 border-b border-border px-4 py-3">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-accent-2/30 bg-accent-2/10 text-accent-2">
+            <header className="flex items-center gap-2.5 border-b border-border py-2.5 pl-4 pr-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-accent-3/30 bg-accent-3/10 text-accent-3">
                 <Feather className="size-4" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-tight">Alberdi</p>
+                <p className="font-display text-sm font-bold leading-tight">Alberdi</p>
                 <p className="truncate text-[11px] text-muted">
                   {classTopic ?? (classId ? "Sobre esta clase" : "Sobre toda la materia")}
                 </p>
@@ -244,7 +244,7 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
               <Link
                 href={classId ? `/campus/estudiante/alberdi?classId=${classId}` : "/campus/estudiante/alberdi"}
                 aria-label="Abrir Alberdi en pantalla completa"
-                className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-foreground"
+                className="flex size-10 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <Expand className="size-4" />
               </Link>
@@ -252,7 +252,7 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Cerrar"
-                className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-foreground"
+                className="flex size-10 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <X className="size-4" />
               </button>
@@ -266,7 +266,6 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
                   value={classId ?? ""}
                   onChange={(e) => changeClass(e.target.value)}
                   aria-label="Elegí sobre qué clase querés consultar"
-                  className="h-9 text-[13px]"
                 >
                   <option value="">Toda la materia</option>
                   {classes.map((c) => (
@@ -303,7 +302,7 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
                       key={s}
                       type="button"
                       onClick={() => send(s)}
-                      className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-left text-[13px] transition hover:border-accent/50"
+                      className="min-h-10 rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-left text-[13px] transition-colors hover:border-accent-3/50 hover:bg-accent-3/5 focus-visible:outline-2 focus-visible:outline-ring"
                     >
                       {s}
                     </button>
@@ -315,8 +314,10 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
                     <li key={m.id} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
                       <div
                         className={cn(
-                          "max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-relaxed",
-                          m.role === "user" ? "bg-accent text-white" : "border border-border bg-surface-2/60",
+                          "min-w-0 max-w-[88%] break-words rounded-2xl px-3 py-2 text-[13px] leading-relaxed",
+                          m.role === "user"
+                            ? "bg-accent text-white"
+                            : "border border-border border-l-[3px] border-l-accent-3 bg-surface-2/60",
                         )}
                       >
                         {m.role === "user" ? (
@@ -380,8 +381,8 @@ export function FloatingAlberdi({ courseId, classes }: FloatingAlberdiProps) {
         aria-label={open ? "Cerrar Alberdi" : "Preguntarle a Alberdi"}
         title="Alberdi — arrastrame o tocá para consultar"
         className={cn(
-          "glow-2 fixed z-[81] flex size-14 touch-none items-center justify-center rounded-full border border-accent-2/40 bg-surface text-accent-2 shadow-xl transition-colors hover:bg-accent-2/10",
-          open && "border-accent-2 bg-accent-2/15",
+          "glow-3 fixed z-[81] flex size-14 touch-none items-center justify-center rounded-full border border-accent-3/40 bg-surface text-accent-3 shadow-xl transition-colors hover:bg-accent-3/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          open && "border-accent-3 bg-accent-3/15",
         )}
         style={{ left: safe.x, top: safe.y }}
       >

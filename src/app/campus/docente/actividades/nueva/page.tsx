@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Sparkles, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Button, EmptyState, PageHeader } from "@/components/ui";
@@ -76,12 +76,29 @@ export default async function NuevaActividadPage({
         description="Elegí el tipo, armá el contenido, definí destinatarios y fecha límite. Podés guardar como borrador y publicar más tarde."
         actions={
           recording ? (
-            <Badge tone="accent-2" dot>
+            <Badge tone="accent-2" dot className="max-w-full whitespace-normal">
               Desde grabación: {recording.title?.trim() || recording.class_topic}
             </Badge>
           ) : undefined
         }
       />
+
+      {/* Asistencia IA: violeta, el color del Laboratorio. Sólo cuando hay grabación de la que partir. */}
+      {recording && (
+        <div className="paper mb-6 flex items-start gap-3 rounded-2xl border border-border border-l-[3px] border-l-accent-3 bg-surface px-4 py-3">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-3/10 text-accent-3">
+            <Sparkles className="size-4" aria-hidden />
+          </span>
+          <div className="min-w-0 text-sm">
+            <p className="font-display font-bold tracking-tight">Podés dejar que la IA arme el borrador</p>
+            <p className="mt-0.5 text-muted">
+              Con «Sugerir con IA» se proponen título, consigna y preguntas a partir de la grabación. Revisá y ajustá lo
+              que haga falta antes de publicar.
+            </p>
+          </div>
+        </div>
+      )}
+
       <ActivityForm
         mode="create"
         courseId={course.id}

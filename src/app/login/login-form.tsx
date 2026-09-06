@@ -215,7 +215,7 @@ export function LoginForm({ next, initialError, liveJoin }: LoginFormProps) {
                   <div className="flex items-start gap-3">
                     <MailCheck className="mt-0.5 size-5 shrink-0 text-accent-2" aria-hidden />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">Te enviamos un link de acceso</p>
+                      <p className="font-display text-sm font-semibold">Te enviamos un link de acceso</p>
                       <p className="mt-1 text-sm text-muted">
                         Revisá la casilla de <span className="font-mono text-foreground">{sentTo}</span> (y la carpeta de
                         spam). Una vez adentro podés cambiar tu contraseña desde tu cuenta.
@@ -267,14 +267,14 @@ export function LoginForm({ next, initialError, liveJoin }: LoginFormProps) {
       initial={{ opacity: 0, y: 16, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="border-gradient glow w-full max-w-md rounded-3xl border border-transparent bg-surface p-7 sm:p-9"
+      className="paper corners relative w-full max-w-md overflow-hidden rounded-3xl border border-border border-t-[3px] border-t-accent bg-surface p-7 sm:p-9"
     >
       {liveJoin ? (
         <>
           <span className="eyebrow inline-flex items-center gap-1.5">
             <Radio className="size-3.5 text-accent-2" aria-hidden /> Clase en vivo
           </span>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Sumate a la clase</h1>
+          <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Sumate a la clase</h1>
           <p className="mt-2 text-sm text-muted">Con tu nombre y apellido alcanza para participar ahora.</p>
 
           {nameError && (
@@ -315,8 +315,8 @@ export function LoginForm({ next, initialError, liveJoin }: LoginFormProps) {
         </>
       ) : (
         <>
-          <span className="eyebrow">Acceso al campus</span>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Ingresá a EnsenIA</h1>
+          <span className="eyebrow text-accent">Acceso al campus</span>
+          <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Ingresá a Ensen<span className="text-accent">IA</span></h1>
           <p className="mt-2 text-sm text-muted">Con la cuenta que te dio el equipo docente.</p>
 
           {error && (

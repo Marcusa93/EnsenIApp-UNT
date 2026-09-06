@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpenText, FileText, Layers, MessageCircleQuestion, NotebookText, Sparkles } from "lucide-react";
 import { Badge, Button, Card, CardDescription, CardTitle } from "@/components/ui";
 import { formatDate, formatDuration } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export interface RecordingAccess {
   id: string;
@@ -29,10 +30,10 @@ export function LastClassCard({ data }: { data: LastClassData }) {
   const classHref = `/campus/estudiante/clases/${data.id}`;
 
   return (
-    <Card className="relative h-full overflow-hidden">
+    <Card className="relative flex h-full flex-col overflow-hidden">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="eyebrow">Última clase</span>
-        <Badge tone="muted" size="sm">
+        <Badge tone="muted" size="sm" className="font-mono tabular-nums">
           {formatDate(data.class_date)}
         </Badge>
         {rec ? (
@@ -53,17 +54,17 @@ export function LastClassCard({ data }: { data: LastClassData }) {
         {data.topic}
       </CardTitle>
       {data.teacher && <CardDescription className="mt-1">{data.teacher.full_name}</CardDescription>}
-      {data.summary && !rec && <p className="mt-3 line-clamp-3 text-sm text-muted">{data.summary}</p>}
+      {data.summary && !rec && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted">{data.summary}</p>}
 
       {rec ? (
         <>
           <p className="mt-3 text-sm text-muted">
             {rec.title ?? "Grabación de la clase"}
             {rec.duration_seconds ? (
-              <span className="ml-2 font-mono text-xs">· {formatDuration(rec.duration_seconds)}</span>
+              <span className="ml-2 font-mono text-xs tabular-nums">· {formatDuration(rec.duration_seconds)}</span>
             ) : null}
             {data.recordings.length > 1 && (
-              <span className="ml-2 font-mono text-xs">· {data.recordings.length} grabaciones</span>
+              <span className="ml-2 font-mono text-xs tabular-nums">· {data.recordings.length} grabaciones</span>
             )}
           </p>
           <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -100,21 +101,22 @@ export function LastClassCard({ data }: { data: LastClassData }) {
           </ul>
         </>
       ) : data.has_note ? (
-        <p className="mt-4 flex items-start gap-2 text-sm text-muted">
+        <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-muted">
           <NotebookText className="mt-0.5 size-4 shrink-0 text-accent-2" aria-hidden />
           <span>Esta clase no se grabó, pero el equipo docente dejó el apunte con todo lo que se dio.</span>
         </p>
       ) : (
-        <p className="mt-4 text-sm text-muted">
+        <p className="mt-4 text-sm leading-relaxed text-muted">
           Cuando el equipo docente publique la grabación o el apunte vas a tener acá el material de la clase.
         </p>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Button asChild size="sm" variant="secondary" rightIcon={<ArrowRight />}>
+      <div className="mt-auto flex flex-wrap gap-2 pt-5">
+        <Button asChild variant="secondary" rightIcon={<ArrowRight />}>
           <Link href={classHref}>Ir a la clase</Link>
         </Button>
-        <Button asChild size="sm" variant="ghost" leftIcon={<MessageCircleQuestion />}>
+        {/* Alberdi es IA: el atajo lleva el violeta del Laboratorio. */}
+        <Button asChild variant="ghost" leftIcon={<MessageCircleQuestion />} className="text-accent-3 hover:text-accent-3">
           <Link href={`/campus/estudiante/alberdi?classId=${data.id}`}>Tengo una duda</Link>
         </Button>
       </div>
@@ -145,12 +147,12 @@ function QuickLink({
 
   if (!enabled) {
     return (
-      <li className="flex items-center gap-2.5 rounded-xl border border-dashed border-border px-3 py-2.5 text-muted/70">
+      <li className="flex min-h-12 items-center gap-2.5 rounded-xl border border-dashed border-border px-3 py-2.5 text-muted/70">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2 [&>svg]:size-4">
           {icon}
         </span>
         <span className="min-w-0">
-          <span className="block text-xs font-medium">{label}</span>
+          <span className="block truncate font-display text-xs font-semibold">{label}</span>
           <span className="block text-[11px]">No disponible</span>
         </span>
       </li>
@@ -158,16 +160,21 @@ function QuickLink({
   }
 
   return (
-    <li>
+    <li className="min-w-0">
       <Link
         href={href}
-        className="group flex items-center gap-2.5 rounded-xl border border-border bg-surface-2/50 px-3 py-2.5 transition-colors hover:border-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="group flex min-h-12 items-center gap-2.5 rounded-xl border border-border bg-surface-2/50 px-3 py-2.5 transition-colors hover:border-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors [&>svg]:size-4 ${toneClass}`}>
+        <span
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors [&>svg]:size-4",
+            toneClass,
+          )}
+        >
           {icon}
         </span>
         <span className="min-w-0">
-          <span className="block text-xs font-medium">{label}</span>
+          <span className="block truncate font-display text-xs font-semibold">{label}</span>
           <span className="block truncate text-[11px] text-muted">{hint}</span>
         </span>
       </Link>

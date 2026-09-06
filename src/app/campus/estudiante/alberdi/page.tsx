@@ -74,8 +74,8 @@ export default async function AlberdiPage({
           <span className="inline-flex flex-wrap items-center gap-2">
             <span>Asistente de la materia</span>
             {focus && (
-              <Badge tone="accent-2" size="sm">
-                {focus.topic}
+              <Badge tone="accent-3" size="sm" className="max-w-[60vw] sm:max-w-xs">
+                <span className="min-w-0 truncate">{focus.topic}</span>
               </Badge>
             )}
           </span>

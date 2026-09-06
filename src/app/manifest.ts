@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 /**
  * Web App Manifest (servido en /manifest.webmanifest).
- * Íconos generados en public/icons (PNG 192/512 + maskable + SVG).
+ * Íconos generados en public/icons (PNG 192/512 + maskable + SVG), en el carmesí de la Facultad.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -10,15 +10,15 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "EnsenIA UNT",
     short_name: "EnsenIA",
     description:
-      "Campus digital de Derecho de las Nuevas Tecnologías y Bioderecho (Facultad de Derecho, UNT). Clases procesadas con IA, también sin conexión.",
+      "Campus digital de Derecho de las Nuevas Tecnologías y Bioderecho (Facultad de Derecho, UNT). Clases procesadas con IA, también sin conexión. Desarrollado por el Laboratorio de IA, Innovación y Transformación Digital DYNTEC.",
     lang: "es",
     dir: "ltr",
     start_url: "/campus",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    theme_color: "#070812",
-    background_color: "#070812",
+    theme_color: "#a81828",
+    background_color: "#f7f4ef",
     categories: ["education"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

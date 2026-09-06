@@ -72,7 +72,7 @@ export function Dialog({
       onClose={() => open && onOpenChange(false)}
       onClick={onBackdropClick}
       className={cn(
-        "m-auto w-[calc(100%-2rem)] rounded-2xl border border-border bg-surface p-0 text-foreground shadow-2xl backdrop:bg-transparent",
+        "m-auto w-[calc(100%-2rem)] rounded-2xl border border-border border-t-[3px] border-t-accent bg-surface p-0 text-foreground shadow-2xl backdrop:bg-transparent",
         "max-h-[calc(100dvh-2rem)] overflow-hidden",
         sizes[size],
         className,
@@ -81,7 +81,7 @@ export function Dialog({
       <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
         <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-lg font-semibold leading-snug tracking-tight">
+            <h2 id={titleId} className="font-display text-lg font-bold leading-snug tracking-tight">
               {title}
             </h2>
             {description && (

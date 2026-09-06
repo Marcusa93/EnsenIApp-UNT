@@ -10,7 +10,7 @@
  * Subí VERSION en cada deploy que cambie el shell o las estrategias: activate limpia caches viejos.
  */
 
-const VERSION = "2026-08-27.1";
+const VERSION = "2026-09-05.1";
 const PREFIX = "ensenia";
 const SHELL_CACHE = `${PREFIX}-shell-${VERSION}`;
 const DATA_CACHE = `${PREFIX}-data-${VERSION}`;

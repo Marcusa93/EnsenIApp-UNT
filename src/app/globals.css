@@ -1,40 +1,105 @@
 @import "tailwindcss";
 
 /*
-  EnsenIA UNT — tokens de diseño
+  EnsenIA UNT — sistema de diseño "Expediente"
   ------------------------------------------------------------------
-  Dark-first. La paleta conserva los nombres originales (--background,
-  --surface, --surface-2, --foreground, --muted, --border, --accent,
-  --accent-2, --accent-3, --ring) y agrega semánticos (--success,
-  --warning, --danger) + tintas de superficie para vidrio.
+  Identidad tomada de derecho.unt.edu.ar y del isologo de la Facultad:
+  - Carmesí institucional #a81828 (el rojo del logo) como acento principal.
+  - Grises cálidos del sitio (#626974 / #292929) para texto.
+  - Montserrat (títulos, etiquetas, botones) + Lato (texto corrido).
+    JetBrains Mono queda SÓLO para datos: códigos, timestamps, números tabulares.
+  - Motivo gráfico: la "trama" de líneas horizontales del retrato de Alberdi
+    del logo (.trama / .campus-grid) y la pleca carmesí (.pleca / .rule-top).
 
-  Ajustes respecto del prototipo (documentados):
-  - Fondo oscuro un poco más profundo y azulado (#070812) para que los
-    glows violeta/cian "levanten" sin lavar el contraste.
-  - --muted subido a #9aa0bf en dark (ratio ~7.5:1 sobre #070812) y
-    bajado a #545a73 en light (ratio ~7:1 sobre blanco) → AA en texto chico.
-  - --accent-2 en light pasa a #0b8f80 (antes #17c3b2, 2.6:1 sobre blanco
-    → fallaba AA como texto). En dark se mantiene cian brillante.
-  - --surface-2 en dark deja de ser semitransparente para evitar
-    apilamientos raros; la transparencia se logra con .glass.
+  Dos temas con los mismos nombres de token:
+  - "papel" (claro, por defecto — es el registro del sitio institucional)
+  - "tinta" (oscuro: negro cálido con tinte borgoña; el carmesí sube de luz
+    para sostener AA sobre fondo oscuro).
+  El tema sigue al sistema salvo que el usuario elija uno (data-theme en <html>,
+  persistido en localStorage por ThemeToggle; el script inline del layout lo
+  aplica antes del primer paint para evitar el destello).
+
+  Acentos semánticos:
+  - --accent   carmesí UNT    → institución, acciones principales
+  - --accent-2 verde petróleo → datos, tecnología, "en vivo"
+  - --accent-3 violeta        → IA / Laboratorio DYNTEC (el color de su pluma)
+  Los tres verifican AA como texto sobre --surface en los dos temas.
 */
 
 :root {
   color-scheme: light;
-  --background: #f4f5fb;
+  --background: #f7f4ef;
   --surface: #ffffff;
-  --surface-2: #eceef8;
-  --foreground: #0b0e1a;
-  --muted: #545a73;
-  --border: #dcdfec;
-  --accent: #5552f0;
-  --accent-2: #0b8f80;
-  --accent-3: #e0407a;
-  --success: #178a4c;
-  --warning: #b26a00;
-  --danger: #d2334d;
-  --ring: #5552f0;
-  --glass: rgba(255, 255, 255, 0.72);
+  --surface-2: #f0ebe4;
+  --foreground: #1d1a1c;
+  --muted: #63606a;
+  --border: #e4ddd3;
+  --accent: #a81828;
+  --accent-deep: #6e0f1b;
+  --accent-2: #1f6f6b;
+  --accent-3: #6f4494;
+  --success: #1f7a4d;
+  --warning: #a65d00;
+  --danger: #c8401d;
+  --ring: #a81828;
+  --glass: rgba(255, 255, 255, 0.78);
+  --paper-shadow: 0 1px 2px rgba(29, 26, 28, 0.04), 0 8px 24px -16px rgba(29, 26, 28, 0.16);
+}
+
+/* Tema "tinta". Se declara dos veces a propósito (preferencia del sistema sin
+   elección manual, y elección manual "dark"): CSS no tiene mixins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: #120f13;
+    --surface: #1a1619;
+    --surface-2: #241f24;
+    --foreground: #f3eee9;
+    --muted: #a79fa6;
+    --border: #322b31;
+    --accent: #e2536a;
+    --accent-deep: #a81828;
+    --accent-2: #4cc3ba;
+    --accent-3: #b18ae6;
+    --success: #4ccf8a;
+    --warning: #f0a84a;
+    --danger: #ff6b4a;
+    --ring: #e2536a;
+    --glass: rgba(26, 22, 25, 0.74);
+    --paper-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.7);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #120f13;
+  --surface: #1a1619;
+  --surface-2: #241f24;
+  --foreground: #f3eee9;
+  --muted: #a79fa6;
+  --border: #322b31;
+  --accent: #e2536a;
+  --accent-deep: #a81828;
+  --accent-2: #4cc3ba;
+  --accent-3: #b18ae6;
+  --success: #4ccf8a;
+  --warning: #f0a84a;
+  --danger: #ff6b4a;
+  --ring: #e2536a;
+  --glass: rgba(26, 22, 25, 0.74);
+  --paper-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.7);
+}
+
+/* Variante `dark:` de Tailwind coherente con el selector de tema:
+   aplica si el usuario eligió "dark", o si el sistema es oscuro y no eligió "light". */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:not(:where([data-theme="light"], [data-theme="light"] *)) {
+      @slot;
+    }
+  }
 }
 
 @theme inline {
@@ -45,40 +110,24 @@
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
   --color-accent-2: var(--accent-2);
   --color-accent-3: var(--accent-3);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
-  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-sans: var(--font-lato), "Lato", system-ui, sans-serif;
+  --font-display: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --radius-2xl: 1rem;
+  --shadow-paper: var(--paper-shadow);
   --animate-fade-up: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-in: fade-in 0.4s ease-out both;
   --animate-pulse-ring: pulse-ring 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-spin-slow: spin 6s linear infinite;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --background: #070812;
-    --surface: #0e1020;
-    --surface-2: #151830;
-    --foreground: #eceef8;
-    --muted: #9aa0bf;
-    --border: #23263d;
-    --accent: #7d7bff;
-    --accent-2: #2de2c4;
-    --accent-3: #ff6b9d;
-    --success: #3ddc84;
-    --warning: #ffb347;
-    --danger: #ff5c72;
-    --ring: #7d7bff;
-    --glass: rgba(14, 16, 32, 0.66);
-  }
+  --animate-scan: scan 7s linear infinite;
 }
 
 @layer base {
@@ -95,8 +144,22 @@
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv11";
     text-rendering: optimizeLegibility;
+    font-feature-settings: "kern", "liga";
+  }
+
+  /* Montserrat firma todo lo que titula. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   :focus-visible {
@@ -140,32 +203,134 @@
 }
 
 @layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
   .font-mono {
     font-family: var(--font-mono);
   }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 
-  /* Etiqueta mono: la firma tipográfica del campus */
+  /* Etiqueta: la firma tipográfica del campus. Montserrat en versalitas anchas,
+     como el menú del sitio de la Facultad ("INSTITUCIONAL · ACADÉMICA"). */
   .eyebrow {
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
+    font-weight: 700;
     font-size: 0.6875rem;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--muted);
   }
 
-  /* Grilla sutil de fondo, con máscara radial para que se desvanezca */
+  /* Número protagonista (stats, contadores, marcadores). */
+  .display-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Trama: las líneas horizontales del retrato del logo. Sirve como textura de
+     fondo; combinar con .campus-grid-fade para que se desvanezca. */
+  .trama,
   .campus-grid {
-    background-image:
-      linear-gradient(to right, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
-    background-size: 42px 42px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--foreground) 8%, transparent) 0 1px,
+      transparent 1px 6px
+    );
+  }
+  .trama-accent {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--accent) 22%, transparent) 0 1px,
+      transparent 1px 6px
+    );
   }
   .campus-grid-fade {
     -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 40%, transparent 100%);
     mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 40%, transparent 100%);
   }
+  .trama-fade-r {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 35%, #000 75%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 35%, #000 75%, transparent);
+  }
 
-  /* Grano: textura fina que saca el look "plano de IA" */
+  /* Barrido de luz sobre la trama (hero, proyector): una franja tenue que baja. */
+  .trama-scan {
+    position: relative;
+    overflow: hidden;
+  }
+  .trama-scan::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: -40% 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      color-mix(in srgb, var(--accent) 14%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 100% 45%;
+    background-repeat: no-repeat;
+    animation: scan 7s linear infinite;
+  }
+
+  /* Pleca: la barra carmesí que abre un bloque (cabeceras, citas, destacados). */
+  .pleca {
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+  }
+  .rule-top {
+    border-top: 3px solid var(--accent);
+  }
+  /* Regla de marca: carmesí → violeta (institución → laboratorio). */
+  .brand-rule {
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 55%, var(--accent-3) 100%);
+  }
+
+  /* Esquinas de expediente: dos ángulos finos en la tarjeta protagonista. */
+  .corners {
+    position: relative;
+  }
+  .corners::before,
+  .corners::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .corners::before {
+    top: 10px;
+    left: 10px;
+    border-right: 0;
+    border-bottom: 0;
+    border-top-left-radius: 4px;
+  }
+  .corners::after {
+    right: 10px;
+    bottom: 10px;
+    border-left: 0;
+    border-top: 0;
+    border-bottom-right-radius: 4px;
+  }
+
+  /* Sello: anillo doble para el isologo del Laboratorio. */
+  .sello {
+    border-radius: 9999px;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent-3) 45%, transparent),
+      0 0 0 5px var(--surface),
+      0 0 0 6px color-mix(in srgb, var(--accent-3) 25%, transparent);
+  }
+
+  /* Grano: textura fina que saca el look plano. */
   .grain {
     position: relative;
   }
@@ -174,20 +339,31 @@
     pointer-events: none;
     position: absolute;
     inset: 0;
-    opacity: 0.06;
-    mix-blend-mode: overlay;
+    opacity: 0.05;
+    mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  /* Sombra de papel: el relieve de una tarjeta apoyada. */
+  .paper {
+    box-shadow: var(--paper-shadow);
+  }
+
+  /* Glow: antes neón; ahora un realce cálido en carmesí (se conserva el nombre). */
   .glow {
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
-      0 0 44px -10px color-mix(in srgb, var(--accent) 60%, transparent);
+      0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 22px 48px -30px color-mix(in srgb, var(--accent) 70%, transparent);
   }
   .glow-2 {
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--accent-2) 40%, transparent),
-      0 0 44px -10px color-mix(in srgb, var(--accent-2) 55%, transparent);
+      0 0 0 1px color-mix(in srgb, var(--accent-2) 30%, transparent),
+      0 22px 48px -30px color-mix(in srgb, var(--accent-2) 65%, transparent);
+  }
+  .glow-3 {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent-3) 30%, transparent),
+      0 22px 48px -30px color-mix(in srgb, var(--accent-3) 65%, transparent);
   }
 
   .glass {
@@ -197,14 +373,20 @@
     border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   }
 
+  /* Texto con degradé carmesí → violeta: Derecho + Laboratorio de IA. */
   .text-gradient {
-    background-image: linear-gradient(92deg, var(--accent) 0%, var(--accent-2) 55%, var(--accent-3) 100%);
+    background-image: linear-gradient(
+      92deg,
+      var(--accent) 0%,
+      color-mix(in srgb, var(--accent) 45%, var(--accent-3)) 55%,
+      var(--accent-3) 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  /* Borde con gradiente (para tarjetas destacadas) */
+  /* Borde con degradé (tarjetas destacadas) */
   .border-gradient {
     position: relative;
     background-clip: padding-box;
@@ -215,12 +397,30 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), color-mix(in srgb, var(--accent-2) 40%, transparent) 60%, transparent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 80%, transparent),
+      color-mix(in srgb, var(--accent-3) 45%, transparent) 60%,
+      transparent
+    );
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+  }
+
+  /* El logo de la Facultad es carmesí sobre transparente: en "tinta" pasa a blanco. */
+  .brand-invert-dark {
+    transition: filter 0.2s ease;
+  }
+  :root[data-theme="dark"] .brand-invert-dark {
+    filter: brightness(0) invert(1) opacity(0.92);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .brand-invert-dark {
+      filter: brightness(0) invert(1) opacity(0.92);
+    }
   }
 
   .skeleton-shimmer {
@@ -248,6 +448,18 @@
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Subrayado editorial para links dentro de texto. */
+  .link-editorial {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: text-decoration-color 0.2s ease;
+  }
+  .link-editorial:hover {
+    text-decoration-color: var(--accent);
   }
 }
 
@@ -298,9 +510,18 @@
   }
 }
 
+@keyframes scan {
+  from {
+    background-position: 0 -60%;
+  }
+  to {
+    background-position: 0 160%;
+  }
+}
+
 /* Diálogo nativo: fondo y animación de entrada */
 dialog::backdrop {
-  background: rgba(4, 5, 12, 0.6);
+  background: rgba(29, 26, 28, 0.55);
   backdrop-filter: blur(4px);
 }
 dialog[open] {

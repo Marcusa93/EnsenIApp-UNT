@@ -30,7 +30,7 @@ export function ClassPicker({ classes, activeId }: { classes: ClassPickerOption[
           router.push(next ? `/campus/estudiante/alberdi?classId=${next}` : "/campus/estudiante/alberdi");
         });
       }}
-      className="sm:w-80"
+      className="w-full sm:w-80"
     >
       <option value="">Toda la materia</option>
       {classes.map((c) => (

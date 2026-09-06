@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   Brain,
   Cpu,
   Dna,
@@ -15,8 +16,11 @@ import {
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import type { Tables } from "@/lib/types/helpers";
-import { Brand, BrandMark } from "@/components/shell/brand";
+import { BrandMark, DerechoLogo, InstitutionalLockup } from "@/components/shell/brand";
+import { DevelopedBy } from "@/components/shell/developed-by";
+import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { Reveal, RevealGroup, RevealItem } from "@/components/shell/reveal";
+import { LabBadge } from "@/components/live/lab-badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
@@ -71,13 +75,13 @@ const FEATURES: { icon: LucideIcon; title: string; desc: string; tone: "accent" 
     icon: Sparkles,
     title: "Feedback personalizado",
     desc: "El campus genera devoluciones a partir del uso real de cada estudiante, no plantillas genéricas.",
-    tone: "accent-2",
+    tone: "accent-3",
   },
   {
     icon: MessageCircleQuestionMark,
     title: "Consultas y check-ins",
     desc: "Preguntá cuando lo necesites (respuesta IA inmediata, luego docente) y contá qué te costó de cada clase.",
-    tone: "accent-3",
+    tone: "accent-2",
   },
   {
     icon: FileText,
@@ -88,11 +92,11 @@ const FEATURES: { icon: LucideIcon; title: string; desc: string; tone: "accent" 
 ];
 
 const PIPELINE = [
-  { label: "Grabación", icon: Mic },
-  { label: "Transcripción", icon: FileText },
-  { label: "Resumen", icon: Brain },
-  { label: "Placas", icon: Layers },
-];
+  { label: "Grabación", icon: Mic, tone: "accent" },
+  { label: "Transcripción", icon: FileText, tone: "accent" },
+  { label: "Resumen", icon: Brain, tone: "accent-2" },
+  { label: "Placas", icon: Layers, tone: "accent-3" },
+] as const;
 
 type Faculty = Tables<"faculty">;
 
@@ -152,49 +156,52 @@ function groupFaculty(faculty: Faculty[]): { label: string; people: Faculty[] }[
   return Array.from(groups.values());
 }
 
+const toneBox = {
+  accent: "border-accent/30 bg-accent/10 text-accent",
+  "accent-2": "border-accent-2/30 bg-accent-2/10 text-accent-2",
+  "accent-3": "border-accent-3/30 bg-accent-3/10 text-accent-3",
+} as const;
+
 export default async function Home() {
   const { description, faculty } = await loadData();
   const groups = groupFaculty(faculty);
 
   return (
     <main id="contenido" tabIndex={-1} className="relative flex-1 overflow-hidden outline-none">
-      {/* Fondo: grilla + auroras */}
-      <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-x-0 top-0 h-[900px]" aria-hidden />
+      {/* Fondo: trama del logo + un velo carmesí arriba a la izquierda */}
+      <div className="trama campus-grid-fade pointer-events-none absolute inset-x-0 top-0 h-[820px] opacity-70" aria-hidden />
       <div
-        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full opacity-40 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(closest-side, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%)",
-        }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute right-[-10%] top-[420px] h-[420px] w-[520px] rounded-full opacity-30 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 50%, transparent), transparent 70%)",
-        }}
+        className="pointer-events-none absolute -left-40 -top-48 h-[560px] w-[760px] rounded-full opacity-[0.16] blur-3xl"
+        style={{ background: "radial-gradient(closest-side, var(--accent), transparent 70%)" }}
         aria-hidden
       />
 
       {/* Header */}
       <header className="relative z-10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
-          <Brand />
-          <nav className="flex items-center gap-2" aria-label="Portada">
+        <div className="brand-rule" aria-hidden />
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8 sm:py-5">
+          <InstitutionalLockup logoHeight={32} />
+          <nav className="flex items-center gap-1.5 sm:gap-2" aria-label="Portada">
             <a
               href="#campus"
-              className="hidden rounded-xl px-3 py-2 text-sm text-muted transition hover:text-foreground sm:inline-flex"
+              className="hidden rounded-xl px-3 py-2 font-display text-sm font-semibold text-muted transition hover:text-foreground md:inline-flex"
             >
               El campus
             </a>
             <a
               href="#catedra"
-              className="hidden rounded-xl px-3 py-2 text-sm text-muted transition hover:text-foreground sm:inline-flex"
+              className="hidden rounded-xl px-3 py-2 font-display text-sm font-semibold text-muted transition hover:text-foreground md:inline-flex"
             >
               Cátedra
             </a>
-            <Button asChild variant="secondary" size="sm">
+            <a
+              href="#laboratorio"
+              className="hidden rounded-xl px-3 py-2 font-display text-sm font-semibold text-muted transition hover:text-foreground md:inline-flex"
+            >
+              DYNTEC
+            </a>
+            <ThemeToggle className="hidden sm:flex" />
+            <Button asChild size="sm">
               <Link href="/login">Ingresar</Link>
             </Button>
           </nav>
@@ -202,20 +209,21 @@ export default async function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative z-10 mx-auto max-w-6xl px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:pb-28">
+      <section className="relative z-10 mx-auto max-w-6xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16 lg:pb-24">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
             <Reveal inView={false}>
               <div className="mb-6 flex flex-wrap items-center gap-2">
-                <Badge tone="accent-2" dot live>
+                <Badge tone="accent" dot live>
                   Ciclo 2026
                 </Badge>
-                <span className="eyebrow">Facultad de Derecho · Universidad Nacional de Tucumán</span>
+                <Badge tone="muted">Materia optativa</Badge>
+                <span className="eyebrow hidden sm:inline">Facultad de Derecho y Ciencias Sociales · UNT</span>
               </div>
             </Reveal>
             <Reveal inView={false} delay={0.08}>
-              <h1 className="max-w-3xl text-[2.6rem] font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-[4.4rem]">
-                Derecho de las <span className="text-gradient">Nuevas Tecnologías</span> y Bioderecho
+              <h1 className="pleca max-w-3xl font-display text-[2.5rem] font-extrabold leading-[1.02] tracking-[-0.03em] sm:text-6xl lg:text-[4.5rem]">
+                Derecho de las <span className="text-accent">Nuevas Tecnologías</span> y Bioderecho
                 <span className="text-muted"> en el siglo XXI.</span>
               </h1>
             </Reveal>
@@ -244,73 +252,61 @@ export default async function Home() {
                 ].map(([v, k]) => (
                   <div key={k}>
                     <dt className="eyebrow">{k}</dt>
-                    <dd className="mt-1 text-xl font-semibold tracking-tight">{v}</dd>
+                    <dd className="display-num mt-1 text-xl sm:text-2xl">{v}</dd>
                   </div>
                 ))}
               </dl>
             </Reveal>
           </div>
 
-          {/* Panel visual: pipeline de clase */}
+          {/* Panel visual: el expediente de una clase */}
           <Reveal inView={false} delay={0.2} y={28} className="relative">
-            <div className="glass relative overflow-hidden rounded-3xl p-6 shadow-2xl sm:p-7">
-              <div className="mb-5 flex items-center justify-between">
-                <span className="eyebrow">Clase 03 · Datos personales</span>
+            <div className="paper corners trama-scan relative overflow-hidden rounded-3xl border border-border border-t-[3px] border-t-accent bg-surface p-6 sm:p-7">
+              <div className="trama pointer-events-none absolute inset-x-0 bottom-0 h-24 opacity-70 campus-grid-fade" aria-hidden />
+              <div className="relative mb-5 flex items-center justify-between gap-3">
+                <span className="eyebrow">Expediente · Clase 03 · Datos personales</span>
                 <Badge tone="success" dot live size="sm">
                   Publicada
                 </Badge>
               </div>
               <ol className="relative flex flex-col gap-3">
-                <span className="absolute left-[19px] top-4 bottom-4 w-px bg-gradient-to-b from-accent via-accent-2 to-accent-3 opacity-60" aria-hidden />
+                <span className="absolute left-[19px] top-4 bottom-4 w-px bg-gradient-to-b from-accent via-accent-2 to-accent-3 opacity-50" aria-hidden />
                 {PIPELINE.map((step, i) => (
                   <li
                     key={step.label}
-                    className="relative flex items-center gap-4 rounded-2xl border border-border bg-surface/70 px-3 py-3 animate-fade-up"
+                    className="relative flex items-center gap-4 rounded-2xl border border-border bg-surface/80 px-3 py-3 animate-fade-up"
                     style={{ animationDelay: `${400 + i * 120}ms` }}
                   >
-                    <span
-                      className={cn(
-                        "flex size-8 shrink-0 items-center justify-center rounded-xl border",
-                        i === 0 && "border-accent/40 bg-accent/15 text-accent",
-                        i === 1 && "border-accent/40 bg-accent/15 text-accent",
-                        i === 2 && "border-accent-2/40 bg-accent-2/15 text-accent-2",
-                        i === 3 && "border-accent-3/40 bg-accent-3/15 text-accent-3",
-                      )}
-                    >
+                    <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-xl border", toneBox[step.tone])}>
                       <step.icon className="size-4" aria-hidden />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{step.label}</p>
+                      <p className="font-display text-sm font-semibold">{step.label}</p>
                       <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-surface-2">
-                        <div
-                          className={cn(
-                            "h-full rounded-full",
-                            i < 3 ? "w-full bg-accent-2" : "w-2/3 skeleton-shimmer",
-                          )}
-                        />
+                        <div className={cn("h-full rounded-full", i < 3 ? "w-full bg-accent" : "w-2/3 skeleton-shimmer")} />
                       </div>
                     </div>
                     <span className="font-mono text-[10px] tabular-nums text-muted">{i < 3 ? "100%" : "67%"}</span>
                   </li>
                 ))}
               </ol>
-              <div className="mt-5 grid grid-cols-3 gap-2">
+              <div className="relative mt-5 grid grid-cols-3 gap-2">
                 {[
                   ["24", "placas"],
                   ["1 h 12", "de clase"],
                   ["2", "niveles simples"],
                 ].map(([v, k]) => (
-                  <div key={k} className="rounded-xl border border-border bg-surface/60 px-3 py-2">
-                    <p className="font-mono text-sm font-semibold tabular-nums">{v}</p>
+                  <div key={k} className="rounded-xl border border-border bg-surface/80 px-3 py-2">
+                    <p className="display-num text-base">{v}</p>
                     <p className="eyebrow text-[9px]">{k}</p>
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-widest text-muted">
+              <p className="relative mt-4 text-center font-mono text-[10px] uppercase tracking-widest text-muted">
                 Vista ilustrativa del pipeline
               </p>
             </div>
-            <div className="pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] bg-accent/20 blur-3xl" aria-hidden />
+            <div className="pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] bg-accent/10 blur-3xl" aria-hidden />
           </Reveal>
         </div>
       </section>
@@ -318,8 +314,8 @@ export default async function Home() {
       {/* Ejes */}
       <section className="relative z-10 mx-auto max-w-6xl px-5 py-16 sm:px-8" aria-labelledby="ejes">
         <Reveal>
-          <span className="eyebrow">Programa</span>
-          <h2 id="ejes" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <span className="eyebrow text-accent">Programa</span>
+          <h2 id="ejes" className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
             Dos ejes, una misma pregunta: <span className="text-gradient">¿qué hace el derecho frente a lo nuevo?</span>
           </h2>
         </Reveal>
@@ -328,14 +324,13 @@ export default async function Home() {
             <RevealItem key={axis.title}>
               <article
                 className={cn(
-                  "group relative h-full overflow-hidden rounded-3xl border border-border bg-surface p-7 transition-colors",
-                  axis.tone === "accent" ? "hover:border-accent/50" : "hover:border-accent-2/50",
+                  "paper group relative h-full overflow-hidden rounded-3xl border border-border border-t-[3px] bg-surface p-7 transition-colors",
+                  axis.tone === "accent" ? "border-t-accent hover:border-accent/50" : "border-t-accent-2 hover:border-accent-2/50",
                 )}
               >
                 <div
                   className={cn(
-                    "pointer-events-none absolute -right-16 -top-16 size-48 rounded-full opacity-[0.12] blur-3xl transition-opacity group-hover:opacity-30",
-                    axis.tone === "accent" ? "bg-accent" : "bg-accent-2",
+                    "trama trama-fade-r pointer-events-none absolute inset-x-0 bottom-0 h-16 opacity-0 transition-opacity group-hover:opacity-100",
                   )}
                   aria-hidden
                 />
@@ -343,12 +338,12 @@ export default async function Home() {
                   <span className={cn("eyebrow", axis.tone === "accent" ? "text-accent" : "text-accent-2")}>{axis.eyebrow}</span>
                   <axis.icon className={cn("size-6", axis.tone === "accent" ? "text-accent" : "text-accent-2")} aria-hidden />
                 </div>
-                <h3 className="mt-3 text-2xl font-semibold tracking-tight">{axis.title}</h3>
+                <h3 className="mt-3 font-display text-2xl font-extrabold tracking-tight">{axis.title}</h3>
                 <ul className="mt-5 flex flex-wrap gap-2">
                   {axis.items.map((it) => (
                     <li
                       key={it}
-                      className="rounded-full border border-border bg-surface-2/60 px-3 py-1 text-xs text-muted transition group-hover:text-foreground"
+                      className="rounded-md border border-border bg-surface-2/70 px-2.5 py-1 text-xs text-muted transition group-hover:text-foreground"
                     >
                       {it}
                     </li>
@@ -363,8 +358,8 @@ export default async function Home() {
       {/* El campus */}
       <section id="campus" className="relative z-10 mx-auto max-w-6xl scroll-mt-20 px-5 py-16 sm:px-8" aria-labelledby="campus-h">
         <Reveal>
-          <span className="eyebrow">El campus</span>
-          <h2 id="campus-h" className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
+          <span className="eyebrow text-accent">El campus</span>
+          <h2 id="campus-h" className="mt-2 max-w-2xl font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
             Las clases se graban. La IA las convierte en material para estudiar.
           </h2>
           <p className="mt-4 max-w-2xl text-muted">
@@ -374,21 +369,14 @@ export default async function Home() {
         <RevealGroup className="mt-10 grid gap-4 sm:grid-cols-2">
           {FEATURES.map((f, i) => (
             <RevealItem key={f.title}>
-              <article className="group relative h-full rounded-2xl border border-border bg-surface p-6 transition-colors hover:border-accent/50">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "flex size-10 items-center justify-center rounded-xl border",
-                      f.tone === "accent" && "border-accent/30 bg-accent/10 text-accent",
-                      f.tone === "accent-2" && "border-accent-2/30 bg-accent-2/10 text-accent-2",
-                      f.tone === "accent-3" && "border-accent-3/30 bg-accent-3/10 text-accent-3",
-                    )}
-                  >
+              <article className="paper group relative h-full rounded-2xl border border-border bg-surface p-6 transition-colors hover:border-accent/50">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={cn("flex size-10 items-center justify-center rounded-xl border", toneBox[f.tone])}>
                     <f.icon className="size-5" aria-hidden />
                   </span>
-                  <span className="font-mono text-xs text-muted">0{i + 1}</span>
+                  <span className="display-num text-2xl text-border transition-colors group-hover:text-accent/40">0{i + 1}</span>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold tracking-tight">{f.title}</h3>
+                <h3 className="mt-4 font-display text-lg font-bold tracking-tight">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{f.desc}</p>
               </article>
             </RevealItem>
@@ -401,8 +389,8 @@ export default async function Home() {
         <Reveal>
           <div className="flex items-end justify-between gap-4">
             <div>
-              <span className="eyebrow">Cátedra</span>
-              <h2 id="catedra-h" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+              <span className="eyebrow text-accent">Cátedra</span>
+              <h2 id="catedra-h" className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Cuerpo docente
               </h2>
             </div>
@@ -416,7 +404,7 @@ export default async function Home() {
             {groups.map(({ label, people }) => (
               <Reveal key={label}>
                 <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-                  <h3 className="eyebrow pt-2">{label}</h3>
+                  <h3 className="eyebrow pleca pt-2">{label}</h3>
                   <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {people.map((p) => (
                       <li
@@ -425,7 +413,7 @@ export default async function Home() {
                       >
                         <Avatar name={p.full_name} size="sm" />
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{p.full_name}</p>
+                          <p className="truncate font-display text-sm font-semibold">{p.full_name}</p>
                           <p className="truncate text-xs text-muted">{p.position}</p>
                         </div>
                       </li>
@@ -438,13 +426,44 @@ export default async function Home() {
         )}
       </section>
 
+      {/* Laboratorio DYNTEC */}
+      <section id="laboratorio" className="relative z-10 mx-auto max-w-6xl scroll-mt-20 px-5 py-16 sm:px-8" aria-labelledby="lab-h">
+        <Reveal>
+          <div className="paper relative overflow-hidden rounded-3xl border border-border border-t-[3px] border-t-accent-3 bg-surface p-7 sm:p-10">
+            <div className="trama trama-fade-r pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-60" aria-hidden />
+            <div className="relative grid items-center gap-8 md:grid-cols-[auto_1fr]">
+              <LabBadge size={112} className="sello mx-auto md:mx-0" />
+              <div>
+                <span className="eyebrow text-accent-3">Desarrollado por</span>
+                <h2 id="lab-h" className="mt-2 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+                  Laboratorio de IA, Innovación y Transformación Digital <span className="text-accent-3">DYNTEC</span>
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
+                  El laboratorio de la Facultad de Derecho y Ciencias Sociales de la UNT diseña y construye EnsenIA: un
+                  campus que aprende de cómo se estudia para enseñar mejor. Hecho con IA, para enseñar sobre IA.
+                </p>
+                <a
+                  href="https://derecho.unt.edu.ar/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-editorial mt-4 inline-flex items-center gap-1.5 font-display text-sm font-semibold text-accent"
+                >
+                  derecho.unt.edu.ar <ArrowUpRight className="size-4" aria-hidden />
+                </a>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
       {/* CTA */}
       <section className="relative z-10 mx-auto max-w-6xl px-5 py-16 sm:px-8">
         <Reveal>
-          <div className="border-gradient glow relative overflow-hidden rounded-3xl border border-transparent bg-surface p-8 text-center sm:p-14">
-            <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-0 opacity-60" aria-hidden />
-            <BrandMark size={44} className="relative mx-auto" />
-            <h2 className="relative mt-5 text-2xl font-semibold tracking-tight sm:text-4xl">
+          <div className="corners paper relative overflow-hidden rounded-3xl border border-border bg-surface p-8 text-center sm:p-14">
+            <div className="brand-rule absolute inset-x-0 top-0" aria-hidden />
+            <div className="trama campus-grid-fade pointer-events-none absolute inset-0 opacity-60" aria-hidden />
+            <BrandMark size={48} className="relative mx-auto" />
+            <h2 className="relative mt-5 font-display text-2xl font-extrabold tracking-tight sm:text-4xl">
               Tu cuenta te la da la cátedra.
             </h2>
             <p className="relative mx-auto mt-3 max-w-md text-sm text-muted sm:text-base">
@@ -462,10 +481,18 @@ export default async function Home() {
         </Reveal>
       </section>
 
-      <footer className="relative z-10 border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-3 px-5 py-8 text-xs text-muted sm:flex-row sm:items-center sm:px-8">
-          <span>EnsenIA UNT · Facultad de Derecho · Universidad Nacional de Tucumán</span>
-          <span className="font-mono uppercase tracking-widest">Hecho con IA, para enseñar sobre IA</span>
+      <footer className="relative z-10 border-t border-border bg-surface/60">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:px-8">
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <a href="https://derecho.unt.edu.ar/" target="_blank" rel="noopener noreferrer" className="rounded-md focus-visible:outline-2 focus-visible:outline-ring">
+              <DerechoLogo height={40} />
+            </a>
+            <DevelopedBy variant="card" />
+          </div>
+          <div className="flex flex-col items-start justify-between gap-3 border-t border-border pt-5 text-xs text-muted sm:flex-row sm:items-center">
+            <span>EnsenIA UNT · Derecho de las Nuevas Tecnologías y Bioderecho · Universidad Nacional de Tucumán</span>
+            <span className="eyebrow text-[10px]">Hecho con IA, para enseñar sobre IA</span>
+          </div>
         </div>
       </footer>
     </main>

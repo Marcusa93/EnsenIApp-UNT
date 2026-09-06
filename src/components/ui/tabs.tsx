@@ -106,7 +106,7 @@ export function TabsTrigger({ value, icon, count, className, children, ...props 
       tabIndex={active ? 0 : -1}
       onClick={() => ctx.setValue(value)}
       className={cn(
-        "relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring",
+        "relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 font-display text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-ring",
         ctx.variant === "underline" ? "h-10 rounded-b-none" : "h-8",
         active ? "text-foreground" : "text-muted hover:text-foreground",
         className,
@@ -120,7 +120,7 @@ export function TabsTrigger({ value, icon, count, className, children, ...props 
           className={cn(
             "absolute",
             ctx.variant === "underline"
-              ? "inset-x-0 -bottom-px h-0.5 rounded-full bg-accent"
+              ? "inset-x-0 -bottom-px h-[3px] rounded-full bg-accent"
               : "inset-0 rounded-lg bg-surface shadow-sm",
           )}
           aria-hidden
@@ -130,7 +130,7 @@ export function TabsTrigger({ value, icon, count, className, children, ...props 
         {icon}
         {children}
         {count !== undefined && (
-          <span className="rounded-full bg-surface-2 px-1.5 font-mono text-[10px] text-muted">{count}</span>
+          <span className="rounded-md bg-surface-2 px-1.5 font-mono text-[10px] tabular-nums text-muted">{count}</span>
         )}
       </span>
     </button>

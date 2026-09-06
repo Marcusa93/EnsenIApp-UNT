@@ -2,28 +2,36 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Borde degradado + leve glow: para la tarjeta protagonista de la pantalla. */
+  /** Tarjeta protagonista: pleca carmesí arriba, esquinas de expediente y realce cálido. */
   highlight?: boolean;
   /** Hover interactivo (para tarjetas clickeables envueltas en <Link>). */
   interactive?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
+  /** Tono de la pleca superior (sólo con `highlight`). */
+  tone?: "accent" | "accent-2" | "accent-3";
 }
 
 const paddings = { none: "", sm: "p-4", md: "p-5 sm:p-6", lg: "p-6 sm:p-8" } as const;
 
+const ruleTone = {
+  accent: "border-t-accent",
+  "accent-2": "border-t-accent-2",
+  "accent-3": "border-t-accent-3",
+} as const;
+
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
-  { className, highlight, interactive, padding = "md", ...props },
+  { className, highlight, interactive, padding = "md", tone = "accent", ...props },
   ref,
 ) {
   return (
     <div
       ref={ref}
       className={cn(
-        "rounded-2xl border border-border bg-surface text-foreground",
+        "paper rounded-2xl border border-border bg-surface text-foreground",
         paddings[padding],
-        highlight && "border-gradient border-transparent glow",
+        highlight && cn("corners border-t-[3px] glow", ruleTone[tone]),
         interactive &&
-          "transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[0_12px_40px_-20px_var(--accent)]",
+          "transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_18px_40px_-24px_var(--accent)]",
         className,
       )}
       {...props}
@@ -39,7 +47,7 @@ export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 
 export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   as?: "h2" | "h3" | "h4";
-  /** Etiqueta mono encima del título */
+  /** Etiqueta encima del título */
   eyebrow?: React.ReactNode;
 }
 
@@ -50,7 +58,7 @@ export const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(fu
   return (
     <>
       {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-      <Tag ref={ref} className={cn("text-base font-semibold leading-snug tracking-tight", className)} {...props}>
+      <Tag ref={ref} className={cn("font-display text-base font-bold leading-snug tracking-tight", className)} {...props}>
         {children}
       </Tag>
     </>

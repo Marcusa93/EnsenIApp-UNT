@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export const inputClasses =
-  "flex w-full rounded-xl border border-border bg-surface px-3.5 text-sm text-foreground shadow-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-muted/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/25";
+  "flex w-full rounded-xl border border-border bg-surface px-3.5 text-[15px] text-foreground shadow-[inset_0_1px_2px_rgba(29,26,28,0.04)] transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-muted/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/25";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;

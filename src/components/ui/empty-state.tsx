@@ -20,6 +20,7 @@ const toneClass = {
   muted: "text-muted bg-surface-2 border-border",
 } as const;
 
+/** Estado vacío sobre la trama, con un mensaje que dice qué hacer. */
 export function EmptyState({
   icon: Icon = Inbox,
   title,
@@ -33,7 +34,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "campus-grid campus-grid-fade flex flex-col items-center justify-center rounded-2xl border border-dashed border-border text-center",
+        "trama campus-grid-fade flex flex-col items-center justify-center rounded-2xl border border-dashed border-border text-center",
         compact ? "px-4 py-8" : "px-6 py-14",
         className,
       )}
@@ -48,7 +49,7 @@ export function EmptyState({
       >
         <Icon className={compact ? "size-5" : "size-6"} aria-hidden />
       </div>
-      <h3 className={cn("font-semibold tracking-tight", compact ? "text-sm" : "text-base")}>{title}</h3>
+      <h3 className={cn("font-display font-bold tracking-tight", compact ? "text-sm" : "text-base")}>{title}</h3>
       {description && <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>

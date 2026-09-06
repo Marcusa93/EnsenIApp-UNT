@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/types/helpers";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ThemeSegment } from "./theme-toggle";
 
 const ROLE_LABEL: Record<Profile["role"], string> = {
   estudiante: "Estudiante",
@@ -51,7 +52,7 @@ export function UserMenu({ profile, className }: { profile: Profile; className?:
         className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-2 text-sm transition hover:border-accent/50 focus-visible:outline-2 focus-visible:outline-ring"
       >
         <Avatar name={profile.full_name} src={profile.avatar_url} size="sm" />
-        <span className="hidden max-w-36 truncate font-medium sm:inline">{profile.full_name}</span>
+        <span className="hidden max-w-36 truncate font-display font-semibold sm:inline">{profile.full_name}</span>
         <ChevronDown className={cn("size-4 text-muted transition-transform", open && "rotate-180")} aria-hidden />
       </button>
 
@@ -63,10 +64,10 @@ export function UserMenu({ profile, className }: { profile: Profile; className?:
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="glass absolute right-0 z-50 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl p-1.5 shadow-2xl"
+            className="glass absolute right-0 z-50 mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border-t-[3px] border-t-accent p-1.5 shadow-2xl"
           >
             <div className="px-3 py-2.5">
-              <p className="truncate text-sm font-semibold">{profile.full_name}</p>
+              <p className="truncate font-display text-sm font-bold">{profile.full_name}</p>
               <p className="truncate text-xs text-muted">{profile.email ?? "Acceso por nombre"}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <Badge tone={roleTone(profile.role)} size="sm">
@@ -85,6 +86,11 @@ export function UserMenu({ profile, className }: { profile: Profile; className?:
               </div>
             </div>
             <div className="my-1 h-px bg-border" />
+            <div className="px-3 py-2">
+              <p className="eyebrow mb-1.5 text-[9px]">Tema</p>
+              <ThemeSegment />
+            </div>
+            <div className="my-1 h-px bg-border" />
             {profile.email && (
               <Link
                 href="/campus/cuenta"
@@ -93,7 +99,7 @@ export function UserMenu({ profile, className }: { profile: Profile; className?:
                 className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-foreground"
               >
                 <KeyRound className="size-4" aria-hidden />
-                Cambiar contraseña
+                Mi cuenta y contraseña
               </Link>
             )}
             <Link

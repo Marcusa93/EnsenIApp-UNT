@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Bell, CalendarDays, Check, Clock, Feather, Gamepad2, MessageCircleQuestion, NotebookText, Paperclip, UserRound } from "lucide-react";
+import { ArrowLeft, Bell, CalendarDays, Check, Clock, Feather, Gamepad2, NotebookText, Paperclip, UserRound } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Button, Card, CardDescription, CardTitle, EmptyState, PageHeader } from "@/components/ui";
@@ -27,6 +27,12 @@ const STATE_BADGE = {
   pasada: { label: "Pasada", tone: "muted", live: false },
 } as const;
 
+/**
+ * Alberdi es IA: va en violeta (accent-3) como contorno, no relleno, porque el
+ * violeta claro del tema "tinta" no sostiene AA con texto blanco encima.
+ */
+const ALBERDI_BUTTON = "border-accent-3/50 text-accent-3 hover:border-accent-3 hover:bg-accent-3/10";
+
 export default async function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
   const { classId } = await params;
   // El docente y el admin también pueden entrar: es la única forma honesta de
@@ -44,22 +50,26 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
   // No todas las clases se graban: cuando hay apunte, ESE es el contenido de la
   // clase y se muestra como tal, no como un premio consuelo.
   const hasNote = cls.note != null;
+  const alberdiHref = `/campus/estudiante/alberdi?classId=${cls.id}`;
 
   return (
     <>
       {!esVistaDocente && <ClassOpenedTracker classId={cls.id} recordingIds={cls.recordings.map((r) => r.id)} />}
 
       {esVistaDocente && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-2.5">
-          <p className="text-sm">
-            <span className="font-semibold">Vista de estudiante.</span> Así ve esta clase un estudiante de la comisión.
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-2">
+          <p className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
+            <Badge size="sm" tone="accent">
+              Vista de estudiante
+            </Badge>
+            <span className="text-muted">Así ve esta clase un estudiante de la comisión.</span>
           </p>
-          <Link
-            href={`/campus/docente/clases/${cls.id}`}
-            className="font-mono text-[11px] uppercase tracking-widest text-accent underline-offset-4 hover:underline"
-          >
-            Volver a la vista docente
-          </Link>
+          <Button asChild variant="ghost" size="sm" className="-mr-2 text-accent hover:text-accent-deep">
+            <Link href={`/campus/docente/clases/${cls.id}`}>
+              <ArrowLeft className="size-4" aria-hidden />
+              Volver a la vista docente
+            </Link>
+          </Button>
         </div>
       )}
 
@@ -67,15 +77,15 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
         top={
           <Link
             href="/campus/estudiante/clases"
-            className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring rounded-md"
+            className="-ml-1 inline-flex min-h-10 items-center gap-1.5 rounded-md px-1 text-sm text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
           >
             <ArrowLeft className="size-4" aria-hidden />
             Cronograma
           </Link>
         }
         eyebrow={
-          <span className="flex items-center gap-2">
-            {cls.course_name}
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="truncate">{cls.course_name}</span>
             <Badge size="sm" tone={badge.tone} dot={badge.live} live={badge.live}>
               {badge.label}
             </Badge>
@@ -85,22 +95,25 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
         description={
           <span className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
             <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-4 text-accent-2" aria-hidden />
+              <CalendarDays className="size-4 shrink-0 text-accent-2" aria-hidden />
               <span className="capitalize">{formatDateLong(cls.class_date)}</span>
-              <span className="font-mono text-xs">({formatDate(cls.class_date)})</span>
+              <span className="font-mono text-xs tabular-nums">({formatDate(cls.class_date)})</span>
             </span>
             {cls.teacher && (
-              <span className="inline-flex items-center gap-1.5">
-                <UserRound className="size-4 text-accent-2" aria-hidden />
-                {cls.teacher.full_name}
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <UserRound className="size-4 shrink-0 text-accent" aria-hidden />
+                <span className="truncate">{cls.teacher.full_name}</span>
                 {cls.teacher.position && <span className="text-xs text-muted/80">· {cls.teacher.position}</span>}
               </span>
             )}
           </span>
         }
         actions={
-          <Button asChild leftIcon={<Feather />}>
-            <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntarle a Alberdi</Link>
+          <Button asChild variant="outline" className={ALBERDI_BUTTON}>
+            <Link href={alberdiHref}>
+              <Feather className="size-4" aria-hidden />
+              Preguntarle a Alberdi
+            </Link>
           </Button>
         }
       />
@@ -123,9 +136,10 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
 
           {cls.note && (
             <Reveal delay={0.03}>
-              <Card>
+              {/* Sin grabación, el apunte ES la clase: tarjeta protagonista con pleca carmesí. */}
+              <Card highlight={!hasRecordings}>
                 <CardTitle eyebrow={hasRecordings ? "Apunte de la clase" : "Esta clase no se grabó"} as="h2" className="flex items-center gap-2">
-                  <NotebookText className="size-4 text-accent-2" aria-hidden />
+                  <NotebookText className="size-4 shrink-0 text-accent" aria-hidden />
                   {hasRecordings ? "Notas del equipo docente" : "Lo que se dio en clase"}
                 </CardTitle>
                 <CardDescription className="mt-1">
@@ -137,11 +151,17 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
                   <Markdown size="sm">{cls.note.body_md}</Markdown>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
-                  <Button asChild size="sm" variant="secondary" leftIcon={<Gamepad2 />}>
-                    <Link href={`/campus/estudiante/juegos?clase=${cls.id}`}>Jugar con esta clase</Link>
+                  <Button asChild variant="secondary">
+                    <Link href={`/campus/estudiante/juegos?clase=${cls.id}`}>
+                      <Gamepad2 className="size-4" aria-hidden />
+                      Jugar con esta clase
+                    </Link>
                   </Button>
-                  <Button asChild size="sm" variant="ghost" leftIcon={<Feather />}>
-                    <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntarle a Alberdi</Link>
+                  <Button asChild variant="outline" className={ALBERDI_BUTTON}>
+                    <Link href={alberdiHref}>
+                      <Feather className="size-4" aria-hidden />
+                      Preguntarle a Alberdi
+                    </Link>
                   </Button>
                 </div>
               </Card>
@@ -166,8 +186,11 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
                     : "Después de la clase, el equipo docente sube la grabación o deja el apunte. Te avisamos en Hoy cuando esté."
                 }
                 action={
-                  <Button asChild variant="secondary" size="sm" leftIcon={<MessageCircleQuestion />}>
-                    <Link href={`/campus/estudiante/alberdi?classId=${cls.id}`}>Preguntale a Alberdi</Link>
+                  <Button asChild variant="outline" className={ALBERDI_BUTTON}>
+                    <Link href={alberdiHref}>
+                      <Feather className="size-4" aria-hidden />
+                      Preguntale a Alberdi
+                    </Link>
                   </Button>
                 }
               />
@@ -182,29 +205,30 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
               <Reveal delay={0.08}>
                 <Card padding="sm" role="status">
                   <div className="flex items-center gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-success/30 bg-success/12 text-success">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-success/30 bg-success/12 text-success">
                       <Check className="size-4" aria-hidden />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">Check-in registrado</p>
+                      <p className="font-display text-sm font-semibold">Check-in registrado</p>
                       <p className="text-xs text-muted">
-                        Dificultad {cls.checkin.difficulty}/5 · {formatRelative(cls.checkin.created_at)}
+                        Dificultad <span className="font-mono tabular-nums">{cls.checkin.difficulty}/5</span> ·{" "}
+                        {formatRelative(cls.checkin.created_at)}
                       </p>
                     </div>
                   </div>
                 </Card>
               </Reveal>
-            ) : (
+            ) : !esVistaDocente ? (
               <Reveal delay={0.08}>
-                {!esVistaDocente && <CheckinCard classId={cls.id} classTopic={cls.topic} studentId={user.id} />}
+                <CheckinCard classId={cls.id} classTopic={cls.topic} studentId={user.id} />
               </Reveal>
-            )
+            ) : null
           ) : null}
 
           <Reveal delay={0.12}>
             <Card>
               <CardTitle eyebrow="Materiales" as="h2" className="flex items-center gap-2">
-                <Paperclip className="size-4 text-accent-2" aria-hidden />
+                <Paperclip className="size-4 shrink-0 text-accent" aria-hidden />
                 Bibliografía y enlaces
               </CardTitle>
               <div className="mt-3">
@@ -216,7 +240,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
           <Reveal delay={0.16}>
             <Card>
               <CardTitle eyebrow="Avisos de esta clase" as="h2" className="flex items-center gap-2">
-                <Bell className="size-4 text-accent-3" aria-hidden />
+                <Bell className="size-4 shrink-0 text-accent" aria-hidden />
                 Avisos
               </CardTitle>
               {cls.announcements.length === 0 ? (
@@ -224,12 +248,13 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ cl
               ) : (
                 <ul className="mt-3 flex flex-col gap-3" aria-label="Avisos">
                   {cls.announcements.map((a) => (
-                    <li key={a.id} className="rounded-xl border border-border bg-surface-2/50 p-3">
-                      <p className="text-sm font-medium leading-snug">{a.title}</p>
+                    /* Cada aviso abre con la pleca: es la voz del equipo docente. */
+                    <li key={a.id} className="pleca rounded-r-xl bg-surface-2/50 py-3 pr-3">
+                      <p className="font-display text-sm font-semibold leading-snug">{a.title}</p>
                       <div className="mt-1">
                         <Markdown size="sm">{a.body}</Markdown>
                       </div>
-                      <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">{formatRelative(a.created_at)}</p>
+                      <p className="mt-2 text-[11px] text-muted">{formatRelative(a.created_at)}</p>
                     </li>
                   ))}
                 </ul>

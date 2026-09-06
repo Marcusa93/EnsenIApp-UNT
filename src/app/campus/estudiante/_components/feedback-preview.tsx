@@ -19,18 +19,23 @@ function preview(md: string, maxChars = 520): string {
   return `${cut.slice(0, lastBreak > 200 ? lastBreak + 1 : maxChars).trimEnd()}…`;
 }
 
+/** Devolución generada por IA: todo lo que es IA va en violeta (Laboratorio DYNTEC). */
 export function FeedbackPreview({ feedback }: { feedback: FeedbackSummary | null }) {
   return (
-    <Card className="relative overflow-hidden">
-      <div className="pointer-events-none absolute -bottom-16 -right-16 size-48 rounded-full bg-accent opacity-[0.1] blur-3xl" aria-hidden />
+    <Card className="relative overflow-hidden border-accent-3/30">
+      <div className="trama campus-grid-fade pointer-events-none absolute inset-0 opacity-50" aria-hidden />
       <div className="relative grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="eyebrow">Tu devolución personalizada</span>
+            <Badge tone="accent-3" size="sm">
+              <Sparkles className="size-3" aria-hidden />
+              IA
+            </Badge>
+            <span className="eyebrow text-accent-3">Tu devolución personalizada</span>
             {feedback ? (
-              <Badge tone="accent" size="sm">
+              <time dateTime={feedback.created_at} className="font-mono text-[11px] tabular-nums text-muted">
                 {formatRelative(feedback.created_at)}
-              </Badge>
+              </time>
             ) : (
               <Badge tone="muted" size="sm">
                 Todavía no generada
@@ -38,17 +43,20 @@ export function FeedbackPreview({ feedback }: { feedback: FeedbackSummary | null
             )}
           </div>
           {feedback ? (
-            <Markdown size="sm" className="text-muted [&_h1]:text-base [&_h2]:text-base [&_h3]:text-sm">
-              {preview(feedback.feedback_md)}
-            </Markdown>
+            // La voz de la IA se cita con una pleca violeta.
+            <div className="border-l-[3px] border-l-accent-3 pl-4">
+              <Markdown size="sm" className="text-muted [&_h1]:text-base [&_h2]:text-base [&_h3]:text-sm">
+                {preview(feedback.feedback_md)}
+              </Markdown>
+            </div>
           ) : (
             <div className="flex items-start gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-accent/30 bg-accent/12 text-accent">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-accent-3/30 bg-accent-3/10 text-accent-3">
                 <Sparkles className="size-4" aria-hidden />
               </span>
-              <div>
-                <p className="text-sm font-medium">La IA puede leer tu recorrido y armarte una devolución</p>
-                <p className="mt-1 text-sm text-muted">
+              <div className="min-w-0">
+                <p className="font-display text-sm font-bold">La IA puede leer tu recorrido y armarte una devolución</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">
                   Con tus check-ins, placas, entregas y consultas te propone qué va bien, qué reforzar y un plan de 3
                   pasos. Cuanto más uses el campus, más precisa.
                 </p>
@@ -56,11 +64,11 @@ export function FeedbackPreview({ feedback }: { feedback: FeedbackSummary | null
             </div>
           )}
         </div>
-        <div className="flex shrink-0 gap-2 lg:flex-col">
-          <Button asChild size="sm" rightIcon={<ArrowRight />} variant={feedback ? "secondary" : "primary"}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:flex-col">
+          <Button asChild rightIcon={<ArrowRight />} variant={feedback ? "outline" : "primary"}>
             <Link href="/campus/estudiante/progreso">{feedback ? "Leer completa" : "Generar mi devolución"}</Link>
           </Button>
-          <Button asChild size="sm" variant="ghost" leftIcon={<TrendingUp />}>
+          <Button asChild variant="ghost" leftIcon={<TrendingUp />}>
             <Link href="/campus/estudiante/progreso">Mi progreso</Link>
           </Button>
         </div>

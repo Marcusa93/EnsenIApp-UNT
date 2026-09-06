@@ -9,6 +9,8 @@ import { Button, Card } from "@/components/ui";
  * El diagnóstico completo vive en Mi progreso, pero en el celular esa pestaña
  * queda detrás de "Más" — el rincón menos visitado del campus. La guía de
  * estudio tiene que aparecer donde el estudiante ya está: acá.
+ *
+ * Es un dato (porcentaje de aciertos), no IA: va en verde petróleo.
  */
 export function RepasoSugerido({
   classId,
@@ -23,26 +25,38 @@ export function RepasoSugerido({
 }) {
   const pct = Math.round((correct / answered) * 100);
   return (
-    <Card padding="sm" className="border-accent-3/30">
-      <div className="flex flex-wrap items-center gap-3">
-        <span
-          className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-accent-3/30 bg-accent-3/10 text-accent-3"
-          aria-hidden
-        >
-          <Target className="size-4" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="eyebrow text-[10px] text-accent-3">Para repasar</p>
-          <p className="truncate text-sm font-medium">{topic}</p>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            {pct}% de aciertos · {correct} de {answered}
+    <Card padding="sm" className="border-accent-2/30">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-accent-2/30 bg-accent-2/10 text-accent-2"
+            aria-hidden
+          >
+            <Target className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow text-[10px] text-accent-2">Para repasar</p>
+            <p className="truncate font-display text-sm font-bold">{topic}</p>
+            <p className="text-xs text-muted">
+              <span className="font-mono tabular-nums">
+                {correct} de {answered}
+              </span>{" "}
+              respuestas correctas
+            </p>
+          </div>
+          <p className="shrink-0 text-right leading-none">
+            <span className="display-num block text-2xl text-accent-2">
+              {pct}
+              <span className="text-base">%</span>
+            </span>
+            <span className="eyebrow text-[9px]">aciertos</span>
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
-          <Button asChild size="sm" variant="secondary">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+          <Button asChild variant="outline">
             <Link href={`/campus/estudiante/clases/${classId}`}>Repasar</Link>
           </Button>
-          <Button asChild size="sm" variant="ghost">
+          <Button asChild variant="ghost">
             <Link href={`/campus/estudiante/juegos?clase=${classId}`}>Practicar</Link>
           </Button>
         </div>

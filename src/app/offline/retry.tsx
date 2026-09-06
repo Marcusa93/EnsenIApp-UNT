@@ -41,7 +41,7 @@ export function OfflineRetry() {
   }, [online, retry]);
 
   return (
-    <Button onClick={retry} loading={busy} leftIcon={<RotateCw />}>
+    <Button onClick={retry} loading={busy} leftIcon={<RotateCw />} className="w-full sm:w-auto">
       {online ? "Reintentar ahora" : "Reintentar"}
     </Button>
   );

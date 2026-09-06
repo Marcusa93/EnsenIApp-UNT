@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Check, Feather, Gamepad2, Sparkles } from "lucide-react";
+import { BookOpen, Check, ChevronRight, Feather, Gamepad2, Sparkles } from "lucide-react";
 import { Card, CardTitle, Progress } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +29,8 @@ interface Paso {
   detalle: string;
   href: string;
   icono: React.ReactNode;
+  /** Violeta para lo que es IA (Alberdi); carmesí para el resto. */
+  ia?: boolean;
 }
 
 export function PrimerosPasos({ estado, nextClassId }: { estado: PasoEstado; nextClassId: string | null }) {
@@ -46,6 +48,7 @@ export function PrimerosPasos({ estado, nextClassId }: { estado: PasoEstado; nex
       detalle: "Responde con el material de la cátedra, no con cualquier cosa de internet.",
       href: "/campus/estudiante/alberdi",
       icono: <Feather className="size-4" aria-hidden />,
+      ia: true,
     },
     {
       hecho: estado.tieneOperador,
@@ -67,46 +70,61 @@ export function PrimerosPasos({ estado, nextClassId }: { estado: PasoEstado; nex
   if (hechos === pasos.length) return null;
 
   return (
-    <Card highlight>
-      <CardTitle eyebrow="Para empezar" as="h2">
-        Tus primeros pasos
-      </CardTitle>
-      <p className="mt-1 text-sm text-muted">
-        Cuatro cosas para conocer el campus. Se van marcando solas.
-      </p>
-
-      <div className="mt-3">
-        <Progress value={(hechos / pasos.length) * 100} size="sm" tone="accent-2" />
-        <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
-          {hechos} de {pasos.length}
+    <Card className="border-t-[3px] border-t-accent">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <CardTitle eyebrow="Para empezar" as="h2">
+            Tus primeros pasos
+          </CardTitle>
+          <p className="mt-1 text-sm text-muted">Cuatro cosas para conocer el campus. Se van marcando solas.</p>
+        </div>
+        <p className="shrink-0 text-right text-sm text-muted">
+          <span className="display-num text-2xl text-accent-2">{hechos}</span>
+          <span className="font-mono tabular-nums"> / {pasos.length}</span>
+          <span className="sr-only"> pasos completados</span>
         </p>
       </div>
 
-      <ul className="mt-4 flex flex-col gap-2">
+      <Progress className="mt-3" value={(hechos / pasos.length) * 100} size="sm" tone="accent-2" />
+
+      <ul className="mt-4 grid gap-2 sm:grid-cols-2">
         {pasos.map((p) => (
-          <li key={p.titulo}>
+          <li key={p.titulo} className="min-w-0">
             {p.hecho ? (
-              <div className="flex items-center gap-3 rounded-xl border border-success/25 bg-success/5 px-3 py-2.5">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-success/15 text-success">
+              <div className="flex min-h-12 items-center gap-3 rounded-xl border border-success/25 bg-success/5 px-3 py-2.5">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-success/15 text-success">
                   <Check className="size-3.5" aria-hidden />
                 </span>
-                <p className="min-w-0 flex-1 truncate text-sm text-muted line-through">{p.titulo}</p>
+                <p className="min-w-0 flex-1 truncate font-display text-sm font-semibold text-muted line-through">
+                  {p.titulo}
+                </p>
               </div>
             ) : (
               <Link
                 href={p.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl border border-border bg-surface-2/50 px-3 py-2.5 transition",
-                  "hover:border-accent/45 hover:bg-surface-2",
+                  "group flex min-h-12 items-center gap-3 rounded-xl border border-border bg-surface-2/50 px-3 py-2.5 transition-colors",
+                  "hover:border-accent/45 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                 )}
               >
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-accent/30 bg-accent/10 text-accent">
+                <span
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-lg border",
+                    p.ia
+                      ? "border-accent-3/30 bg-accent-3/10 text-accent-3"
+                      : "border-accent/30 bg-accent/10 text-accent",
+                  )}
+                >
                   {p.icono}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium">{p.titulo}</span>
-                  <span className="block text-xs text-muted">{p.detalle}</span>
+                  <span className="block font-display text-sm font-semibold">{p.titulo}</span>
+                  <span className="block text-xs leading-snug text-muted">{p.detalle}</span>
                 </span>
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent"
+                  aria-hidden
+                />
               </Link>
             )}
           </li>

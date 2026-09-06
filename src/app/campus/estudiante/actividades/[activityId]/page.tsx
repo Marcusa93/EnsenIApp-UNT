@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, ExternalLink, FileDown, Hourglass, Link2, Lock } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileDown, GraduationCap, Hourglass, Link2, Lock } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/format";
@@ -48,7 +48,7 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
   if (!activity) notFound();
 
   const back = (
-    <Button asChild variant="ghost" size="sm" leftIcon={<ArrowLeft />}>
+    <Button asChild variant="ghost" size="sm" leftIcon={<ArrowLeft />} className="-ml-2">
       <Link href="/campus/estudiante/actividades">Actividades</Link>
     </Button>
   );
@@ -64,22 +64,27 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
           title={activity.title}
           description={activity.class ? activity.class.topic : undefined}
         />
-        {activity.instructions_md && (
-          <Card className="mb-4">
-            <Markdown>{activity.instructions_md}</Markdown>
-          </Card>
-        )}
-        <Card highlight className="flex flex-col items-start gap-3">
-          <Badge tone="accent-2" dot>
-            Se realiza en otro módulo
-          </Badge>
-          <p className="text-sm text-muted">Esta actividad se hace desde su propio espacio del campus.</p>
-          {link && (
-            <Button asChild rightIcon={<ExternalLink />}>
-              <Link href={link.href}>{link.label}</Link>
-            </Button>
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+          {activity.instructions_md && (
+            <Card>
+              <CardHeader>
+                <CardTitle eyebrow="Consigna">Qué hay que hacer</CardTitle>
+              </CardHeader>
+              <Markdown size="sm">{activity.instructions_md}</Markdown>
+            </Card>
           )}
-        </Card>
+          <Card highlight tone="accent-2" className="flex flex-col items-start gap-3">
+            <Badge tone="accent-2" dot>
+              Se realiza en otro módulo
+            </Badge>
+            <p className="text-sm text-muted">Esta actividad se hace desde su propio espacio del campus.</p>
+            {link && (
+              <Button asChild rightIcon={<ExternalLink />}>
+                <Link href={link.href}>{link.label}</Link>
+              </Button>
+            )}
+          </Card>
+        </div>
       </>
     );
   }
@@ -104,13 +109,15 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
   const maxScore = activity.max_score ?? 10;
   const score = submission ? effectiveScore(submission) : null;
   const graded = submission?.status === "corregida";
+  const scorePct = score != null && maxScore > 0 ? Math.max(0, Math.min(100, (score / maxScore) * 100)) : 0;
+  const approved = score != null && score >= maxScore * 0.6;
 
   return (
     <>
       <PageHeader
         top={back}
         eyebrow={
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex flex-wrap items-center gap-1.5">
             <ActivityTypeBadge type={activity.type} size="sm" />
             <SubmissionStatusBadge status={submission?.status} size="sm" />
             {activity.status === "closed" && (
@@ -125,29 +132,33 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
         actions={canEdit ? <Countdown dueAt={activity.due_at} className="text-sm" /> : undefined}
       />
 
-      <div className="flex flex-col gap-4">
-        {/* Resultado de la corrección */}
+      {/* Columna de lectura: la consigna y el texto se leen mejor angostos, también en desktop. */}
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+        {/* Resultado de la corrección: la tarjeta protagonista cuando ya está corregida. */}
         {graded && submission && (
-          <Card highlight className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <Card highlight className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
             <div className="flex shrink-0 items-center gap-4">
-              <ProgressRing
-                value={score != null && maxScore > 0 ? Math.max(0, Math.min(100, (score / maxScore) * 100)) : 0}
-                tone={score != null && score >= maxScore * 0.6 ? "success" : "warning"}
-                size={72}
-                label="Puntaje obtenido"
-              >
-                <span className="font-mono text-sm tabular-nums">{formatScore(score, null)}</span>
+              <ProgressRing value={scorePct} tone={approved ? "success" : "warning"} size={76} strokeWidth={7} label="Puntaje obtenido">
+                <span className="font-mono text-sm font-medium tabular-nums">{formatScore(score, null)}</span>
               </ProgressRing>
               <div>
                 <span className="eyebrow">Corregida</span>
-                <p className="mt-1 font-mono text-sm tabular-nums">{formatScore(score, maxScore)}</p>
+                <p className="display-num mt-1 text-3xl leading-none">
+                  {formatScore(score, null)}
+                  <span className="ml-1.5 font-display text-base font-bold tracking-normal text-muted">
+                    / {maxScore.toLocaleString("es-AR", { maximumFractionDigits: 2 })}
+                  </span>
+                </p>
                 {submission.graded_at && (
-                  <p className="mt-0.5 font-mono text-[11px] text-muted">{formatDateTime(submission.graded_at)}</p>
+                  <p className="mt-2 font-mono text-[11px] tabular-nums text-muted">{formatDateTime(submission.graded_at)}</p>
                 )}
               </div>
             </div>
-            <div className="min-w-0 flex-1 sm:border-l sm:border-border sm:pl-4">
-              <span className="eyebrow">Feedback del equipo docente</span>
+            <div className="min-w-0 flex-1 border-l-[3px] border-l-accent pl-4">
+              <span className="inline-flex items-center gap-1.5 text-accent">
+                <GraduationCap className="size-3.5" aria-hidden />
+                <span className="eyebrow text-accent">Feedback del equipo docente</span>
+              </span>
               {submission.teacher_feedback_md ? (
                 <div className="mt-2">
                   <Markdown size="sm">{submission.teacher_feedback_md}</Markdown>
@@ -161,11 +172,17 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
 
         {/* Entregada, esperando corrección */}
         {submission?.status === "entregada" && (
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-accent-2/30 bg-accent-2/10 px-4 py-3 text-sm">
+          <div
+            className="flex flex-wrap items-center gap-3 rounded-2xl border border-accent-2/30 bg-accent-2/10 px-4 py-3 text-sm"
+            role="status"
+          >
             <Hourglass className="size-4 shrink-0 text-accent-2" aria-hidden />
-            <span>
-              Entregaste {submission.submitted_at ? formatDateTime(submission.submitted_at) : ""}. El equipo docente la
-              está revisando.
+            <span className="min-w-0 flex-1">
+              Entregaste{" "}
+              {submission.submitted_at && (
+                <span className="font-mono tabular-nums">{formatDateTime(submission.submitted_at)}</span>
+              )}
+              . El equipo docente la está revisando.
             </span>
             {activity.type === "cuestionario" && submission.auto_score != null && (
               <Badge tone="accent-2">auto {formatScore(submission.auto_score, maxScore)}</Badge>
@@ -175,9 +192,9 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
 
         {/* Cerrada sin entregar */}
         {!submission && activity.status === "closed" && (
-          <div className="flex items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
-            <Lock className="size-4 shrink-0" aria-hidden />
-            La actividad cerró y no llegaste a entregar. Si creés que es un error, escribile al equipo docente.
+          <div className="flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+            <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>La actividad cerró y no llegaste a entregar. Si creés que es un error, escribile al equipo docente.</span>
           </div>
         )}
 
@@ -217,7 +234,7 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
                       href={m.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-sm transition-colors hover:border-accent/60"
+                      className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-sm transition-colors hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-ring"
                     >
                       {m.url ? (
                         <Link2 className="size-4 shrink-0 text-accent-2" aria-hidden />
@@ -228,9 +245,9 @@ export default async function ActividadEstudiantePage({ params }: { params: Prom
                       <Badge size="sm">{m.kind}</Badge>
                     </a>
                   ) : (
-                    <p className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-sm text-muted">
+                    <p className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-sm text-muted">
                       <FileDown className="size-4 shrink-0" aria-hidden />
-                      {m.title} — no disponible ahora
+                      <span className="min-w-0 flex-1 truncate">{m.title} — no disponible ahora</span>
                     </p>
                   )}
                 </li>

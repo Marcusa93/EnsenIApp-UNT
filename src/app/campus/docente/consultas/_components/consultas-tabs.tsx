@@ -36,10 +36,11 @@ export function ConsultasTabs({ initial, counts, consultas, encuestas, alberdi }
         <TabsTrigger value="consultas" icon={<MessageCircleQuestion />} count={counts.consultas}>
           Consultas
         </TabsTrigger>
-        <TabsTrigger value="encuestas" icon={<BarChart3 />} count={counts.encuestas}>
+        <TabsTrigger value="encuestas" icon={<BarChart3 className="text-accent-2" />} count={counts.encuestas}>
           Encuestas
         </TabsTrigger>
-        <TabsTrigger value="alberdi" icon={<Feather />} count={counts.alberdi}>
+        {/* Alberdi es IA: la pluma va en violeta. */}
+        <TabsTrigger value="alberdi" icon={<Feather className="text-accent-3" />} count={counts.alberdi}>
           Alberdi
         </TabsTrigger>
       </TabsList>

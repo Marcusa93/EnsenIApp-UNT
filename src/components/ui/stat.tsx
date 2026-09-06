@@ -20,6 +20,14 @@ const toneText = {
   muted: "text-muted",
 } as const;
 
+const toneRule = {
+  accent: "bg-accent",
+  "accent-2": "bg-accent-2",
+  "accent-3": "bg-accent-3",
+  muted: "bg-muted",
+} as const;
+
+/** Cifra protagonista en Montserrat extrabold con una pleca corta del tono. */
 export function Stat({ label, value, delta, hint, icon, tone = "accent", className, ...props }: StatProps) {
   const deltaNum = typeof delta === "number" ? delta : null;
   const DeltaIcon = deltaNum === null ? null : deltaNum > 0 ? TrendingUp : deltaNum < 0 ? TrendingDown : Minus;
@@ -29,19 +37,13 @@ export function Stat({ label, value, delta, hint, icon, tone = "accent", classNa
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/40",
+        "paper group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/40",
         className,
       )}
       {...props}
     >
       <div
-        className={cn(
-          "pointer-events-none absolute -right-8 -top-8 size-24 rounded-full opacity-[0.12] blur-2xl transition-opacity group-hover:opacity-25",
-          tone === "accent" && "bg-accent",
-          tone === "accent-2" && "bg-accent-2",
-          tone === "accent-3" && "bg-accent-3",
-          tone === "muted" && "bg-muted",
-        )}
+        className="trama trama-fade-r pointer-events-none absolute inset-x-0 bottom-0 h-10 opacity-60"
         aria-hidden
       />
       <div className="flex items-start justify-between gap-3">
@@ -49,7 +51,7 @@ export function Stat({ label, value, delta, hint, icon, tone = "accent", classNa
         {icon && <span className={cn("[&>svg]:size-4", toneText[tone])}>{icon}</span>}
       </div>
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl">{value}</span>
+        <span className="display-num text-3xl sm:text-4xl">{value}</span>
         {delta !== undefined && (
           <span className={cn("inline-flex items-center gap-1 font-mono text-xs tabular-nums", deltaTone)}>
             {DeltaIcon && <DeltaIcon className="size-3.5" aria-hidden />}
@@ -57,7 +59,8 @@ export function Stat({ label, value, delta, hint, icon, tone = "accent", classNa
           </span>
         )}
       </div>
-      {hint && <p className="mt-1.5 text-xs text-muted">{hint}</p>}
+      <span className={cn("mt-2.5 block h-0.5 w-8 rounded-full", toneRule[tone])} aria-hidden />
+      {hint && <p className="mt-2 text-xs text-muted">{hint}</p>}
     </div>
   );
 }
