@@ -16,13 +16,18 @@ export function FeedbackList({ items }: { items: FeedbackRow[] }) {
   const [latest, ...previous] = items;
   return (
     <div className="flex flex-col gap-3">
-      <Card highlight className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-accent opacity-[0.14] blur-3xl" aria-hidden />
+      {/* Devolución generada por IA: todo lo que es IA va en violeta (accent-3),
+          igual que su vista previa en Hoy (feedback-preview.tsx). Tarjeta protagonista
+          de la pantalla, pero sin el prop `highlight`: ese modificador trae un glow
+          carmesí fijo (no sigue `tone`), así que las esquinas y la pleca superior se
+          arman a mano en violeta con `glow-3`. */}
+      <Card className="corners glow-3 relative overflow-hidden border-t-[3px] border-t-accent-3">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-accent-3 opacity-[0.14] blur-3xl" aria-hidden />
         <div className="relative">
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <Sparkles className="size-4 text-accent" aria-hidden />
-            <span className="eyebrow text-accent">Tu última devolución</span>
-            <Badge tone="accent" size="sm">
+            <Sparkles className="size-4 text-accent-3" aria-hidden />
+            <span className="eyebrow text-accent-3">Tu última devolución</span>
+            <Badge tone="accent-3" size="sm">
               {formatRelative(latest.created_at)}
             </Badge>
             <time dateTime={latest.created_at} className="ml-auto font-mono text-[11px] text-muted">
@@ -42,8 +47,8 @@ export function FeedbackList({ items }: { items: FeedbackRow[] }) {
                 <Sparkles className="size-3.5 text-muted" aria-hidden />
                 <span className="font-medium">Devolución del {formatDateTime(f.created_at)}</span>
                 <span className="ml-auto font-mono text-[11px] text-muted">{formatRelative(f.created_at)}</span>
-                <span className="font-mono text-[11px] text-accent-2 group-open:hidden">ver</span>
-                <span className="hidden font-mono text-[11px] text-accent-2 group-open:inline">ocultar</span>
+                <span className="font-mono text-[11px] text-accent-3 group-open:hidden">ver</span>
+                <span className="hidden font-mono text-[11px] text-accent-3 group-open:inline">ocultar</span>
               </summary>
               <div className="border-t border-border px-5 py-4">
                 <Markdown size="sm">{f.feedback_md}</Markdown>

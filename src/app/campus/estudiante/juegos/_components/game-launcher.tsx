@@ -196,7 +196,7 @@ export function GameLauncher({
               <motion.p
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-accent-3/40 bg-accent-3/10 px-3 py-2 text-sm font-medium text-accent-3"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-accent-2/40 bg-accent-2/10 px-3 py-2 text-sm font-medium text-accent-2"
               >
                 <Sparkles className="size-4" aria-hidden />
                 ¡Subiste a {outcome.stats.level.name}!
@@ -254,7 +254,7 @@ export function GameLauncher({
 
         <div className="mt-3">
           <Progress value={((index + (answered ? 1 : 0)) / challenges.length) * 100} size="sm" tone="accent-2" />
-          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <p className="eyebrow mt-1.5">
             {index + 1} de {challenges.length}
           </p>
         </div>

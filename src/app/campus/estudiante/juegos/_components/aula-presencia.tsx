@@ -44,7 +44,7 @@ export function AulaPresencia({ courseId }: { courseId: string }) {
       <span className="min-w-0 flex-1 truncate text-sm">
         {cuantos === 1 ? "Hay 1 operador en el Aula Magna ahora" : `Hay ${cuantos} operadores en el Aula Magna ahora`}
       </span>
-      <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-accent-2">Entrar</span>
+      <span className="eyebrow shrink-0 text-accent-2">Entrar</span>
     </Link>
   );
 }

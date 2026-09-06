@@ -118,8 +118,8 @@ export function ReportRunner({ reportId, status, autoRun = false, resultMd }: Re
       </div>
 
       {busy && (
-        <div className="rounded-2xl border border-accent/30 bg-accent/5 p-4" role="status" aria-live="polite">
-          <Progress value={0} indeterminate tone="accent-2" size="sm" label={STEPS[step]} />
+        <div className="rounded-2xl border border-accent-3/30 bg-accent-3/5 p-4" role="status" aria-live="polite">
+          <Progress value={0} indeterminate tone="accent-3" size="sm" label={STEPS[step]} />
           <p className="mt-2 text-xs text-muted">
             Suele tardar entre 30 segundos y 2 minutos. Podés seguir navegando; el informe queda guardado.
           </p>

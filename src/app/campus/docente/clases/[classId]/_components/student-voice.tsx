@@ -54,7 +54,7 @@ export function StudentVoice({ classId, voice }: StudentVoiceProps) {
             const pct = Math.round((n / voice.total) * 100);
             return (
               <div key={i} className="grid grid-cols-[5.5rem_1fr_3.5rem] items-center gap-3 text-xs">
-                <span className="font-mono uppercase tracking-widest text-muted">
+                <span className="font-display font-bold uppercase tracking-[0.12em] text-[10px] text-muted">
                   {i + 1} · {LEVELS[i]}
                 </span>
                 <div className="h-2.5 overflow-hidden rounded-full bg-surface-2">

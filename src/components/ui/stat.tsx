@@ -10,7 +10,7 @@ export interface StatProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Texto secundario debajo del valor */
   hint?: React.ReactNode;
   icon?: React.ReactNode;
-  tone?: "accent" | "accent-2" | "accent-3" | "muted";
+  tone?: "accent" | "accent-2" | "accent-3" | "muted" | "success" | "warning" | "danger";
 }
 
 const toneText = {
@@ -18,6 +18,9 @@ const toneText = {
   "accent-2": "text-accent-2",
   "accent-3": "text-accent-3",
   muted: "text-muted",
+  success: "text-success",
+  warning: "text-warning",
+  danger: "text-danger",
 } as const;
 
 const toneRule = {
@@ -25,6 +28,9 @@ const toneRule = {
   "accent-2": "bg-accent-2",
   "accent-3": "bg-accent-3",
   muted: "bg-muted",
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-danger",
 } as const;
 
 /** Cifra protagonista en Montserrat extrabold con una pleca corta del tono. */

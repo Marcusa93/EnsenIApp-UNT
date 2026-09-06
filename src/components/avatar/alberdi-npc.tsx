@@ -46,7 +46,7 @@ export function AlberdiNpc({
         style={{
           width: size * 0.9,
           height: size * 0.9,
-          background: "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
+          background: "radial-gradient(circle, var(--accent-3) 0%, transparent 70%)",
         }}
         aria-hidden
       />
@@ -70,7 +70,7 @@ export function AlberdiNpc({
                 cx={cx}
                 cy={cy}
                 r={r}
-                fill="var(--accent-2)"
+                fill="var(--accent-3)"
                 opacity={mood === "idle" ? 0.45 : 0.85}
               />
             ))}
@@ -98,7 +98,7 @@ export function AlberdiNpc({
             // luz (que sigue el alfa real del recorte) se pierde contra el
             // piso #0d111c.
             filter:
-              "drop-shadow(0 0 2px rgba(255,255,255,0.6)) drop-shadow(0 0 10px var(--accent)) drop-shadow(0 0 22px var(--accent-2))",
+              "drop-shadow(0 0 2px rgba(255,255,255,0.6)) drop-shadow(0 0 10px var(--accent-3)) drop-shadow(0 0 22px var(--accent-3))",
           }}
         />
       </div>
@@ -112,7 +112,7 @@ export function AlberdiNpc({
             top: "40%",
             width: size * 0.1,
             height: size * 0.1,
-            background: "radial-gradient(circle, #fff 0%, var(--accent-2) 45%, transparent 70%)",
+            background: "radial-gradient(circle, #fff 0%, var(--accent-3) 45%, transparent 70%)",
           }}
           aria-hidden
         />

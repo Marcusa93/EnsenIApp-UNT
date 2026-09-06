@@ -424,7 +424,7 @@ export function RecordingUploader({ classId, userId, onFinished }: RecordingUplo
             transition={{ duration: 0.2 }}
             className={cn(
               "flex flex-col gap-4 rounded-2xl border p-4 sm:p-5",
-              phase === "done" ? "border-success/40 bg-success/5" : phase === "error" ? "border-danger/40 bg-danger/5" : "border-accent/40 bg-accent/5",
+              phase === "done" ? "border-success/40 bg-success/5" : phase === "error" ? "border-danger/40 bg-danger/5" : "border-accent-2/40 bg-accent-2/5",
             )}
           >
             <div className="flex items-start gap-3">
@@ -435,7 +435,7 @@ export function RecordingUploader({ classId, userId, onFinished }: RecordingUplo
                     ? "border-success/30 bg-success/10 text-success"
                     : phase === "error"
                       ? "border-danger/30 bg-danger/10 text-danger"
-                      : "border-accent/30 bg-accent/10 text-accent",
+                      : "border-accent-2/30 bg-accent-2/10 text-accent-2",
                 )}
               >
                 {phase === "done" ? (

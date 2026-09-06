@@ -80,7 +80,7 @@ export function ModerationBar({
       role="group"
       aria-label="Moderación del debate"
     >
-      <span className="mr-auto inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+      <span className="eyebrow mr-auto inline-flex items-center gap-1.5 text-accent">
         <ShieldCheck className="size-3.5" aria-hidden />
         Moderación
       </span>

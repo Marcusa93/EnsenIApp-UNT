@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { BellRing, Loader2, Send } from "lucide-react";
-import { Button, Card, CardTitle, Switch } from "@/components/ui";
+import { Badge, Button, Card, CardTitle, Switch } from "@/components/ui";
 
 /**
  * Interruptor de notificaciones push.
@@ -162,10 +162,25 @@ export function PushToggle() {
 
   return (
     <Card>
-      <CardTitle eyebrow="Notificaciones" as="h2" className="flex items-center gap-2">
-        <BellRing className="size-4 text-accent-2" aria-hidden />
-        Avisos de la cátedra
-      </CardTitle>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <CardTitle eyebrow="Notificaciones" as="h2" className="flex items-center gap-2">
+            <BellRing className="size-4 text-accent-2" aria-hidden />
+            Avisos de la cátedra
+          </CardTitle>
+        </div>
+        {support === "ok" && (
+          <Badge
+            size="sm"
+            tone={enabled ? "success" : permission === "denied" ? "danger" : "muted"}
+            dot
+            live={enabled}
+            className="shrink-0"
+          >
+            {enabled ? "Activo" : permission === "denied" ? "Bloqueado" : "Inactivo"}
+          </Badge>
+        )}
+      </div>
 
       {support === "no-soportado" ? (
         <p className="mt-3 text-sm text-muted">

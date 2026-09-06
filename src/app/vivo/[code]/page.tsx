@@ -4,8 +4,8 @@ import { getOptionalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { resolveLiveRoom, hasResponded } from "@/lib/live/data";
 import { normalizeLiveCode } from "@/lib/live/code";
-import { Brand } from "@/components/shell/brand";
-import { LabBadge } from "@/components/live/lab-badge";
+import { InstitutionalLockup } from "@/components/shell/brand";
+import { DevelopedBy } from "@/components/shell/developed-by";
 import { LiveRoom } from "./room";
 
 export const metadata: Metadata = { title: "Sesión en vivo · EnsenIA UNT" };
@@ -23,29 +23,35 @@ export default async function LiveJoinPage({ params }: { params: Promise<{ code:
   const submittedWord = room?.activePrompt ? await hasResponded(supabase, room.activePrompt.id, ctx.user.id) : null;
 
   return (
-    <main className="campus-grid campus-grid-fade relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 py-10">
+    <main className="campus-grid campus-grid-fade relative flex min-h-dvh flex-col overflow-hidden px-5 py-6 sm:py-8">
       <div
         className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full opacity-40 blur-3xl"
         style={{ background: "radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 55%, transparent), transparent 70%)" }}
         aria-hidden
       />
-      <div className="relative z-10 mb-8 flex flex-col items-center gap-3">
-        <LabBadge size={72} />
-        <Brand />
+
+      <header className="relative z-10 flex justify-center">
+        <InstitutionalLockup logoHeight={28} />
+      </header>
+
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3 py-8">
+        {room ? (
+          <LiveRoom initial={room} userId={ctx.user.id} fullName={ctx.profile.full_name} initialSubmittedWord={submittedWord} />
+        ) : (
+          <div className="border-gradient w-full max-w-md rounded-3xl border border-transparent bg-surface p-7 text-center sm:p-9">
+            <p className="eyebrow">Sesión en vivo</p>
+            <h1 className="mt-2 text-xl font-semibold">No encontramos esta sesión</h1>
+            <p className="mt-2 text-sm text-muted">
+              El código <span className="font-mono text-foreground">{code}</span> no es válido, o la sesión todavía no
+              arrancó. Revisá el link con el equipo docente.
+            </p>
+          </div>
+        )}
       </div>
 
-      {room ? (
-        <LiveRoom initial={room} userId={ctx.user.id} fullName={ctx.profile.full_name} initialSubmittedWord={submittedWord} />
-      ) : (
-        <div className="border-gradient relative z-10 w-full max-w-md rounded-3xl border border-transparent bg-surface p-7 text-center sm:p-9">
-          <p className="eyebrow">Sesión en vivo</p>
-          <h1 className="mt-2 text-xl font-semibold">No encontramos esta sesión</h1>
-          <p className="mt-2 text-sm text-muted">
-            El código <span className="font-mono text-foreground">{code}</span> no es válido, o la sesión todavía no
-            arrancó. Revisá el link con el equipo docente.
-          </p>
-        </div>
-      )}
+      <footer className="relative z-10 flex justify-center pb-2">
+        <DevelopedBy variant="line" className="justify-center" />
+      </footer>
     </main>
   );
 }

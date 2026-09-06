@@ -129,13 +129,13 @@ export function ActivityDetailTabs({
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-surface-2/60 text-left font-mono text-[11px] uppercase tracking-widest text-muted">
+              <thead className="bg-surface-2/60 text-left">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Estudiante</th>
-                  <th className="px-4 py-3 font-medium">Estado</th>
-                  <th className="px-4 py-3 font-medium">Puntaje</th>
-                  <th className="px-4 py-3 font-medium">Tiempo</th>
-                  <th className="px-4 py-3 font-medium">Entregada</th>
+                  <th className="eyebrow px-4 py-3">Estudiante</th>
+                  <th className="eyebrow px-4 py-3">Estado</th>
+                  <th className="eyebrow px-4 py-3">Puntaje</th>
+                  <th className="eyebrow px-4 py-3">Tiempo</th>
+                  <th className="eyebrow px-4 py-3">Entregada</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -156,9 +156,7 @@ export function ActivityDetailTabs({
                     </td>
                     <td className="px-4 py-3 font-mono tabular-nums">
                       {formatScore(effectiveScore(s), activity.max_score)}
-                      {s.score == null && s.auto_score != null && (
-                        <span className="ml-1 text-[10px] uppercase tracking-widest text-muted">auto</span>
-                      )}
+                      {s.score == null && s.auto_score != null && <span className="eyebrow ml-1">auto</span>}
                     </td>
                     <td className="px-4 py-3 font-mono tabular-nums text-muted">{formatDuration(s.time_spent_seconds)}</td>
                     <td className="px-4 py-3 text-muted" title={s.submitted_at ? formatDateTime(s.submitted_at) : undefined}>
@@ -180,7 +178,7 @@ export function ActivityDetailTabs({
       </TabsContent>
 
       <TabsContent value="consigna">
-        <Card>
+        <Card highlight tone="accent">
           {activity.instructions_md ? (
             <Markdown>{activity.instructions_md}</Markdown>
           ) : (

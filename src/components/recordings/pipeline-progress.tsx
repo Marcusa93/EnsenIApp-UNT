@@ -64,7 +64,7 @@ export function PipelineProgress({
   const now = useNow(Boolean(running));
   const eta = running ? estimateRemainingSeconds(startedAt, progress, now) : null;
 
-  const tone: ProgressTone = status === "error" ? "danger" : status === "ready" ? "success" : "accent";
+  const tone: ProgressTone = status === "error" ? "danger" : status === "ready" ? "success" : "accent-2";
   const label = describeStep(status, currentStep);
   const chunkInfo =
     status === "transcribing" && chunksTotal > 0 ? `parte ${Math.min(chunksDone + 1, chunksTotal)} de ${chunksTotal}` : null;
@@ -79,7 +79,7 @@ export function PipelineProgress({
           ) : status === "ready" ? (
             <CheckCircle2 className="size-3.5 text-success" aria-hidden />
           ) : running ? (
-            <LoaderCircle className="size-3.5 animate-spin text-accent" aria-hidden />
+            <LoaderCircle className="size-3.5 animate-spin text-accent-2" aria-hidden />
           ) : (
             <span className="inline-block size-1.5 rounded-full bg-warning" aria-hidden />
           )}
@@ -98,7 +98,7 @@ export function PipelineProgress({
           {chunkInfo && <span className="font-mono text-[11px]">· {chunkInfo}</span>}
         </span>
         {!running && status !== "ready" && status !== "error" && (
-          <span className="font-mono text-[11px] uppercase tracking-widest text-warning">pausado</span>
+          <span className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-warning">pausado</span>
         )}
         {eta !== null && (
           <span className="font-mono text-[11px] tabular-nums">faltan ≈ {formatDuration(eta)}</span>

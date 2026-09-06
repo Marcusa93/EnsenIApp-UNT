@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { track, useTrackPageView } from "@/lib/telemetry";
 import { cn } from "@/lib/utils";
 import { Markdown } from "@/components/markdown";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
@@ -29,7 +30,7 @@ import { Composer, type ComposerReplyTarget } from "./composer";
 import { Countdown } from "./countdown";
 import { ModerationBar } from "./moderation-bar";
 import { StanceBalance } from "./stance-balance";
-import { DebateStatusBadge, StanceIcon } from "./stance-badge";
+import { DebateStatusBadge, StanceIcon, STANCE_COLOR } from "./stance-badge";
 import { STANCES, STANCE_META, emptyCounts, isDebateClosed, type DebateStance, type DebateStatus, type StanceCounts } from "./stance";
 import type { ArgumentRow, ArgumentView, DebateDetail } from "./types";
 
@@ -363,7 +364,7 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
     <div className="flex flex-col gap-5">
       <Link
         href="/campus/debates"
-        className="inline-flex w-fit items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground"
+        className="eyebrow inline-flex w-fit items-center gap-1.5 transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" aria-hidden />
         Debates
@@ -373,7 +374,7 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
       <Card padding="lg" className="relative overflow-hidden">
         <div className="campus-grid-fade pointer-events-none absolute inset-0 opacity-40" aria-hidden />
         <div className="relative flex flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 eyebrow">
             {debate.course && <span>{debate.course.name}</span>}
             {debate.class && (
               <span className="inline-flex items-center gap-1">
@@ -457,16 +458,19 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           aria-labelledby="synthesis-title"
-          className="rounded-2xl border border-accent/40 bg-accent/5 p-5 sm:p-6"
+          className="rounded-2xl border border-accent-3/40 bg-accent-3/5 p-5 sm:p-6"
         >
           <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="size-4 text-accent" aria-hidden />
-            <h2 id="synthesis-title" className="eyebrow text-accent">
-              Síntesis del debate · IA
+            <Badge tone="accent-3" dot>
+              <Sparkles className="size-3" aria-hidden />
+              Síntesis IA
+            </Badge>
+            <h2 id="synthesis-title" className="eyebrow text-accent-3">
+              Síntesis del debate
             </h2>
           </div>
           <Markdown size="sm">{synthesis}</Markdown>
-          <p className="mt-4 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <p className="mt-4 eyebrow">
             Generada a partir de los argumentos visibles. Revisada por el equipo docente.
           </p>
         </motion.section>
@@ -500,13 +504,13 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
         >
           <TabsList aria-label="Postura">
             {STANCES.map((s) => (
-              <TabsTrigger key={s} value={s} icon={<StanceIcon stance={s} />} count={counts[s]} className={cn(activeStance === s && STANCE_META[s].text)}>
+              <TabsTrigger key={s} value={s} icon={<StanceIcon stance={s} />} count={counts[s]} className={cn(activeStance === s && STANCE_COLOR[s].text)}>
                 {STANCE_META[s].short}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
-        <div className="hidden items-center gap-2 font-mono text-[11px] text-muted lg:flex">
+        <div className="hidden items-center gap-2 font-mono text-[11px] tabular-nums text-muted lg:flex">
           {visibleCount} {visibleCount === 1 ? "argumento" : "argumentos"}
         </div>
         <div className="ml-auto flex items-center gap-1 rounded-xl border border-border bg-surface-2 p-1" role="radiogroup" aria-label="Ordenar por">
@@ -523,8 +527,8 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
               aria-checked={sort === v}
               onClick={() => setSort(v)}
               className={cn(
-                "inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[11px] uppercase tracking-widest transition-colors focus-visible:outline-2 focus-visible:outline-ring",
-                sort === v ? "bg-surface text-foreground shadow-sm" : "text-muted hover:text-foreground",
+                "inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 eyebrow transition-colors focus-visible:outline-2 focus-visible:outline-ring",
+                sort === v ? "bg-surface text-foreground shadow-sm" : "hover:text-foreground",
               )}
             >
               {v === "supports" && <ArrowUpDown className="size-3" aria-hidden />}
@@ -538,6 +542,7 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
       <div className="grid gap-4 lg:grid-cols-3">
         {STANCES.map((s) => {
           const meta = STANCE_META[s];
+          const color = STANCE_COLOR[s];
           const list = sorted[s].filter((n) => !hiddenForMe(n));
           return (
             <section
@@ -545,8 +550,8 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
               aria-labelledby={`col-${s}`}
               className={cn("flex flex-col gap-3", activeStance === s ? "flex" : "hidden lg:flex")}
             >
-              <header className={cn("hidden items-center justify-between rounded-2xl border px-4 py-2.5 lg:flex", meta.border, meta.bg)}>
-                <h2 id={`col-${s}`} className={cn("inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest", meta.text)}>
+              <header className={cn("hidden items-center justify-between rounded-2xl border px-4 py-2.5 lg:flex", color.border, color.bg)}>
+                <h2 id={`col-${s}`} className={cn("inline-flex items-center gap-2 eyebrow", color.text)}>
                   <StanceIcon stance={s} />
                   {meta.label}
                 </h2>
@@ -557,7 +562,7 @@ export function DebateView({ debate, initialArguments, currentUserId, canModerat
               </h2>
 
               {list.length === 0 ? (
-                <div className={cn("rounded-2xl border border-dashed px-4 py-8 text-center text-sm text-muted", meta.border)}>
+                <div className={cn("rounded-2xl border border-dashed px-4 py-8 text-center text-sm text-muted", color.border)}>
                   {closed
                     ? `Nadie argumentó ${meta.label.toLowerCase()}.`
                     : `Todavía nadie argumentó ${meta.label.toLowerCase()}. ¿Te animás a abrir la columna?`}

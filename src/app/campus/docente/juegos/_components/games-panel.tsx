@@ -142,7 +142,7 @@ export function GamesPanel({
                       >
                         {f.topic}
                       </Link>
-                      <p className="mt-0.5 font-mono text-[11px] uppercase tracking-widest text-muted">{f.classDate}</p>
+                      <p className="mt-0.5 font-mono text-[11px] tabular-nums text-muted">{f.classDate}</p>
 
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         {f.recordingId ? (

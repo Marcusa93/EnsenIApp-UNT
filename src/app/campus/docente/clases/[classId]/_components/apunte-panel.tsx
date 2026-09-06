@@ -140,15 +140,15 @@ export function ApuntePanel({
                 onClick={() => setModo(m)}
                 className={
                   modo === m
-                    ? "h-8 rounded-full border border-accent bg-accent/15 px-3 font-mono text-[11px] uppercase tracking-widest text-foreground"
-                    : "h-8 rounded-full border border-border bg-surface px-3 font-mono text-[11px] uppercase tracking-widest text-muted transition-colors hover:border-accent/50 hover:text-foreground"
+                    ? "h-8 rounded-full border border-accent bg-accent/15 px-3 font-display text-[11px] font-bold uppercase tracking-[0.12em] text-foreground"
+                    : "h-8 rounded-full border border-border bg-surface px-3 font-display text-[11px] font-bold uppercase tracking-[0.12em] text-muted transition-colors hover:border-accent/50 hover:text-foreground"
                 }
               >
                 {m === "escribir" ? "Escribir" : "Ver como queda"}
               </button>
             ))}
           </div>
-          <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
+          <span className="font-mono text-[11px] uppercase tabular-nums tracking-widest text-muted">
             {limpio.length.toLocaleString("es-AR")} caracteres
           </span>
         </div>

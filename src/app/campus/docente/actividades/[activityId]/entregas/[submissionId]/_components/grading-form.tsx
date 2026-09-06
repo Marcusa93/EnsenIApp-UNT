@@ -142,7 +142,7 @@ export function GradingForm(props: GradingFormProps) {
               loading={aiLoading}
               onClick={suggest}
               disabled={pending}
-              className="border-accent-2/40 text-accent-2 hover:border-accent-2"
+              className="border-accent-3/40 text-accent-3 hover:border-accent-3"
             >
               Sugerir con IA
             </Button>
@@ -173,9 +173,9 @@ export function GradingForm(props: GradingFormProps) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-xl border border-accent-2/30 bg-accent-2/5 p-3">
+            <div className="rounded-xl border border-accent-3/30 bg-accent-3/5 p-3">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="eyebrow text-accent-2">Sugerencia de la IA</span>
+                <span className="eyebrow text-accent-3">Sugerencia de la IA</span>
                 <Button type="button" size="sm" variant="ghost" onClick={() => setFeedback(ai)} disabled={pending}>
                   Usar este texto
                 </Button>

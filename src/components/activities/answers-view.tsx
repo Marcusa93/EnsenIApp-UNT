@@ -42,7 +42,7 @@ export function AnswersView({ activity, submission, fileUrl, revealAnswers = tru
             return (
               <li key={q.id} className="rounded-2xl border border-border bg-surface-2/40 p-4">
                 <p className="mb-3 text-sm font-medium">
-                  <span className="mr-2 font-mono text-xs text-muted">{i + 1}.</span>
+                  <span className="mr-2 font-mono text-xs tabular-nums text-muted">{i + 1}.</span>
                   {q.prompt}
                 </p>
                 <ul className="flex flex-col gap-1.5">
@@ -131,7 +131,6 @@ export function AnswersView({ activity, submission, fileUrl, revealAnswers = tru
             >
               <FileDown className="size-4 text-accent-2" aria-hidden />
               {a.file_name ?? "Archivo adjunto"}
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted">1 h</span>
             </a>
           ) : (
             <p className="text-sm text-warning">El adjunto «{a.file_name ?? a.file_path}» no está disponible ahora.</p>

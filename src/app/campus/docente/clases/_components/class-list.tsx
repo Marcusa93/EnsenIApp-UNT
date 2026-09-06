@@ -20,11 +20,11 @@ export interface ClassListProps {
   staff: StaffOption[];
 }
 
-const STATE_LABEL: Record<TeacherClassRow["state"], { label: string; tone: "muted" | "accent" | "accent-2" | "success" }> = {
+const STATE_LABEL: Record<TeacherClassRow["state"], { label: string; tone: "muted" | "accent-3" | "accent" }> = {
   pasada: { label: "Dictada", tone: "muted" },
-  hoy: { label: "Hoy", tone: "accent-3" as "accent" },
+  hoy: { label: "Hoy", tone: "accent-3" },
   proxima: { label: "Próxima", tone: "accent" },
-  futura: { label: "Programada", tone: "accent-2" },
+  futura: { label: "Programada", tone: "accent" },
 };
 
 const monthFmt = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric", timeZone: "UTC" });
@@ -144,7 +144,7 @@ export function ClassList({ courseId, classes, staff }: ClassListProps) {
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
           <table className="w-full min-w-[44rem] text-left text-sm">
-            <thead className="border-b border-border font-mono text-[11px] uppercase tracking-widest text-muted">
+            <thead className="eyebrow border-b border-border">
               <tr>
                 <th className="px-4 py-3">Fecha</th>
                 <th className="px-4 py-3">Tema</th>

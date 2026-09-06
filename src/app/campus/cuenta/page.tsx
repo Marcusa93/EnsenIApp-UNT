@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
-import { PageHeader } from "@/components/ui";
+import { Card, CardTitle, PageHeader } from "@/components/ui";
+import { ThemeSegment } from "@/components/shell/theme-toggle";
 import { PushToggle } from "@/components/pwa/push-toggle";
 import { OperatorCard } from "./_components/operator-card";
 import { PasswordForm } from "./password-form";
@@ -25,6 +26,17 @@ export default async function CuentaPage() {
       <div className="flex flex-col gap-4">
         <NombreForm inicial={profile.full_name} />
         {profile.role === "estudiante" && <OperatorCard studentId={user.id} />}
+        <Card className="max-w-md">
+          <CardTitle eyebrow="Preferencias" as="h2">
+            Apariencia
+          </CardTitle>
+          <p className="mt-1 text-sm text-muted">
+            Elegí cómo se ve el campus: automático según tu sistema, papel (claro) o tinta (oscuro).
+          </p>
+          <div className="mt-3">
+            <ThemeSegment />
+          </div>
+        </Card>
         <PushToggle />
         {profile.email && <PasswordForm />}
       </div>

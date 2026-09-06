@@ -112,7 +112,7 @@ export function Turntable({
         >
           <RotateCcw className="size-4" />
         </button>
-        <span className="min-w-[92px] text-center font-mono text-[11px] uppercase tracking-widest text-muted">
+        <span className="eyebrow min-w-[92px] text-center">
           {facing}
         </span>
         <button

@@ -92,7 +92,7 @@ export default async function InformeDetallePage({ params, searchParams }: PageP
                 {c.label}
               </Badge>
             ))}
-            <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
+            <span className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
               Pedido{" "}
               <time dateTime={report.created_at} title={formatDateTime(report.created_at)}>
                 {formatRelative(report.created_at)}
@@ -123,7 +123,7 @@ export default async function InformeDetallePage({ params, searchParams }: PageP
       ) : report.status === "error" ? (
         <Card className="border-danger/40">
           <EmptyState
-            tone="accent-3"
+            tone="muted"
             icon={FileBarChart}
             title="La generación falló"
             description={report.result_md ?? "Ocurrió un error desconocido. Probá regenerar el informe."}
@@ -131,7 +131,8 @@ export default async function InformeDetallePage({ params, searchParams }: PageP
         </Card>
       ) : (
         <EmptyState
-          tone="accent-2"
+          // Mientras la IA está generando, en violeta; si todavía no se pidió, neutro.
+          tone={report.status === "processing" ? "accent-3" : "muted"}
           icon={FileBarChart}
           title={report.status === "processing" ? "Estamos generando el informe" : "El informe todavía no se generó"}
           description={

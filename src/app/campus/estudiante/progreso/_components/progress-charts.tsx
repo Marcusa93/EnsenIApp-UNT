@@ -108,7 +108,7 @@ export function CardsRadial({ known, total }: { known: number; total: number }) 
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-semibold tabular-nums tracking-tight text-accent-2">{formatPercent(ratio)}</span>
+          <span className="display-num text-3xl text-accent-2">{formatPercent(ratio)}</span>
           <span className="eyebrow">conocidas</span>
         </div>
       </div>

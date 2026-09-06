@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProjectorWordCloud } from "@/components/live/projector-word-cloud";
 import { LabBadge } from "@/components/live/lab-badge";
+import { DerechoLogo } from "@/components/shell/brand";
+import { DevelopedBy } from "@/components/shell/developed-by";
 import type { LiveRoomState, WordCount } from "@/lib/live/types";
 
 export interface ProjectorRoomProps {
@@ -115,7 +117,7 @@ export function ProjectorRoom({ initial, initialWords }: ProjectorRoomProps) {
   }, [initial.session.id, applyState, refreshWords]);
 
   return (
-    <main className="relative flex min-h-dvh flex-col bg-[#06070f]">
+    <main className="trama-scan relative flex min-h-dvh flex-col overflow-hidden bg-[#120f13]">
       <LabBadge size={56} className="absolute left-[2vw] top-[2vh] z-20" />
       <AnimatePresence mode="wait" initial={false}>
         {status === "ended" ? (
@@ -153,10 +155,15 @@ export function ProjectorRoom({ initial, initialWords }: ProjectorRoomProps) {
             <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="text-2xl font-medium">
               Esperando la próxima disparadora…
             </motion.p>
-            <p className="font-mono text-xs uppercase tracking-widest text-white/30">{initial.className}</p>
+            <p className="font-display text-xs font-bold uppercase tracking-[0.12em] text-white/30">{initial.className}</p>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <footer className="relative z-10 flex shrink-0 items-center justify-center gap-3 px-[2vw] py-[1.5vh]">
+        <DerechoLogo invertOnDark={false} height={22} className="brightness-0 invert opacity-90" />
+        <DevelopedBy variant="line" onDark className="text-[11px]" />
+      </footer>
     </main>
   );
 }

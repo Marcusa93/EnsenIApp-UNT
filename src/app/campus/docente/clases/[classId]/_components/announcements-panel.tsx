@@ -165,7 +165,7 @@ export function AnnouncementsPanel({ classId, announcements }: AnnouncementsPane
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge size="sm" tone={a.class_id ? "accent" : "accent-2"}>
+                    <Badge size="sm" tone={a.class_id ? "accent" : "muted"}>
                       {a.class_id ? "Clase" : "Curso"}
                     </Badge>
                     <span className="font-mono text-[11px] text-muted">

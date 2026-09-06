@@ -101,7 +101,7 @@ function Section({
         <h2 id={`sec-${title}`} className="eyebrow">
           {title}
         </h2>
-        <span className="rounded-full bg-surface-2 px-1.5 font-mono text-[10px] text-muted">{count}</span>
+        <span className="rounded-full bg-surface-2 px-1.5 font-mono text-[10px] tabular-nums text-muted">{count}</span>
       </div>
       {count === 0 && emptyText ? (
         <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted">{emptyText}</p>
@@ -131,7 +131,7 @@ function DebateCard({
       <Card interactive padding="sm" className="flex h-full flex-col gap-3 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+            <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 eyebrow">
               {debate.course && <span className="truncate">{debate.course.name}</span>}
               {debate.class && (
                 <>
@@ -159,7 +159,8 @@ function DebateCard({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-mono text-[11px] text-muted">
           <span className="inline-flex items-center gap-1.5">
             <MessageSquare className="size-3.5" aria-hidden />
-            {debate.argument_count} {debate.argument_count === 1 ? "argumento" : "argumentos"}
+            <span className="tabular-nums">{debate.argument_count}</span>{" "}
+            {debate.argument_count === 1 ? "argumento" : "argumentos"}
           </span>
           <span>
             {debate.closes_at

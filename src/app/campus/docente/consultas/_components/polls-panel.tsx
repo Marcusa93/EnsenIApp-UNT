@@ -151,7 +151,7 @@ function PollCard({ poll, enrolledCount, onError }: { poll: PollItem; enrolledCo
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-medium leading-snug">{poll.question}</p>
-          <p className="mt-1 font-mono text-[11px] uppercase tracking-widest text-muted">
+          <p className="mt-1 font-display text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
             {formatRelative(poll.created_at)}
             {poll.class_topic && ` · ${poll.class_topic}`}
           </p>
@@ -162,7 +162,7 @@ function PollCard({ poll, enrolledCount, onError }: { poll: PollItem; enrolledCo
       </div>
 
       <div className="flex items-baseline gap-2">
-        <span className="font-mono text-2xl font-semibold text-accent-2">{poll.responses}</span>
+        <span className="display-num text-2xl text-accent-2">{poll.responses}</span>
         <span className="text-sm text-muted">
           {poll.responses === 1 ? "respuesta" : "respuestas"}
           {enrolledCount > 0 && ` · ${formatPercent(poll.responses / enrolledCount)} del curso`}
@@ -199,7 +199,7 @@ function PollCard({ poll, enrolledCount, onError }: { poll: PollItem; enrolledCo
 
       {poll.allow_free_text && (
         <div className="rounded-xl border border-border bg-surface-2/40 p-3">
-          <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <p className="mb-2 flex items-center gap-1.5 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
             <MessageSquareQuote className="size-3.5" aria-hidden />
             Respuestas libres ({poll.free_texts.length})
           </p>

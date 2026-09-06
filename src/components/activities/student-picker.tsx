@@ -141,7 +141,7 @@ export function StudentPicker({ students, selected, onChange, disabled }: Studen
           </ul>
         )}
       </div>
-      <p className="font-mono text-[11px] uppercase tracking-widest text-muted">
+      <p className="eyebrow">
         {selected.length} de {students.length} seleccionados
       </p>
     </div>

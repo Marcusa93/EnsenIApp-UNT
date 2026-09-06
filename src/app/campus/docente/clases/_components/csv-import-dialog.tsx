@@ -189,7 +189,7 @@ export function CsvImportDialog({ open, onOpenChange, courseId }: CsvImportDialo
         {parsed && parsed.missing.length === 0 && !result && (
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[36rem] text-left text-sm">
-              <thead className="bg-surface-2/60 font-mono text-[11px] uppercase tracking-widest text-muted">
+              <thead className="eyebrow bg-surface-2/60">
                 <tr>
                   <th className="px-3 py-2">#</th>
                   <th className="px-3 py-2">Fecha</th>

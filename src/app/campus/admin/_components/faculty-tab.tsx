@@ -127,7 +127,7 @@ function FacultyRow({ member, onEdit }: { member: AdminFaculty; onEdit: () => vo
               <Link2 className="size-3" aria-hidden /> {member.profile.email}
             </p>
           ) : (
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">Sin cuenta vinculada</p>
+            <p className="eyebrow mt-1 text-[10px]">Sin cuenta vinculada</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">

@@ -108,7 +108,7 @@ export default async function ComisionPage() {
                       />
                       <p
                         className={cn(
-                          "mt-2 max-w-[130px] truncate text-center font-mono text-[11px] uppercase tracking-widest",
+                          "mt-2 max-w-[130px] truncate text-center font-display text-[11px] font-bold uppercase tracking-widest",
                           isMe ? "text-accent" : "text-foreground",
                         )}
                       >

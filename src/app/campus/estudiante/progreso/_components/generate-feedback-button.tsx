@@ -79,7 +79,17 @@ export function GenerateFeedbackButton({ lastCreatedAt, hasData }: GenerateFeedb
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={generate} loading={busy} disabled={cooldown} leftIcon={<Wand2 />} className="glow">
+        {/* Generar la devolución es una acción de IA: va en violeta (accent-3) como
+            contorno, no relleno —el violeta claro del tema "tinta" no sostiene AA
+            con texto blanco encima (mismo criterio que el botón de Alberdi). */}
+        <Button
+          onClick={generate}
+          loading={busy}
+          disabled={cooldown}
+          leftIcon={<Wand2 />}
+          variant="outline"
+          className="glow-3 border-accent-3/50 text-accent-3 hover:border-accent-3 hover:bg-accent-3/10"
+        >
           {busy ? "Leyendo tu recorrido…" : lastCreatedAt ? "Generar una nueva devolución" : "Generar mi devolución"}
         </Button>
         <p className="text-xs text-muted" aria-live="polite">
@@ -99,10 +109,10 @@ export function GenerateFeedbackButton({ lastCreatedAt, hasData }: GenerateFeedb
       <AnimatePresence initial={false}>
         {busy && (
           <motion.div key="skeleton" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <Card className="border-accent/30" role="status" aria-label="Generando tu devolución">
+            <Card className="border-accent-3/30" role="status" aria-label="Generando tu devolución">
               <div className="mb-3 flex items-center gap-2">
-                <Sparkles className="size-4 animate-pulse text-accent" aria-hidden />
-                <span className="eyebrow text-accent">La IA está escribiendo tu devolución</span>
+                <Sparkles className="size-4 animate-pulse text-accent-3" aria-hidden />
+                <span className="eyebrow text-accent-3">La IA está escribiendo tu devolución</span>
               </div>
               <Skeleton lines={5} />
             </Card>

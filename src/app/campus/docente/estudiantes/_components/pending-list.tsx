@@ -49,7 +49,7 @@ export function PendingList({ courseId, students }: PendingListProps) {
                   <span className="block truncate text-xs text-muted">{s.email}</span>
                 </span>
               </Link>
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted">
+              <p className="eyebrow">
                 Inscripto {formatRelative(s.enrolled_at)} · {s.last_seen_at ? `visto ${formatRelative(s.last_seen_at)}` : "sin accesos"}
               </p>
               <StatusActions courseId={courseId} studentId={s.id} status={s.status} size="md" onError={setError} />

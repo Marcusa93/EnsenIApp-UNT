@@ -19,7 +19,19 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatDateTime, formatDuration, formatPercent, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Markdown } from "@/components/markdown";
-import { Avatar, Badge, Card, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Progress, Stat } from "@/components/ui";
+import {
+  Avatar,
+  Badge,
+  type BadgeTone,
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  EmptyState,
+  PageHeader,
+  Progress,
+  Stat,
+} from "@/components/ui";
 import { RevealGroup, RevealItem } from "@/components/shell";
 import { getActiveCourse } from "@/components/docente/active-course";
 import { StudentStatusBadge } from "../_components/status-badge";
@@ -52,8 +64,16 @@ const QUESTION_LABEL: Record<string, string> = {
   cerrada: "Cerrada",
 };
 
+/** Mismo criterio que el panel de alertas del docente (alerts-panel.tsx): nunca accent-3, que es el color reservado a la IA. */
+const ALERT_TONE: Record<string, BadgeTone> = {
+  dificultad_reiterada: "warning",
+  bajo_desempeno: "danger",
+  inactividad: "muted",
+  consulta_sin_responder: "accent-2",
+};
+
 function difficultyTone(d: number) {
-  if (d >= 4) return "text-accent-3";
+  if (d >= 4) return "text-danger";
   if (d >= 3) return "text-warning";
   return "text-success";
 }
@@ -154,7 +174,7 @@ export default async function EstudianteDetallePage({
             label="Dificultad promedio"
             value={stats.avg_difficulty == null ? "—" : stats.avg_difficulty.toFixed(1)}
             icon={<Gauge />}
-            tone={stats.avg_difficulty != null && stats.avg_difficulty >= 3.5 ? "accent-3" : "muted"}
+            tone={stats.avg_difficulty != null && stats.avg_difficulty >= 3.5 ? "warning" : "accent"}
             hint="Check-ins, escala 1–5"
           />
         </RevealItem>
@@ -166,8 +186,8 @@ export default async function EstudianteDetallePage({
 
       <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
         <div className="flex min-w-0 flex-col gap-4">
-          {/* Cursada */}
-          <Card>
+          {/* Cursada: la tarjeta protagonista de la ficha — el registro académico del estudiante. */}
+          <Card highlight tone="accent">
             <CardHeader>
               <CardTitle eyebrow="Cursada">Clases y placas</CardTitle>
               <CardDescription>Qué clases abrió, cómo le fue con las placas de cada grabación y qué dijo en el check-in.</CardDescription>
@@ -183,16 +203,19 @@ export default async function EstudianteDetallePage({
                         <Link href={`/campus/docente/clases/${c.id}`} className="font-medium hover:text-accent-2">
                           {c.topic}
                         </Link>
-                        <p className="font-mono text-[11px] uppercase tracking-widest text-muted">
+                        <p className="eyebrow">
                           {formatDate(c.class_date)} · {c.opened ? `abierta ${formatRelative(c.opened_at)}` : "no abierta"}
                         </p>
                       </div>
                       {c.checkin ? (
-                        <span className={cn("font-mono text-sm", difficultyTone(c.checkin.difficulty))} title="Dificultad reportada">
+                        <span
+                          className={cn("font-mono text-sm tabular-nums", difficultyTone(c.checkin.difficulty))}
+                          title="Dificultad reportada"
+                        >
                           {c.checkin.difficulty}/5
                         </span>
                       ) : (
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-muted">sin check-in</span>
+                        <span className="eyebrow">sin check-in</span>
                       )}
                     </div>
                     {c.checkin?.comment && (
@@ -232,13 +255,13 @@ export default async function EstudianteDetallePage({
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[520px] text-sm">
-                  <thead className="text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+                  <thead className="text-left">
                     <tr>
-                      <th className="py-2 pr-3 font-medium">Actividad</th>
-                      <th className="py-2 pr-3 font-medium">Estado</th>
-                      <th className="py-2 pr-3 text-right font-medium">Puntaje</th>
-                      <th className="py-2 pr-3 text-right font-medium">Tiempo</th>
-                      <th className="py-2 text-right font-medium">Entrega</th>
+                      <th className="eyebrow py-2 pr-3">Actividad</th>
+                      <th className="eyebrow py-2 pr-3">Estado</th>
+                      <th className="eyebrow py-2 pr-3 text-right">Puntaje</th>
+                      <th className="eyebrow py-2 pr-3 text-right">Tiempo</th>
+                      <th className="eyebrow py-2 text-right">Entrega</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -251,13 +274,13 @@ export default async function EstudianteDetallePage({
                             <Link href={`/campus/docente/actividades/${sub.activity_id}`} className="font-medium hover:text-accent-2">
                               {sub.title}
                             </Link>
-                            <span className="ml-2 font-mono text-[10px] uppercase tracking-widest text-muted">{sub.type}</span>
+                            <span className="eyebrow ml-2">{sub.type}</span>
                           </td>
                           <td className="py-2 pr-3 text-muted">{SUBMISSION_LABEL[sub.status] ?? sub.status}</td>
-                          <td className={cn("py-2 pr-3 text-right font-mono", low && "text-accent-3")}>
+                          <td className={cn("py-2 pr-3 text-right font-mono tabular-nums", low && "text-danger")}>
                             {v == null ? "—" : `${Number(v).toFixed(1)}/${sub.max_score}`}
                           </td>
-                          <td className="py-2 pr-3 text-right font-mono text-muted">{formatDuration(sub.time_spent_seconds)}</td>
+                          <td className="py-2 pr-3 text-right font-mono tabular-nums text-muted">{formatDuration(sub.time_spent_seconds)}</td>
                           <td className="py-2 text-right text-muted">{sub.submitted_at ? formatDateTime(sub.submitted_at) : "—"}</td>
                         </tr>
                       );
@@ -307,8 +330,8 @@ export default async function EstudianteDetallePage({
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
-          {/* Alertas */}
-          <Card className={cn(openAlerts.length > 0 && "border-accent-3/40")}>
+          {/* Alertas: mismo criterio de color que alerts-panel.tsx (warning/danger/muted/accent-2 según el tipo; nunca accent-3, reservado a la IA). */}
+          <Card className={cn(openAlerts.length > 0 && "border-danger/40")}>
             <CardHeader>
               <CardTitle eyebrow="Seguimiento">Alertas</CardTitle>
             </CardHeader>
@@ -319,13 +342,12 @@ export default async function EstudianteDetallePage({
                 {detail.alerts.map((a) => (
                   <li
                     key={a.id}
-                    className={cn(
-                      "rounded-xl border px-3 py-2.5",
-                      a.resolved ? "border-border opacity-70" : "border-accent-3/40 bg-accent-3/5",
-                    )}
+                    className={cn("rounded-xl border px-3 py-2.5", a.resolved ? "border-border opacity-70" : "border-border bg-surface-2/60")}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-accent-3">{ALERT_LABEL[a.kind] ?? a.kind}</span>
+                      <Badge tone={ALERT_TONE[a.kind] ?? "danger"} size="sm">
+                        {ALERT_LABEL[a.kind] ?? a.kind}
+                      </Badge>
                       <span className="font-mono text-[11px] text-muted">{formatRelative(a.created_at)}</span>
                     </div>
                     <p className="mt-1 text-sm">{a.message}</p>
@@ -343,17 +365,17 @@ export default async function EstudianteDetallePage({
               <CardDescription>Feedback personalizado que el estudiante generó desde “Mi progreso”.</CardDescription>
             </CardHeader>
             {detail.feedbacks.length === 0 ? (
-              <EmptyState compact tone="muted" icon={Sparkles} title="Todavía no generó devoluciones" />
+              <EmptyState compact tone="accent-3" icon={Sparkles} title="Todavía no generó devoluciones" />
             ) : (
               <ul className="flex flex-col gap-3">
                 {detail.feedbacks.map((f) => (
                   <li key={f.id} className="rounded-xl border border-border p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[11px] uppercase tracking-widest text-muted">
+                    <div className="eyebrow mb-2 flex items-center justify-between gap-2">
                       <span className="truncate">{f.recording_title ?? "General"}</span>
                       <span>{formatDate(f.created_at)}</span>
                     </div>
                     <details>
-                      <summary className="cursor-pointer text-sm text-accent-2">Ver devolución</summary>
+                      <summary className="cursor-pointer text-sm text-accent-3">Ver devolución</summary>
                       <div className="mt-2">
                         <Markdown size="sm">{f.feedback_md}</Markdown>
                       </div>

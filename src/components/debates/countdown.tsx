@@ -88,7 +88,7 @@ export function Countdown({ closesAt, open, onExpire, className }: CountdownProp
     <span
       className={cn(
         "inline-flex items-center gap-1.5 font-mono text-xs tabular-nums",
-        done ? "text-warning" : urgent ? "text-accent-3" : "text-muted",
+        done ? "text-warning" : urgent ? "text-accent" : "text-muted",
         className,
       )}
       aria-live={urgent ? "polite" : undefined}

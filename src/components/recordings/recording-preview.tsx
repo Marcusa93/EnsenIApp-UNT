@@ -63,7 +63,7 @@ export function RecordingPreview({ recordingId, title, open, onOpenChange }: Rec
           <span className="flex flex-wrap items-center gap-2">
             {data.duration_seconds != null && <Badge size="sm">{formatDuration(data.duration_seconds)}</Badge>}
             {data.transcription_model && <Badge size="sm" tone="accent-2">{data.transcription_model}</Badge>}
-            {data.generation_model && <Badge size="sm" tone="accent">{data.generation_model}</Badge>}
+            {data.generation_model && <Badge size="sm" tone="accent-3">{data.generation_model}</Badge>}
           </span>
         ) : (
           "Así van a ver el material los estudiantes cuando lo publiques."

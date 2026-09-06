@@ -38,7 +38,7 @@ export function SetPanel({
             key={set.id}
             className={cn(
               "rounded-2xl border p-3.5 transition",
-              active ? "border-accent-3/50 bg-accent-3/5" : "border-border bg-surface-2/40",
+              active ? "border-success/50 bg-success/5" : "border-border bg-surface-2/40",
             )}
           >
             <div className="flex flex-wrap items-center gap-2">
@@ -50,7 +50,7 @@ export function SetPanel({
                 {set.theme}
               </Badge>
               {active ? (
-                <Badge size="sm" tone="accent-3" dot live>
+                <Badge size="sm" tone="success" dot live>
                   Activo
                 </Badge>
               ) : (
@@ -60,7 +60,7 @@ export function SetPanel({
               )}
             </div>
 
-            <p className={cn("mt-1.5 text-[13px] leading-relaxed", active ? "text-accent-3" : "text-muted")}>
+            <p className={cn("mt-1.5 text-[13px] leading-relaxed", active ? "text-success" : "text-muted")}>
               {set.perk}
             </p>
 

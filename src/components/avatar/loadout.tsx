@@ -54,11 +54,11 @@ const SLOT_ORDER = ["visor", "toga", "instrumento", "companion", "aura", "fondo"
 /** Los slots opcionales se pueden dejar vacíos; los de vestimenta, no. */
 const OPTIONAL_SLOTS = new Set(["companion", "aura"]);
 
-const RARITY: Record<LoadoutItem["rarity"], { label: string; className: string; tone: "muted" | "accent-2" | "accent" | "accent-3" }> = {
+const RARITY: Record<LoadoutItem["rarity"], { label: string; className: string; tone: "muted" | "accent-2" | "accent" | "warning" }> = {
   comun: { label: "Común", className: "border-border", tone: "muted" },
   raro: { label: "Raro", className: "border-accent-2/50", tone: "accent-2" },
   epico: { label: "Épico", className: "border-accent/50", tone: "accent" },
-  legendario: { label: "Legendario", className: "border-accent-3/60", tone: "accent-3" },
+  legendario: { label: "Legendario", className: "border-warning/60", tone: "warning" },
 };
 
 export function Loadout({
@@ -177,14 +177,14 @@ export function Loadout({
           <div className="text-center">
             {trying ? (
               <>
-                <p className="font-mono text-sm uppercase tracking-[0.2em] text-accent-2">{trying.name}</p>
+                <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-accent-2">{trying.name}</p>
                 <p className="mt-0.5 text-xs text-muted">
                   Así te quedaría. {trying.requirement}.
                 </p>
               </>
             ) : (
               <>
-                <p className="font-mono text-sm uppercase tracking-[0.2em] text-foreground">{config.callsign}</p>
+                <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-foreground">{config.callsign}</p>
                 <p className="mt-0.5 text-xs text-muted">
                   {owned} de {items.length} equipos desbloqueados
                 </p>
@@ -220,7 +220,7 @@ export function Loadout({
             <motion.div
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 rounded-xl border border-accent-3/40 bg-accent-3/10 px-3 py-2 text-sm text-accent-3"
+              className="flex items-center gap-2 rounded-xl border border-accent-2/40 bg-accent-2/10 px-3 py-2 text-sm text-accent-2"
             >
               <Sparkles className="size-4 shrink-0" aria-hidden />
               Desbloqueaste {nuevos.length} {nuevos.length === 1 ? "equipo nuevo" : "equipos nuevos"}:{" "}
@@ -315,7 +315,7 @@ export function Loadout({
                               </Badge>
                             )}
                             {item.isNew && item.unlocked && (
-                              <Badge size="sm" tone="accent-3" dot live>
+                              <Badge size="sm" tone="accent-2" dot live>
                                 Nuevo
                               </Badge>
                             )}
@@ -332,7 +332,7 @@ export function Loadout({
                           </div>
                           <p className="mt-1 text-[13px] leading-relaxed text-muted">{item.description}</p>
                           {!item.unlocked && (
-                            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] uppercase tracking-wider text-accent-2">
+                            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-[11px] font-bold uppercase tracking-wider text-accent-2">
                               {item.requirement}
                               <span className="text-muted normal-case tracking-normal">
                                 {trying?.id === item.id ? "· tocá otra vez para sacarlo" : "· tocá para probártelo"}

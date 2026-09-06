@@ -1,6 +1,7 @@
 import * as React from "react";
+import { Sparkles } from "lucide-react";
 import { Markdown } from "@/components/markdown";
-import { Card, CardHeader, CardTitle } from "@/components/ui";
+import { Badge, Card, CardHeader, CardTitle } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 interface Section {
@@ -58,16 +59,26 @@ export function ReportView({ markdown }: ReportViewProps) {
   const { intro, sections } = splitSections(markdown);
   const highlights = extractHighlights(markdown);
 
+  const aiBadge = (
+    <Badge tone="accent-3" dot>
+      <Sparkles className="size-3" aria-hidden /> Generado con IA
+    </Badge>
+  );
+
   if (sections.length === 0) {
     return (
-      <Card>
-        <Markdown>{markdown}</Markdown>
-      </Card>
+      <div className="flex flex-col gap-4">
+        {aiBadge}
+        <Card>
+          <Markdown>{markdown}</Markdown>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
+      {aiBadge}
       {highlights.length > 0 && (
         <section aria-label="Cifras destacadas" className="flex flex-wrap gap-2">
           {highlights.map((h) => (

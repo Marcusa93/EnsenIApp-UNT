@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatDateTime } from "@/lib/format";
 import { STANCE_META } from "./stance";
-import { StanceBadge } from "./stance-badge";
+import { StanceBadge, STANCE_COLOR } from "./stance-badge";
 import type { ArgumentView } from "./types";
 
 export interface ArgumentCardProps {
@@ -46,6 +46,7 @@ export function ArgumentCard({
 }: ArgumentCardProps) {
   const [showReplies, setShowReplies] = React.useState(false);
   const meta = STANCE_META[argument.stance];
+  const color = STANCE_COLOR[argument.stance];
   const hidden = argument.status === "hidden";
   const isOwn = argument.author_id === currentUserId;
   const authorName = argument.author?.full_name ?? "Participante";
@@ -60,7 +61,7 @@ export function ArgumentCard({
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         "group relative rounded-2xl border bg-surface p-4 transition-[border-color,box-shadow] duration-300",
-        depth === 0 ? meta.border : "border-border",
+        depth === 0 ? color.border : "border-border",
         hidden && "border-dashed opacity-80",
         isNew && "shadow-[0_0_0_1px_var(--accent),0_0_40px_-12px_var(--accent)]",
         className,
@@ -70,7 +71,7 @@ export function ArgumentCard({
       {/* franja de postura */}
       {depth === 0 && (
         <span
-          className={cn("absolute inset-y-4 left-0 w-0.5 rounded-full", meta.bar)}
+          className={cn("absolute inset-y-4 left-0 w-0.5 rounded-full", color.bar)}
           aria-hidden
         />
       )}
@@ -100,7 +101,7 @@ export function ArgumentCard({
           </div>
         </div>
         {depth === 1 ? (
-          <span className={cn("font-mono text-[10px] uppercase tracking-widest", meta.text)}>{meta.label}</span>
+          <span className={cn("eyebrow", color.text)}>{meta.label}</span>
         ) : (
           <StanceBadge stance={argument.stance} />
         )}
@@ -163,7 +164,6 @@ export function ArgumentCard({
             onClick={() => onReply(argument)}
             disabled={closed || hidden}
             leftIcon={<Reply />}
-            className="font-mono text-xs"
           >
             Responder
           </Button>
@@ -177,7 +177,7 @@ export function ArgumentCard({
                 size="sm"
                 onClick={() => onRestore(argument)}
                 leftIcon={<Eye />}
-                className="font-mono text-xs text-success"
+                className="text-success hover:text-success"
               >
                 Restaurar
               </Button>
@@ -187,7 +187,7 @@ export function ArgumentCard({
                 size="sm"
                 onClick={() => onHide(argument)}
                 leftIcon={<EyeOff />}
-                className="font-mono text-xs text-muted hover:text-warning"
+                className="hover:text-warning"
               >
                 Ocultar
               </Button>
@@ -203,7 +203,7 @@ export function ArgumentCard({
             onClick={() => setShowReplies((v) => !v)}
             aria-expanded={showReplies}
             aria-controls={`arg-${argument.id}-replies`}
-            className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="inline-flex items-center gap-1.5 eyebrow transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <ChevronDown className={cn("size-3.5 transition-transform", showReplies && "rotate-180")} aria-hidden />
             {showReplies ? "Ocultar respuestas" : `Ver ${replies.length} ${replies.length === 1 ? "respuesta" : "respuestas"}`}

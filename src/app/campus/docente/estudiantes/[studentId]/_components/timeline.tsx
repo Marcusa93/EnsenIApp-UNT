@@ -37,6 +37,7 @@ const EVENT_LABEL: Record<string, string> = {
 const NOISY = new Set(["page_view", "focus_lost", "focus_gained", "activity_answer_changed", "card_flipped"]);
 
 function dotClass(type: string) {
+  if (type === "feedback_generated") return "bg-accent-3";
   if (type.startsWith("activity")) return "bg-accent";
   if (type.startsWith("card") || type === "quiz_answered" || type === "cards_session_completed") return "bg-accent-2";
   if (type === "question_asked" || type === "checkin_submitted" || type === "poll_answered") return "bg-accent-3";
@@ -54,7 +55,7 @@ export function Timeline({ events, truncated }: { events: TimelineEvent[]; trunc
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
+        <span className="eyebrow">
           {events.length} eventos {truncated ? "(últimos)" : ""}
         </span>
         {hiddenNoise > 0 && (
@@ -76,7 +77,7 @@ export function Timeline({ events, truncated }: { events: TimelineEvent[]; trunc
               <span className={cn("absolute -left-[25px] top-3 size-2 rounded-full ring-4 ring-background", dotClass(e.event_type))} aria-hidden />
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
                 <span className="text-sm">{EVENT_LABEL[e.event_type] ?? e.event_type}</span>
-                <span className="font-mono text-[10px] uppercase tracking-widest text-muted">{e.entity_type}</span>
+                <span className="eyebrow">{e.entity_type}</span>
                 <time dateTime={e.created_at} className="ml-auto font-mono text-[11px] text-muted">
                   {formatDateTime(e.created_at)}
                 </time>

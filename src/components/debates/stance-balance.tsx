@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { STANCES, STANCE_META, totalCounts, type StanceCounts } from "./stance";
+import { STANCE_COLOR } from "./stance-badge";
 
 export interface StanceBalanceProps {
   counts: StanceCounts;
@@ -35,7 +36,7 @@ export function StanceBalance({ counts, legend = true, size = "sm", className }:
             return (
               <div
                 key={s}
-                className={cn("h-full transition-[width] duration-500 ease-out", STANCE_META[s].bar)}
+                className={cn("h-full transition-[width] duration-500 ease-out", STANCE_COLOR[s].bar)}
                 style={{ width: `${pct}%` }}
               />
             );
@@ -43,11 +44,14 @@ export function StanceBalance({ counts, legend = true, size = "sm", className }:
         )}
       </div>
       {legend && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 eyebrow">
           {STANCES.map((s) => (
             <span key={s} className="inline-flex items-center gap-1.5">
-              <span className={cn("inline-block size-1.5 rounded-full", STANCE_META[s].bar)} aria-hidden />
-              <span className={STANCE_META[s].text}>{counts[s]}</span> {STANCE_META[s].short}
+              <span className={cn("inline-block size-1.5 rounded-full", STANCE_COLOR[s].bar)} aria-hidden />
+              <span className={cn("font-mono tabular-nums tracking-normal normal-case", STANCE_COLOR[s].text)}>
+                {counts[s]}
+              </span>{" "}
+              {STANCE_META[s].short}
             </span>
           ))}
         </div>

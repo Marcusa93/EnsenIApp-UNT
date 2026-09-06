@@ -89,6 +89,7 @@ export function AlberdiPanel({ data }: { data: AlberdiPanelData }) {
     return (
       <EmptyState
         icon={Feather}
+        tone="accent-3"
         title="Todavía nadie le consultó a Alberdi"
         description="Cuando los estudiantes empiecen a preguntarle sobre las clases vas a ver acá qué les cuesta, en sus propias palabras."
       />

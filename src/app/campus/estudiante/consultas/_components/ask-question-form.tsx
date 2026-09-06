@@ -252,14 +252,14 @@ export function AskQuestionForm({ courseId, classes, initialClassId, initialReco
                 <p className="whitespace-pre-line">{answer.question}</p>
               </blockquote>
 
-              <div className="mt-4 rounded-2xl border border-accent-2/25 bg-accent-2/5 p-4">
+              <div className="mt-4 rounded-2xl border border-accent-3/25 bg-accent-3/5 p-4">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="flex size-7 items-center justify-center rounded-lg border border-accent-2/30 bg-accent-2/12 text-accent-2">
+                  <span className="flex size-7 items-center justify-center rounded-lg border border-accent-3/30 bg-accent-3/12 text-accent-3">
                     <Bot className="size-3.5" aria-hidden />
                   </span>
-                  <span className="eyebrow text-accent-2">Respuesta de la IA</span>
+                  <span className="eyebrow text-accent-3">Respuesta de la IA</span>
                   {answer.phase === "answering" && (
-                    <Badge tone="accent-2" size="sm" dot live>
+                    <Badge tone="accent-3" size="sm" dot live>
                       respondiendo
                     </Badge>
                   )}

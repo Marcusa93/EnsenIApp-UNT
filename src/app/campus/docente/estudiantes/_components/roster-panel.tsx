@@ -251,19 +251,19 @@ export function RosterPanel({ courseId, courseName, roster }: RosterPanelProps) 
             </div>
             <div className="max-h-64 overflow-auto rounded-xl border border-border">
               <table className="w-full min-w-[420px] text-xs">
-                <thead className="sticky top-0 bg-surface-2 text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+                <thead className="sticky top-0 bg-surface-2 text-left">
                   <tr>
-                    <th className="px-2 py-1.5 font-medium">#</th>
-                    <th className="px-2 py-1.5 font-medium">Email</th>
-                    <th className="px-2 py-1.5 font-medium">Nombre</th>
-                    <th className="px-2 py-1.5 font-medium">DNI</th>
-                    <th className="px-2 py-1.5 font-medium">Estado</th>
+                    <th className="eyebrow px-2 py-1.5">#</th>
+                    <th className="eyebrow px-2 py-1.5">Email</th>
+                    <th className="eyebrow px-2 py-1.5">Nombre</th>
+                    <th className="eyebrow px-2 py-1.5">DNI</th>
+                    <th className="eyebrow px-2 py-1.5">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {preview.slice(0, 200).map((r) => (
                     <tr key={r.line} className={cn(r.error && "bg-danger/5")}>
-                      <td className="px-2 py-1.5 font-mono text-muted">{r.line}</td>
+                      <td className="px-2 py-1.5 font-mono tabular-nums text-muted">{r.line}</td>
                       <td className="px-2 py-1.5">{r.parsed?.email ?? r.raw.email ?? ""}</td>
                       <td className="px-2 py-1.5">{r.parsed?.nombre ?? r.raw.nombre ?? ""}</td>
                       <td className="px-2 py-1.5 font-mono">{r.parsed?.dni ?? r.raw.dni ?? ""}</td>
@@ -345,12 +345,12 @@ export function RosterPanel({ courseId, courseName, roster }: RosterPanelProps) 
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] text-sm">
-              <thead className="text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+              <thead className="text-left">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Email</th>
-                  <th className="px-3 py-2 font-medium">Nombre</th>
-                  <th className="px-3 py-2 font-medium">DNI</th>
-                  <th className="px-3 py-2 font-medium">Registro</th>
+                  <th className="eyebrow px-3 py-2">Email</th>
+                  <th className="eyebrow px-3 py-2">Nombre</th>
+                  <th className="eyebrow px-3 py-2">DNI</th>
+                  <th className="eyebrow px-3 py-2">Registro</th>
                   <th className="px-3 py-2" />
                 </tr>
               </thead>
@@ -366,7 +366,7 @@ export function RosterPanel({ courseId, courseName, roster }: RosterPanelProps) 
                           Registrado
                         </Badge>
                       ) : (
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-muted" title={`Cargado ${formatDate(r.created_at)}`}>
+                        <span className="eyebrow" title={`Cargado ${formatDate(r.created_at)}`}>
                           Sin cuenta
                         </span>
                       )}

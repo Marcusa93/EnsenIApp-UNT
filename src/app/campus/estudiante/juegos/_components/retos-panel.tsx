@@ -226,7 +226,7 @@ export function RetosPanel({
     return (
       <Card highlight>
         <div className="flex items-center justify-between gap-3">
-          <p className="eyebrow text-accent-3">
+          <p className="eyebrow text-accent">
             <Swords className="mr-1 inline size-3.5" aria-hidden />
             Reto contra {active.otherCallsign}
           </p>
@@ -238,7 +238,7 @@ export function RetosPanel({
             Salir
           </button>
         </div>
-        <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+        <p className="eyebrow mt-1">
           {active.gameName} · {index + 1} de {challenges.length}
         </p>
 
@@ -265,9 +265,9 @@ export function RetosPanel({
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                         answered
                           ? isPicked
-                            ? "border-accent-3 bg-accent-3/10 text-foreground"
+                            ? "border-accent bg-accent/10 text-foreground"
                             : "border-border bg-surface-2/40 text-muted"
-                          : "border-border bg-surface-2/60 hover:border-accent-3/50 hover:bg-surface-2",
+                          : "border-border bg-surface-2/60 hover:border-accent/50 hover:bg-surface-2",
                       )}
                     >
                       {opt}
@@ -307,7 +307,7 @@ export function RetosPanel({
           <p className="text-4xl" aria-hidden>
             {!result.done ? "📨" : result.won ? "🏆" : result.draw ? "🤝" : "📚"}
           </p>
-          <p className="eyebrow mt-3 text-accent-3">Reto contra {active.otherCallsign}</p>
+          <p className="eyebrow mt-3 text-accent">Reto contra {active.otherCallsign}</p>
           <h2 className="mt-1 text-2xl font-semibold tracking-tight">
             Vos: {result.correct} de {result.total}
             {result.done && ` · ${active.otherCallsign}: ${result.opponentCorrect} de ${result.opponentTotal}`}
@@ -341,7 +341,7 @@ export function RetosPanel({
     return (
       <Card>
         <CardTitle eyebrow="Retos" as="h2" className="flex items-center gap-2">
-          <Swords className="size-4 text-accent-3" aria-hidden />
+          <Swords className="size-4 text-accent" aria-hidden />
           Retar a un compañero
         </CardTitle>
 
@@ -422,7 +422,7 @@ export function RetosPanel({
     <Card>
       <div className="flex items-center justify-between gap-3">
         <CardTitle eyebrow="Retos" as="h2" className="flex items-center gap-2">
-          <Swords className="size-4 text-accent-3" aria-hidden />
+          <Swords className="size-4 text-accent" aria-hidden />
           Competí con la comisión
         </CardTitle>
         {classmates.length > 0 && games.length > 0 && classes.length > 0 && (
@@ -444,12 +444,12 @@ export function RetosPanel({
         <div className="mt-3 flex flex-col gap-4">
           {incoming.length > 0 && (
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-accent-3">Te retaron</p>
+              <p className="eyebrow text-accent">Te retaron</p>
               <ul className="mt-2 flex flex-col gap-2">
                 {incoming.map((d) => (
                   <li
                     key={d.id}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-accent-3/30 bg-accent-3/5 px-3 py-2.5"
+                    className="flex items-center justify-between gap-2 rounded-xl border border-accent/30 bg-accent/5 px-3 py-2.5"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{d.otherCallsign}</p>
@@ -479,7 +479,7 @@ export function RetosPanel({
 
           {sentPending.length > 0 && (
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Esperando respuesta</p>
+              <p className="eyebrow">Esperando respuesta</p>
               <ul className="mt-2 flex flex-col gap-2">
                 {sentPending.map((d) => (
                   <li key={d.id} className="flex items-center gap-2 rounded-xl border border-border bg-surface-2/50 px-3 py-2.5">
@@ -497,7 +497,7 @@ export function RetosPanel({
 
           {history.length > 0 && (
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Historial</p>
+              <p className="eyebrow">Historial</p>
               <ul className="mt-2 flex flex-col gap-2">
                 {history.map((d) => (
                   <li key={d.id} className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-2/50 px-3 py-2.5">

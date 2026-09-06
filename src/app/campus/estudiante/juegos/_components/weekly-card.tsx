@@ -54,7 +54,7 @@ export function WeeklyCard({ status }: { status: WeeklyStatus }) {
           <p className="text-4xl" aria-hidden>
             🎁
           </p>
-          <p className="eyebrow mt-2 text-accent-3">Semana cumplida</p>
+          <p className="eyebrow mt-2 text-accent-2">Semana cumplida</p>
           <p className="mt-1 text-lg font-semibold">
             +{reward.xp} XP
           </p>
@@ -74,10 +74,10 @@ export function WeeklyCard({ status }: { status: WeeklyStatus }) {
     <Card highlight={status.done && !status.claimed}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <CardTitle eyebrow="Desafío de la semana" as="h2" className="flex items-center gap-2">
-          <CalendarClock className="size-4 text-accent-3" aria-hidden />
+          <CalendarClock className="size-4 text-accent-2" aria-hidden />
           {status.target} aciertos antes del lunes
         </CardTitle>
-        <Badge size="sm" tone={status.done ? "accent-3" : "muted"}>
+        <Badge size="sm" tone={status.done ? "accent-2" : "muted"}>
           {status.claimed ? "Cobrado" : restante}
         </Badge>
       </div>
@@ -88,10 +88,17 @@ export function WeeklyCard({ status }: { status: WeeklyStatus }) {
       </p>
 
       <div className="mt-3">
-        <Progress value={pct} tone={status.done ? "accent-3" : "accent"} />
-        <p className="mt-1.5 font-mono text-[11px] uppercase tracking-widest text-muted">
-          {status.correct} de {status.target} aciertos
-          {status.weeksDone > 0 && ` · ${status.weeksDone} ${status.weeksDone === 1 ? "semana cumplida" : "semanas cumplidas"}`}
+        <Progress value={pct} tone={status.done ? "accent-2" : "accent"} />
+        <p className="mt-1.5 text-xs text-muted">
+          <span className="font-mono tabular-nums">{status.correct}</span> de{" "}
+          <span className="font-mono tabular-nums">{status.target}</span> aciertos
+          {status.weeksDone > 0 && (
+            <>
+              {" · "}
+              <span className="font-mono tabular-nums">{status.weeksDone}</span>{" "}
+              {status.weeksDone === 1 ? "semana cumplida" : "semanas cumplidas"}
+            </>
+          )}
         </p>
       </div>
 

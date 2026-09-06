@@ -17,7 +17,7 @@ export interface ConceptCardProps {
 export function ConceptCard({ title, bodyMd, tag, onMark }: ConceptCardProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative overflow-hidden rounded-3xl border border-accent-3/30 bg-surface p-5 sm:p-7">
+      <div className="paper relative overflow-hidden rounded-3xl border border-accent-3/30 bg-surface p-5 sm:p-7">
         <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-accent-3/15 blur-3xl" aria-hidden />
         <div className="mb-4 flex items-center justify-between">
           <span className="eyebrow flex items-center gap-2 text-accent-3">
@@ -32,7 +32,7 @@ export function ConceptCard({ title, bodyMd, tag, onMark }: ConceptCardProps) {
         </div>
         <h3 className="text-balance text-xl font-semibold leading-snug sm:text-2xl">{title}</h3>
         <div className="mt-4 max-h-[40vh] overflow-y-auto pr-1">
-          <Markdown size="md">{bodyMd}</Markdown>
+          <Markdown size="lg">{bodyMd}</Markdown>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">

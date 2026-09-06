@@ -81,7 +81,7 @@ export function OperatorForge({ mode, initial, onDone }: OperatorForgeProps) {
         >
           <Turntable config={{ chassis, tone, glow, build, equipped }} size={280} title={callsign || "Tu operador"} />
         </motion.div>
-        <p className="font-mono text-sm uppercase tracking-[0.2em] text-muted">{callsign || "sin alias"}</p>
+        <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-muted">{callsign || "sin alias"}</p>
       </div>
 
       {/* Controles */}

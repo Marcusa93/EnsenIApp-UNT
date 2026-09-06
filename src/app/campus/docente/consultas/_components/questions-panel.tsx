@@ -23,7 +23,8 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 const STATUS_META: Record<QuestionStatus, { label: string; tone: BadgeTone }> = {
   abierta: { label: "Abierta", tone: "warning" },
-  respondida_ia: { label: "Respondida por IA", tone: "accent-2" },
+  // Respuesta de la IA: violeta, como el resto de lo que genera Alberdi.
+  respondida_ia: { label: "Respondida por IA", tone: "accent-3" },
   respondida_docente: { label: "Respondida por docente", tone: "success" },
   cerrada: { label: "Cerrada", tone: "muted" },
 };
@@ -72,13 +73,14 @@ export function QuestionsPanel({ questions }: { questions: QuestionItem[] }) {
                 aria-pressed={active}
                 onClick={() => setFilter(f.value)}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-colors focus-visible:outline-2 focus-visible:outline-ring",
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-display text-[11px] font-bold uppercase tracking-[0.12em] transition-colors focus-visible:outline-2 focus-visible:outline-ring",
                   active
                     ? "border-accent bg-accent/15 text-foreground"
                     : "border-border bg-surface text-muted hover:border-accent/40 hover:text-foreground",
                 )}
               >
-                {f.label} · {counts[f.value]}
+                {f.label}
+                <span className="font-mono text-[10px] normal-case tracking-normal tabular-nums opacity-70">{counts[f.value]}</span>
               </button>
             );
           })}
@@ -189,11 +191,11 @@ function QuestionCard({ item }: { item: QuestionItem }) {
       <p className="mt-3 text-sm leading-relaxed">{item.question}</p>
 
       {item.ai_answer_md && (
-        <details className="group mt-3 rounded-xl border border-accent-2/30 bg-accent-2/5">
-          <summary className="flex cursor-pointer items-center gap-2 px-3 py-2.5 text-sm text-accent-2 marker:content-none">
+        <details className="group mt-3 rounded-xl border border-accent-3/30 bg-accent-3/5">
+          <summary className="flex cursor-pointer items-center gap-2 px-3 py-2.5 text-sm text-accent-3 marker:content-none">
             <Bot className="size-4 shrink-0" aria-hidden />
             Respuesta de la IA
-            <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-muted group-open:hidden">ver</span>
+            <span className="ml-auto font-display text-[10px] font-bold uppercase tracking-[0.12em] text-muted group-open:hidden">ver</span>
           </summary>
           <div className="px-3 pb-3">
             <Markdown size="sm">{item.ai_answer_md}</Markdown>
@@ -217,7 +219,7 @@ function QuestionCard({ item }: { item: QuestionItem }) {
 
       {item.teacher_answer_md && !editing && (
         <div className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3">
-          <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-success">
+          <p className="mb-1.5 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-success">
             Respuesta del equipo docente
             {item.answered_by_name && ` · ${item.answered_by_name}`}
             {item.answered_at && ` · ${formatRelative(item.answered_at)}`}

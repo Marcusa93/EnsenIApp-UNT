@@ -274,7 +274,7 @@ export function ActivityForm(props: ActivityFormProps) {
                   disabled={i > stepIndex}
                   aria-current={active ? "step" : undefined}
                   className={cn(
-                    "inline-flex h-8 items-center gap-2 rounded-full border px-3 font-mono text-[11px] uppercase tracking-widest transition-colors",
+                    "inline-flex h-8 items-center gap-2 rounded-full border px-3 font-display text-[11px] font-bold uppercase tracking-[0.12em] transition-colors",
                     active && "border-accent bg-accent/10 text-accent",
                     done && "border-success/40 text-success hover:bg-success/10",
                     !active && !done && "border-border text-muted",
@@ -360,7 +360,7 @@ export function ActivityForm(props: ActivityFormProps) {
                       leftIcon={<Sparkles />}
                       loading={suggesting}
                       onClick={suggest}
-                      className="border-accent-2/40 text-accent-2 hover:border-accent-2"
+                      className="border-accent-3/40 text-accent-3 hover:border-accent-3"
                     >
                       Sugerir con IA
                     </Button>
@@ -372,7 +372,7 @@ export function ActivityForm(props: ActivityFormProps) {
                   </p>
                 )}
                 {suggestNote && (
-                  <p className="rounded-xl border border-accent-2/30 bg-accent-2/10 px-3 py-2 text-xs text-accent-2" role="status">
+                  <p className="rounded-xl border border-accent-3/30 bg-accent-3/10 px-3 py-2 text-xs text-accent-3" role="status">
                     {suggestNote}
                   </p>
                 )}

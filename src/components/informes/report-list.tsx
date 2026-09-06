@@ -76,7 +76,7 @@ export function ReportList({ reports, classes, activities, students }: ReportLis
                         {question ? `“${question}”` : filters.join(" · ")}
                       </p>
                     )}
-                    <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <p className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
                       <time dateTime={r.created_at} title={formatDateTime(r.created_at)}>
                         {formatRelative(r.created_at)}
                       </time>

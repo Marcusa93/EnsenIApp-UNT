@@ -80,7 +80,7 @@ export default async function EstudiantesPage({
             label="Con alertas"
             value={withAlerts}
             icon={<AlertTriangle />}
-            tone={withAlerts > 0 ? "accent-3" : "muted"}
+            tone={withAlerts > 0 ? "warning" : "muted"}
             hint="Alertas abiertas"
           />
         </RevealItem>

@@ -122,7 +122,7 @@ export default async function DocentePanelPage({
             label="Dificultad promedio"
             value={avgDifficulty == null ? "—" : Number(avgDifficulty).toFixed(1)}
             icon={<Gauge />}
-            tone={avgDifficulty != null && Number(avgDifficulty) >= 3.5 ? "accent-3" : "accent"}
+            tone={avgDifficulty != null && Number(avgDifficulty) >= 3.5 ? "warning" : "accent"}
             hint="Escala 1–5 en check-ins"
           />
         </RevealItem>

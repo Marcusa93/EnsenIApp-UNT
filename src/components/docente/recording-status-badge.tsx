@@ -16,7 +16,7 @@ const TONE: Record<RecordingStatus, BadgeTone> = {
   uploaded: "muted",
   transcribing: "accent-2",
   processing: "accent-2",
-  generating: "accent",
+  generating: "accent-2",
   ready: "success",
   error: "danger",
 };

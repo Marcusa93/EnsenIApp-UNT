@@ -69,7 +69,7 @@ export async function RecordingsPanel({ classId, courseId }: RecordingsPanelProp
           </CardTitle>
           <div className="flex items-center gap-2">
             {inProgress > 0 && (
-              <Badge tone="accent" dot live size="sm">
+              <Badge tone="accent-2" dot live size="sm">
                 {inProgress} en proceso
               </Badge>
             )}

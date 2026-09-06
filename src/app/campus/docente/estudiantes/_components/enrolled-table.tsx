@@ -20,7 +20,7 @@ export interface EnrolledTableProps {
 
 function difficultyClass(d: number | null) {
   if (d == null) return "text-muted";
-  if (d >= 4) return "text-accent-3";
+  if (d >= 4) return "text-danger";
   if (d >= 3) return "text-warning";
   return "text-success";
 }
@@ -74,7 +74,7 @@ export function EnrolledTable({ courseId, courseName, students, usageTruncated }
           className="sm:max-w-sm"
         />
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
+          <span className="font-mono text-xs tabular-nums text-muted">
             {filtered.length} de {students.length}
           </span>
           <Button variant="secondary" size="sm" leftIcon={<Download />} onClick={exportCsv}>
@@ -94,15 +94,15 @@ export function EnrolledTable({ courseId, courseName, students, usageTruncated }
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border">
           <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-surface-2 text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+            <thead className="bg-surface-2 text-left">
               <tr>
-                <th className="px-4 py-3 font-medium">Estudiante</th>
-                <th className="px-3 py-3 font-medium">Estado</th>
-                <th className="px-3 py-3 font-medium">Último acceso</th>
-                <th className="px-3 py-3 text-right font-medium">Actividad 7 d</th>
-                <th className="px-3 py-3 text-right font-medium">Dificultad</th>
-                <th className="px-3 py-3 text-right font-medium">Alertas</th>
-                <th className="px-3 py-3 text-right font-medium">Acciones</th>
+                <th className="eyebrow px-4 py-3">Estudiante</th>
+                <th className="eyebrow px-3 py-3">Estado</th>
+                <th className="eyebrow px-3 py-3">Último acceso</th>
+                <th className="eyebrow px-3 py-3 text-right">Actividad 7 d</th>
+                <th className="eyebrow px-3 py-3 text-right">Dificultad</th>
+                <th className="eyebrow px-3 py-3 text-right">Alertas</th>
+                <th className="eyebrow px-3 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -122,11 +122,7 @@ export function EnrolledTable({ courseId, courseName, students, usageTruncated }
                       <StudentStatusBadge status={s.status} />
                       {!s.in_roster && (
                         <Tooltip content="No figura en el padrón">
-                          <span
-                            tabIndex={0}
-                            className="font-mono text-[10px] uppercase tracking-widest text-warning"
-                            aria-label="No figura en el padrón"
-                          >
+                          <span tabIndex={0} className="eyebrow text-warning" aria-label="No figura en el padrón">
                             sin padrón
                           </span>
                         </Tooltip>
@@ -134,13 +130,13 @@ export function EnrolledTable({ courseId, courseName, students, usageTruncated }
                     </div>
                   </td>
                   <td className="px-3 py-2.5 text-muted">{s.last_seen_at ? formatRelative(s.last_seen_at) : "Nunca"}</td>
-                  <td className="px-3 py-2.5 text-right font-mono">{s.events_7d}</td>
-                  <td className={cn("px-3 py-2.5 text-right font-mono", difficultyClass(s.avg_difficulty))}>
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.events_7d}</td>
+                  <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums", difficultyClass(s.avg_difficulty))}>
                     {s.avg_difficulty == null ? "—" : s.avg_difficulty.toFixed(1)}
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     {s.open_alerts > 0 ? (
-                      <span className="inline-flex items-center gap-1 font-mono text-accent-3">
+                      <span className="inline-flex items-center gap-1 font-mono tabular-nums text-warning">
                         <AlertTriangle className="size-3.5" aria-hidden />
                         {s.open_alerts}
                       </span>

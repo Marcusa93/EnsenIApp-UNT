@@ -61,10 +61,10 @@ export async function Medallero({ userId }: { userId: string }) {
               <span className="min-w-0">
                 <span className="flex flex-wrap items-baseline gap-x-2">
                   <span className="text-sm font-semibold leading-snug">{b.name}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted">{tier.label}</span>
+                  <span className="eyebrow">{tier.label}</span>
                 </span>
                 <span className="mt-0.5 block text-xs leading-snug text-muted">{b.description}</span>
-                {at && <span className="mt-1 block font-mono text-[10px] uppercase tracking-widest text-accent-2">Ganada el {formatDate(at)}</span>}
+                {at && <span className="eyebrow mt-1 block text-accent-2">Ganada el {formatDate(at)}</span>}
               </span>
             </li>
           );

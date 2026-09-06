@@ -246,7 +246,7 @@ export function Deck({ studentId, recordingId, classId, classTopic, recordingTit
     <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
       {/* Barra superior */}
       <header className="flex items-center gap-3">
-        <Button asChild variant="ghost" size="icon" aria-label="Salir de las placas">
+        <Button asChild variant="ghost" size="icon" className="size-11" aria-label="Salir de las placas">
           <Link href={`/campus/estudiante/clases/${classId}`}>
             <X />
           </Link>

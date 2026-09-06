@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, HelpCircle, Layers, Lightbulb, RotateCcw } from "lucide-react";
+import { ArrowRight, HelpCircle, Layers, Lightbulb, RotateCcw, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -49,6 +49,11 @@ export function CardsPreview({ recordingId, cards, knownCount }: CardsPreviewPro
 
   return (
     <div className="flex flex-col gap-5">
+      <Badge tone="accent-3" size="sm" className="w-fit">
+        <Sparkles className="size-3" aria-hidden />
+        Generado con IA
+      </Badge>
+
       <div className="grid gap-3 sm:grid-cols-3">
         {cards.slice(0, 3).map(({ index, card }) => {
           const meta = TYPE_META[card.type];
@@ -56,7 +61,7 @@ export function CardsPreview({ recordingId, cards, knownCount }: CardsPreviewPro
           return (
             <div
               key={index}
-              className="relative flex min-h-32 flex-col justify-between overflow-hidden rounded-2xl border border-border bg-surface p-4"
+              className="paper relative flex min-h-32 flex-col justify-between overflow-hidden rounded-2xl border border-border bg-surface p-4"
             >
               <div className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full bg-accent/10 blur-2xl" aria-hidden />
               <Badge size="sm" tone={meta.tone}>

@@ -151,7 +151,7 @@ export function SystemTab({ system }: { system: SystemData }) {
                         paso: {r.current_step}
                       </Badge>
                     )}
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-muted">{formatDateTime(r.created_at)}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest tabular-nums text-muted">{formatDateTime(r.created_at)}</span>
                   </div>
                 </div>
                 <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-background/60 p-2.5 font-mono text-[11px] leading-relaxed text-danger">
@@ -160,7 +160,7 @@ export function SystemTab({ system }: { system: SystemData }) {
                 {r.class && (
                   <Link
                     href={`/campus/docente/clases/${r.class.id}`}
-                    className="mt-2 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-accent-2 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 font-display font-bold uppercase tracking-[0.12em] text-[10px] text-accent-2 hover:underline"
                   >
                     Abrir la clase en el panel docente →
                   </Link>

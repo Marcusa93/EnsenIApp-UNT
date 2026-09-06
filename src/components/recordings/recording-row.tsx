@@ -37,7 +37,7 @@ const STATUS_META: Record<RecordingStatus, { label: string; tone: BadgeTone }> =
   uploaded: { label: "Subida", tone: "muted" },
   transcribing: { label: "Transcribiendo", tone: "accent-2" },
   processing: { label: "Procesando", tone: "accent-2" },
-  generating: { label: "Generando", tone: "accent" },
+  generating: { label: "Generando", tone: "accent-2" },
   ready: { label: "Lista", tone: "success" },
   error: { label: "Error", tone: "danger" },
 };

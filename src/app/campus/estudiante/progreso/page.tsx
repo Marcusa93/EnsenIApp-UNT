@@ -252,7 +252,6 @@ export default async function ProgresoPage() {
             }
             hint={avgScore != null ? `Promedio de nota: ${avgScore.toLocaleString("es-AR", { maximumFractionDigits: 1 })}` : "Sin notas todavía"}
             icon={<ClipboardCheck />}
-            tone="accent-3"
           />
         </RevealItem>
         <RevealItem>
@@ -287,9 +286,12 @@ export default async function ProgresoPage() {
         </div>
       </div>
 
+      {/* El violeta (accent-3) es sólo para lo generado por IA: acá "dominio" es un
+          dato propio (partidas jugadas), así que va en accent-2 —el verde de "dominio
+          de un tema" en el sistema— y "Medallero" en accent (institucional). */}
       <section aria-labelledby="dominio" className="mt-10">
         <div className="mb-4 flex items-center gap-2">
-          <Target className="size-4 text-accent-3" aria-hidden />
+          <Target className="size-4 text-accent-2" aria-hidden />
           <h2 id="dominio" className="eyebrow">
             Qué te falta estudiar
           </h2>
@@ -299,7 +301,7 @@ export default async function ProgresoPage() {
 
       <section aria-labelledby="medallero" className="mt-10">
         <div className="mb-4 flex items-center gap-2">
-          <Trophy className="size-4 text-accent-3" aria-hidden />
+          <Trophy className="size-4 text-accent" aria-hidden />
           <h2 id="medallero" className="eyebrow">
             Medallero
           </h2>
@@ -307,9 +309,10 @@ export default async function ProgresoPage() {
         <Medallero userId={user.id} />
       </section>
 
+      {/* Única sección realmente generada por IA de esta pantalla: violeta (accent-3). */}
       <section aria-labelledby="devolucion" className="mt-10">
         <div className="mb-4 flex items-center gap-2">
-          <Sparkles className="size-4 text-accent" aria-hidden />
+          <Sparkles className="size-4 text-accent-3" aria-hidden />
           <h2 id="devolucion" className="eyebrow">
             Devolución personalizada
           </h2>
@@ -319,6 +322,7 @@ export default async function ProgresoPage() {
           {feedbacks.length === 0 ? (
             <EmptyState
               compact
+              tone="accent-3"
               icon={Sparkles}
               title="Todavía no generaste tu devolución"
               description="La IA lee tus check-ins, placas, entregas y consultas, y te dice qué va bien, qué reforzar y un plan de 3 pasos."

@@ -122,7 +122,8 @@ export function LiveRoom({ initial, userId, fullName, initialSubmittedWord }: Li
       initial={{ opacity: 0, y: 16, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="border-gradient glow w-full max-w-md rounded-3xl border border-transparent bg-surface p-7 sm:p-9"
+      // Tarjeta protagonista "en vivo": misma firma visual que <Card highlight tone="accent-2">.
+      className="paper corners glow w-full max-w-md rounded-3xl border border-border border-t-[3px] border-t-accent-2 bg-surface p-7 sm:p-9"
     >
       <span className="eyebrow">Hola, {firstName}</span>
       <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{initial.className}</h1>

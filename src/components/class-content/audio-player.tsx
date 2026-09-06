@@ -153,7 +153,7 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
           type="button"
           onClick={toggle}
           aria-label={playing ? "Pausar" : "Escuchar la clase"}
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {playing ? <Pause className="size-4" /> : <Play className="ml-0.5 size-4" />}
         </button>
@@ -162,7 +162,7 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
           type="button"
           onClick={() => skip(-15)}
           aria-label="Retroceder 15 segundos"
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-surface hover:text-foreground"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <RotateCcw className="size-4" />
         </button>
@@ -170,7 +170,7 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
           type="button"
           onClick={() => skip(15)}
           aria-label="Adelantar 15 segundos"
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-surface hover:text-foreground"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <RotateCw className="size-4" />
         </button>
@@ -183,7 +183,7 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
           value={Math.floor(time)}
           onChange={(e) => seek(Number(e.target.value))}
           aria-label="Posición en la clase"
-          className="order-last h-1.5 min-w-0 basis-full cursor-pointer appearance-none rounded-full bg-border accent-[var(--accent)] sm:order-none sm:basis-auto sm:flex-1"
+          className="order-last h-1.5 min-w-0 basis-full cursor-pointer appearance-none rounded-full bg-border accent-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:order-none sm:basis-auto sm:flex-1"
         />
 
         <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-muted sm:ml-0">
@@ -194,13 +194,13 @@ export const AudioPlayer = React.forwardRef<AudioPlayerHandle, AudioPlayerProps>
           type="button"
           onClick={cycleRate}
           aria-label={`Velocidad ${rate}x, tocá para cambiar`}
-          className="shrink-0 rounded-lg border border-border bg-surface px-2 py-1 font-mono text-[11px] text-foreground transition hover:border-accent/50"
+          className="shrink-0 rounded-lg border border-border bg-surface px-2 py-1 font-mono text-[11px] tabular-nums text-foreground transition hover:border-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {rate}x
         </button>
       </div>
 
-      {loading && <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Cargando audio…</p>}
+      {loading && <p className="eyebrow">Cargando audio…</p>}
     </div>
   );
 });

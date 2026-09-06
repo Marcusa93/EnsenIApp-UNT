@@ -69,7 +69,7 @@ export default async function NewDebatePage({ searchParams }: PageProps) {
     <div>
       <Link
         href="/campus/debates"
-        className="mb-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground"
+        className="eyebrow mb-4 inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" aria-hidden />
         Debates

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Download, RefreshCw, Sparkles, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -179,7 +180,7 @@ export function InstallPrompt({ variant = "button", className }: { variant?: "bu
           type="button"
           onClick={onInstall}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-accent transition hover:bg-accent/25 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/15 px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-accent transition hover:bg-accent/25 disabled:opacity-50"
         >
           <Download className="size-3" aria-hidden />
           Instalar app
@@ -312,15 +313,17 @@ export function PwaRegister() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 24, scale: 0.96 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="glass fixed inset-x-4 bottom-20 z-[60] mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-accent-2/30 p-3 shadow-2xl lg:bottom-6"
+          className="paper fixed inset-x-4 bottom-20 z-[60] mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-3 lg:bottom-6"
         >
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-2/15 text-accent-2">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-accent-2/30 bg-accent-2/10 text-accent-2">
               <Sparkles className="size-4" aria-hidden />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-medium leading-tight">Nueva versión disponible</p>
-              <p className="eyebrow mt-0.5 text-[10px]">Actualizá para tener lo último</p>
+              <p className="font-display text-sm font-semibold leading-tight">Nueva versión disponible</p>
+              <Badge tone="accent-2" dot size="sm" className="mt-1">
+                Actualización lista
+              </Badge>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">

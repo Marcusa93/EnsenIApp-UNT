@@ -29,7 +29,7 @@ export function QuizCard({ question, options, correctIndex, explanation, tag, se
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-3xl border border-border bg-surface p-5 sm:p-7">
+      <div className="paper rounded-3xl border border-border bg-surface p-5 sm:p-7">
         <div className="mb-4 flex items-center justify-between">
           <span className="eyebrow flex items-center gap-2 text-accent-2">
             <CircleHelp className="size-3.5" aria-hidden />

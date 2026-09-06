@@ -1,5 +1,6 @@
 import { ChevronDown, Sparkles } from "lucide-react";
 import { Markdown } from "@/components/markdown";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Tooltip } from "@/components/ui/tooltip";
 import type { GlossaryTerm, SummarySection } from "@/lib/types/helpers";
@@ -27,6 +28,11 @@ export function SummaryView({ summaryMd, keyPoints, sections, glossary }: Summar
 
   return (
     <div className="flex flex-col gap-6">
+      <Badge tone="accent-3" size="sm" className="w-fit">
+        <Sparkles className="size-3" aria-hidden />
+        Generado con IA
+      </Badge>
+
       {keyPoints.length > 0 && (
         <section aria-labelledby="key-points" className="rounded-2xl border border-accent/25 bg-accent/5 p-4 sm:p-5">
           <h4 id="key-points" className="eyebrow mb-3 flex items-center gap-2 text-accent">

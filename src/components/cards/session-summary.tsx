@@ -55,14 +55,14 @@ export function SessionSummary({
       aria-labelledby="session-summary-title"
       className="flex flex-col gap-5"
     >
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 text-center sm:p-8">
+      <div className="paper relative overflow-hidden rounded-3xl border border-border bg-surface p-6 text-center sm:p-8">
         <div className="campus-grid campus-grid-fade pointer-events-none absolute inset-0 opacity-60" aria-hidden />
         <div className={cn("pointer-events-none absolute -top-16 left-1/2 size-48 -translate-x-1/2 rounded-full blur-3xl", tone === "success" ? "bg-success/20" : tone === "accent" ? "bg-accent/25" : "bg-warning/20")} aria-hidden />
         <div className="relative flex flex-col items-center gap-4">
           <ProgressRing value={pct} size={112} strokeWidth={8} tone={tone} label={`${stats.known} de ${stats.total} placas conocidas`}>
             <span className="flex flex-col items-center leading-none">
-              <span className="text-2xl font-semibold tabular-nums">{pct}%</span>
-              <span className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">sesión</span>
+              <span className="display-num text-2xl">{pct}%</span>
+              <span className="mt-1 eyebrow">sesión</span>
             </span>
           </ProgressRing>
           <div>
@@ -104,15 +104,15 @@ export function SessionSummary({
       </div>
 
       {stats.weakTags.length > 0 && (
-        <div className="rounded-2xl border border-warning/30 bg-warning/6 p-4">
-          <p className="eyebrow mb-2 flex items-center gap-2 text-warning">
+        <div className="rounded-2xl border border-accent-3/30 bg-accent-3/6 p-4">
+          <p className="eyebrow mb-2 flex items-center gap-2 text-accent-3">
             <Target className="size-3.5" aria-hidden />
             Sugerencia de repaso
           </p>
           <p className="mb-3 text-sm text-muted">Estos temas concentraron las que te costaron. Volvé al resumen de la clase y buscá estas secciones.</p>
           <div className="flex flex-wrap gap-2">
             {stats.weakTags.map((t) => (
-              <Badge key={t.tag} tone="warning">
+              <Badge key={t.tag} tone="accent-3">
                 {t.tag} · {t.misses}
               </Badge>
             ))}

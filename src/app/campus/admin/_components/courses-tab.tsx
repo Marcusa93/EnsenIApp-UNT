@@ -136,7 +136,7 @@ function SubjectRow({ subject, courseCount, onEdit }: { subject: AdminSubject; c
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{subject.name}</p>
           {subject.description && <p className="mt-1 line-clamp-2 text-xs text-muted">{subject.description}</p>}
-          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest tabular-nums text-muted">
             {courseCount} curso{courseCount === 1 ? "" : "s"}
           </p>
         </div>
@@ -279,7 +279,7 @@ function CourseRow({ course, onEdit }: { course: AdminCourse; onEdit: () => void
               </Badge>
             </div>
             <p className="mt-0.5 truncate text-xs text-muted">{course.subject?.name ?? "Materia sin definir"}</p>
-            <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+            <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest tabular-nums text-muted">
               {course.enrolled} inscripto{course.enrolled === 1 ? "" : "s"} · {course.teachers} docente
               {course.teachers === 1 ? "" : "s"} · creado {formatDate(course.created_at)}
             </p>

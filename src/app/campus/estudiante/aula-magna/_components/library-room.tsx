@@ -423,7 +423,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
       {/* Salón */}
       <div
         onClick={caminarA}
-        className="relative w-full cursor-pointer touch-none overflow-hidden rounded-3xl border border-border bg-[#ded7c6]"
+        className="relative w-full cursor-pointer touch-none overflow-hidden rounded-3xl border border-border bg-surface-2"
         style={{ aspectRatio: `${SALON.w} / ${SALON.h}` }}
       >
         {/* La escena: el Aula Magna real — pared crema, viga gris, estrado de
@@ -486,7 +486,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
                 )}
               >
                 <p className="truncate text-[10px] font-medium leading-tight sm:text-xs">{m.topic}</p>
-                <p className="font-mono text-[8px] uppercase tracking-wider text-muted sm:text-[9px]">
+                <p className="font-display text-[8px] font-bold uppercase tracking-wider text-muted sm:text-[9px]">
                   {m.challenges} desafíos{gente > 0 && ` · ${gente}`}
                 </p>
               </div>
@@ -509,11 +509,11 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
             <div
               className={cn(
                 "rounded-2xl border px-2 py-1 text-center backdrop-blur-sm transition",
-                cercaDelMostrador ? "border-accent-2 bg-accent-2/15" : "border-border bg-surface/70",
+                cercaDelMostrador ? "border-accent-3 bg-accent-3/15" : "border-border bg-surface/70",
               )}
             >
               <p className="text-[10px] font-medium leading-tight sm:text-xs">Alberdi</p>
-              <p className="font-mono text-[8px] uppercase tracking-wider text-muted sm:text-[9px]">
+              <p className="font-display text-[8px] font-bold uppercase tracking-wider text-muted sm:text-[9px]">
                 {cercaDelMostrador ? "Te atiende" : "En el estrado"}
               </p>
             </div>
@@ -549,7 +549,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
               <OperatorAvatar config={b.config} size={88} bare title={b.nombre} className="h-auto w-full" />
               <span
                 className={cn(
-                  "-mt-1 max-w-full truncate rounded-full border px-1.5 font-mono text-[7px] uppercase tracking-wider backdrop-blur-sm sm:text-[9px]",
+                  "-mt-1 max-w-full truncate rounded-full border px-1.5 font-display text-[7px] font-bold uppercase tracking-wider backdrop-blur-sm sm:text-[9px]",
                   activo ? "border-accent-2 bg-accent-2/20 text-accent-2" : "border-border bg-surface/80 text-muted",
                 )}
               >
@@ -596,7 +596,7 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
               />
               <span
                 className={cn(
-                  "-mt-1 max-w-full truncate rounded-full border border-border bg-surface/85 px-1.5 font-mono text-[8px] uppercase tracking-wider backdrop-blur-sm sm:text-[10px]",
+                  "-mt-1 max-w-full truncate rounded-full border border-border bg-surface/85 px-1.5 font-display text-[8px] font-bold uppercase tracking-wider backdrop-blur-sm sm:text-[10px]",
                   soyYo ? "text-accent" : "text-muted",
                 )}
               >
@@ -615,7 +615,12 @@ export function LibraryRoom({ tables, me, courseId }: { tables: LibraryTable[]; 
           onClick={(e) => e.stopPropagation()}
         >
           {cercaDelMostrador && (
-            <Button size="sm" leftIcon={<BookOpenText />} onClick={() => setMostrador(true)} className="shadow-lg">
+            <Button
+              size="sm"
+              leftIcon={<BookOpenText />}
+              onClick={() => setMostrador(true)}
+              className="bg-accent-3 text-white shadow-lg hover:bg-accent-3/85"
+            >
               Hablar con Alberdi
             </Button>
           )}
@@ -724,7 +729,7 @@ function InspectorCard({
         <div className="flex items-center gap-3">
           <OperatorAvatar config={persona.config} size={56} bust title={persona.callsign} className="shrink-0 rounded-full" />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-mono text-sm uppercase tracking-wider">{persona.callsign}</p>
+            <p className="truncate font-display text-sm font-bold uppercase tracking-wider">{persona.callsign}</p>
             <p className="text-xs text-muted">Nivel {persona.level}</p>
           </div>
           <button
@@ -864,7 +869,7 @@ function Mostrador({ onClose }: { onClose: () => void }) {
                       setPedido(s);
                       void pedir(s);
                     }}
-                    className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-left text-[13px] transition hover:border-accent/50"
+                    className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-left text-[13px] transition hover:border-accent-3/50 hover:bg-accent-3/5"
                   >
                     {s}
                   </button>

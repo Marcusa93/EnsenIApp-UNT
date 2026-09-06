@@ -226,7 +226,7 @@ export function BotDuel({
           {(fase === "jugando" || fase === "enviando") && current && (
             <div>
               <Progress value={((index + (picked != null ? 1 : 0)) / challenges.length) * 100} size="sm" tone="accent-2" />
-              <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+              <p className="eyebrow mt-1.5">
                 {index + 1} de {challenges.length}
               </p>
 

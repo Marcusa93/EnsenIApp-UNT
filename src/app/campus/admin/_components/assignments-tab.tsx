@@ -76,7 +76,7 @@ export function AssignmentsTab({
                     <Badge tone={roleTone(t.role)} size="sm">
                       {ROLE_LABEL[t.role]}
                     </Badge>
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <span className="font-mono text-[10px] uppercase tracking-widest tabular-nums text-muted">
                       {count} curso{count === 1 ? "" : "s"}
                     </span>
                   </div>

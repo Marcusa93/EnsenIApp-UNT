@@ -197,9 +197,7 @@ export default async function JuegosPage({
                     />
                   </Link>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-                      {avatarData.avatar.callsign}
-                    </p>
+                    <p className="eyebrow truncate">{avatarData.avatar.callsign}</p>
                     <p className="eyebrow mt-1 text-accent-2">Nivel {progress.level.n}</p>
                     <h2 className="mt-0.5 truncate text-xl font-semibold tracking-tight sm:text-2xl">
                       {progress.level.name}
@@ -227,17 +225,27 @@ export default async function JuegosPage({
                     </Link>
                   </Button>
                   {avatarData.nuevos.length > 0 && (
-                    <Badge size="sm" tone="accent-3" dot live>
+                    <Badge size="sm" tone="accent-2" dot live>
                       Equipo desbloqueado
                     </Badge>
                   )}
                 </div>
 
                 {stats && stats.runs > 0 && (
-                  <p className="mt-3 font-mono text-[11px] uppercase tracking-widest text-muted">
-                    {stats.runs} {stats.runs === 1 ? "partida" : "partidas"}
-                    {accuracy != null && ` · ${accuracy}% de aciertos`}
-                    {stats.best_streak > 1 && ` · mejor racha: ${stats.best_streak} días`}
+                  <p className="mt-3 text-xs text-muted">
+                    <span className="font-mono tabular-nums">{stats.runs}</span> {stats.runs === 1 ? "partida" : "partidas"}
+                    {accuracy != null && (
+                      <>
+                        {" · "}
+                        <span className="font-mono tabular-nums">{accuracy}%</span> de aciertos
+                      </>
+                    )}
+                    {stats.best_streak > 1 && (
+                      <>
+                        {" · mejor racha: "}
+                        <span className="font-mono tabular-nums">{stats.best_streak}</span> días
+                      </>
+                    )}
                   </p>
                 )}
               </Card>
@@ -259,7 +267,7 @@ export default async function JuegosPage({
             <Reveal delay={0.1}>
               <Card>
                 <CardTitle eyebrow="La comisión" as="h2" className="flex items-center gap-2">
-                  <Trophy className="size-4 text-accent-3" aria-hidden />
+                  <Trophy className="size-4 text-accent-2" aria-hidden />
                   Tabla de posiciones
                 </CardTitle>
 

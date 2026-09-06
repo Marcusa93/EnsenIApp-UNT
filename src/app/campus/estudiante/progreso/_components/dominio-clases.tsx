@@ -59,21 +59,27 @@ export function DominioClases({ clases }: { clases: DominioClase[] }) {
         {clases.map((c) => {
           const ratio = c.correct / c.answered;
           const pct = Math.round(ratio * 100);
-          const tono = ratio < FLOJO ? "accent-3" : ratio < SOLIDO ? "accent" : "accent-2";
+          // El violeta (accent-3) es sólo para lo generado por IA: acá el dato es
+          // propio (partidas jugadas), así que la escala usa warning/danger para lo
+          // flojo y accent-2 —el verde de "dominio de un tema" en el sistema— para lo firme.
+          const tono = ratio < FLOJO ? "danger" : ratio < SOLIDO ? "warning" : "accent-2";
           return (
             <li key={c.classId} className="rounded-2xl border border-border bg-surface p-3.5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{c.topic}</p>
-                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted">
-                    {c.correct} de {c.answered} aciertos
+                  <p className="mt-0.5 eyebrow text-[10px]">
+                    <span className="font-mono tabular-nums">
+                      {c.correct} de {c.answered}
+                    </span>{" "}
+                    aciertos
                     {ratio < FLOJO ? " · para repasar" : ratio >= SOLIDO ? " · firme" : " · casi"}
                   </p>
                 </div>
                 <span
                   className={cn(
                     "shrink-0 font-mono text-sm tabular-nums",
-                    ratio < FLOJO ? "text-accent-3" : ratio < SOLIDO ? "text-accent" : "text-accent-2",
+                    ratio < FLOJO ? "text-danger" : ratio < SOLIDO ? "text-warning" : "text-accent-2",
                   )}
                 >
                   {pct}%

@@ -84,7 +84,7 @@ export function ConsultaThread({
                     mio ? "border-accent/30 bg-accent/10" : "border-border bg-surface-2/60",
                   )}
                 >
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  <p className="eyebrow text-[10px]">
                     {nombreDe(m)} · {formatRelative(m.created_at)}
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed">{m.body}</p>

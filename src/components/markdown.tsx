@@ -27,7 +27,7 @@ const components: Components = {
   p: ({ className, ...p }) => <p className={cn("my-3 leading-relaxed first:mt-0 last:mb-0", className)} {...p} />,
   a: ({ className, ...p }) => (
     <a
-      className={cn("font-medium text-accent-2 underline decoration-accent-2/40 underline-offset-4 hover:decoration-accent-2", className)}
+      className={cn("link-editorial font-medium text-accent", className)}
       target={typeof p.href === "string" && /^https?:/.test(p.href) ? "_blank" : undefined}
       rel="noopener noreferrer"
       {...p}
@@ -38,9 +38,12 @@ const components: Components = {
     <ol className={cn("my-3 list-decimal space-y-1.5 pl-5 marker:font-mono marker:text-accent", className)} {...p} />
   ),
   li: ({ className, ...p }) => <li className={cn("leading-relaxed", className)} {...p} />,
+  // Pleca en tono accent-3 (no el carmesí institucional): distingue la cita
+  // dentro del texto de las plecas carmesí que abren callouts/encabezados en
+  // otras pantallas.
   blockquote: ({ className, ...p }) => (
     <blockquote
-      className={cn("my-4 border-l-2 border-accent-3/60 bg-surface-2/60 px-4 py-2 text-muted italic", className)}
+      className={cn("my-4 border-l-[3px] border-accent-3/60 bg-surface-2/60 pl-4 pr-4 py-2 text-muted italic", className)}
       {...p}
     />
   ),
@@ -57,7 +60,10 @@ const components: Components = {
     }
     return (
       <code
-        className={cn("rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[0.85em] text-accent-2", className)}
+        className={cn(
+          "rounded-md border border-accent-3/30 bg-accent-3/10 px-1.5 py-0.5 font-mono text-[0.85em] text-accent-3",
+          className,
+        )}
         {...p}
       >
         {children}

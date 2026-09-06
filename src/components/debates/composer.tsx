@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { STANCES, STANCE_META, type DebateStance } from "./stance";
-import { StanceIcon } from "./stance-badge";
+import { StanceIcon, STANCE_COLOR } from "./stance-badge";
 import { ARGUMENT_MAX_LENGTH } from "./constants";
 
 export interface ComposerReplyTarget {
@@ -101,14 +101,14 @@ export function Composer({
     );
   }
 
-  const meta = STANCE_META[stance];
+  const color = STANCE_COLOR[stance];
 
   return (
     <form
       onSubmit={submit}
       className={cn(
         "rounded-2xl border bg-surface p-3 transition-[border-color] duration-300 sm:p-4",
-        meta.border,
+        color.border,
         className,
       )}
       aria-labelledby={`${id}-title`}
@@ -120,6 +120,7 @@ export function Composer({
         <div role="radiogroup" aria-label="Postura" className="flex gap-1 rounded-xl border border-border bg-surface-2 p-1">
           {STANCES.map((s) => {
             const m = STANCE_META[s];
+            const c = STANCE_COLOR[s];
             const active = s === stance;
             return (
               <button
@@ -129,9 +130,9 @@ export function Composer({
                 aria-checked={active}
                 onClick={() => setStance(s)}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[11px] uppercase tracking-widest transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
-                  m.ring,
-                  active ? cn("bg-surface shadow-sm", m.text) : "text-muted hover:text-foreground",
+                  "inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 eyebrow transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
+                  c.ring,
+                  active ? cn("bg-surface shadow-sm", c.text) : "hover:text-foreground",
                 )}
               >
                 <StanceIcon stance={s} className="size-3" />
@@ -146,7 +147,7 @@ export function Composer({
       {replyTo && (
         <div className="mb-3 flex items-start justify-between gap-2 rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs">
           <div className="min-w-0">
-            <span className="font-mono uppercase tracking-widest text-muted">En respuesta a </span>
+            <span className="eyebrow">En respuesta a </span>
             <span className="font-semibold">{replyTo.authorName}</span>
             <p className="mt-0.5 truncate text-muted">{replyTo.excerpt}</p>
           </div>
@@ -194,9 +195,7 @@ export function Composer({
           {content.length.toLocaleString("es-AR")} / {ARGUMENT_MAX_LENGTH.toLocaleString("es-AR")}
         </span>
         <div className="flex items-center gap-2">
-          <span className="hidden font-mono text-[10px] uppercase tracking-widest text-muted sm:inline">
-            Ctrl + Enter
-          </span>
+          <span className="hidden eyebrow sm:inline">Ctrl + Enter</span>
           <Button type="submit" size="sm" loading={pending} disabled={!canSend} leftIcon={<Send />}>
             {replyTo ? "Responder" : "Publicar"}
           </Button>

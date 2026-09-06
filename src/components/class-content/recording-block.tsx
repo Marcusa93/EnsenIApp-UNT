@@ -86,16 +86,16 @@ export function RecordingBlock({ recording, classId, ordinal }: RecordingBlockPr
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="px-5 pb-5 sm:px-6 sm:pb-6">
         <TabsList className="-mx-5 px-5 sm:-mx-6 sm:px-6">
-          <TabsTrigger value="resumen" icon={<FileText />}>
+          <TabsTrigger value="resumen" icon={<FileText className="text-accent-3" />}>
             Resumen
           </TabsTrigger>
-          <TabsTrigger value="placas" icon={<Layers />} count={recording.cards.length || undefined}>
+          <TabsTrigger value="placas" icon={<Layers className="text-accent" />} count={recording.cards.length || undefined}>
             Placas
           </TabsTrigger>
-          <TabsTrigger value="simple" icon={<BookOpen />}>
+          <TabsTrigger value="simple" icon={<BookOpen className="text-accent-3" />}>
             Versión simple
           </TabsTrigger>
-          <TabsTrigger value="transcripcion" icon={<ScrollText />}>
+          <TabsTrigger value="transcripcion" icon={<ScrollText className="text-accent-2" />}>
             Transcripción
           </TabsTrigger>
         </TabsList>

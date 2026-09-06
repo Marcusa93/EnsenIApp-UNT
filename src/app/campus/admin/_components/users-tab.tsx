@@ -148,7 +148,7 @@ function UserRow({ profile }: { profile: AdminProfile }) {
               </Badge>
             </div>
             <p className="truncate text-xs text-muted">{profile.email}</p>
-            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest tabular-nums text-muted">
               {ROLE_LABEL[role]} · alta {formatRelative(profile.created_at)}
               {profile.last_seen_at ? ` · visto ${formatRelative(profile.last_seen_at)}` : " · nunca ingresó"}
             </p>

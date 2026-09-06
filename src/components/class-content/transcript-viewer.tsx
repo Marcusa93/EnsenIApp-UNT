@@ -182,7 +182,7 @@ export function TranscriptViewer({ segments, fullText, onSeek, className }: Tran
             placeholder="Buscar en la clase…"
             aria-label="Buscar en la transcripción"
             leftIcon={<Search />}
-            className="pr-9"
+            className="pr-9 text-base"
           />
           {query && (
             <button
@@ -240,8 +240,8 @@ export function TranscriptViewer({ segments, fullText, onSeek, className }: Tran
                 key={`${b.start}-${i}`}
                 data-block={i}
                 className={cn(
-                  "flex gap-3 border-b border-border/50 px-3.5 py-3 text-sm leading-relaxed last:border-b-0",
-                  isCurrentBlock && "bg-accent/5",
+                  "flex gap-3 border-b border-border/50 border-l-2 border-l-transparent px-3.5 py-3 text-sm leading-relaxed last:border-b-0",
+                  isCurrentBlock && "border-l-accent bg-accent/10",
                 )}
               >
                 <button

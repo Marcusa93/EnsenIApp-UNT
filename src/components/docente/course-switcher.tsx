@@ -30,7 +30,7 @@ export function CourseSwitcher({ courses, activeCourseId, className }: CourseSwi
     if (!active) return null;
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <Badge tone="accent-2" dot>
+        <Badge tone="muted" dot>
           <GraduationCap className="size-3" aria-hidden />
           {active.name} · {active.term}
         </Badge>

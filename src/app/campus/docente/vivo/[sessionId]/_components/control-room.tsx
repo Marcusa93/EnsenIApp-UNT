@@ -151,7 +151,8 @@ export function ControlRoom({ session, prompts, joinUrl, projectorUrl }: Control
 
   return (
     <div className="flex flex-col gap-4">
-      <Card highlight>
+      {/* En vivo = petróleo: la sala de control entera vive bajo ese acento. */}
+      <Card highlight tone="accent-2">
         <div className="mb-1 flex items-start justify-between gap-3">
           <CardHeader className="mb-0">
             <CardTitle eyebrow="Compartí este link una sola vez">Código de sala</CardTitle>
@@ -161,7 +162,7 @@ export function ControlRoom({ session, prompts, joinUrl, projectorUrl }: Control
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-2xl border border-border bg-surface-2 px-5 py-3 font-mono text-3xl font-semibold tracking-[0.2em]">
+          <span className="display-num rounded-2xl border border-border bg-surface-2 px-5 py-3 text-4xl sm:text-5xl">
             {session.code}
           </span>
           <Badge tone={st.tone} size="sm" dot={status === "live"} live={status === "live"}>
@@ -208,7 +209,9 @@ export function ControlRoom({ session, prompts, joinUrl, projectorUrl }: Control
                   disabled={status === "ended" || busyId === p.id}
                   onClick={() => activate(p.id)}
                   className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                    isActive ? "border-accent-2 bg-accent-2/10 glow-2" : "border-border bg-surface-2/60 hover:border-accent/40"
+                    isActive
+                      ? "corners border-accent-2 border-t-[3px] bg-accent-2/10 glow-2"
+                      : "border-border bg-surface-2/60 hover:border-accent/40"
                   }`}
                 >
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface font-mono text-xs text-muted">
@@ -238,10 +241,8 @@ export function ControlRoom({ session, prompts, joinUrl, projectorUrl }: Control
             >
               <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-surface-2/60 px-4 py-3">
                 <span className="flex items-baseline gap-2">
-                  <span className="font-display text-2xl font-bold text-accent-2">{count}</span>
-                  <span className="text-xs uppercase tracking-widest text-muted">
-                    {count === 1 ? "respuesta" : "respuestas"}
-                  </span>
+                  <span className="display-num text-2xl text-accent-2">{count}</span>
+                  <span className="eyebrow">{count === 1 ? "respuesta" : "respuestas"}</span>
                 </span>
                 <Button variant="ghost" size="sm" onClick={pause} leftIcon={<Pause />}>
                   Pausar

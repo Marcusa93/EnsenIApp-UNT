@@ -58,19 +58,19 @@ export function QuestionCard({ item, mine = true }: { item: QuestionItem; mine?:
         {item.class && (
           <Link
             href={`/campus/estudiante/clases/${item.class.id}`}
-            className="mt-1.5 inline-block font-mono text-[11px] uppercase tracking-widest text-accent-2 underline-offset-4 hover:underline"
+            className="eyebrow mt-1.5 inline-block text-accent-2 underline-offset-4 hover:underline"
           >
             Clase · {item.class.topic}
           </Link>
         )}
 
         {item.teacher_answer_md && (
-          <div className="mt-4 rounded-2xl border border-success/25 bg-success/5 p-4">
+          <div className="mt-4 rounded-2xl border border-accent/25 bg-accent/5 p-4">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-lg border border-success/30 bg-success/12 text-success">
+              <span className="flex size-7 items-center justify-center rounded-lg border border-accent/30 bg-accent/12 text-accent">
                 <GraduationCap className="size-3.5" aria-hidden />
               </span>
-              <span className="eyebrow text-success">Respuesta del equipo docente</span>
+              <span className="eyebrow text-accent">Respuesta del equipo docente</span>
               {item.teacher_name && <span className="text-xs text-muted">· {item.teacher_name}</span>}
               {item.answered_at && (
                 <time dateTime={item.answered_at} className="ml-auto font-mono text-[11px] text-muted">
@@ -85,12 +85,12 @@ export function QuestionCard({ item, mine = true }: { item: QuestionItem; mine?:
         )}
 
         {item.ai_answer_md && (
-          <details className="group mt-3 rounded-2xl border border-accent-2/25 bg-accent-2/5" open={!item.teacher_answer_md}>
+          <details className="group mt-3 rounded-2xl border border-accent-3/25 bg-accent-3/5" open={!item.teacher_answer_md}>
             <summary className="flex cursor-pointer list-none items-center gap-2 p-4 [&::-webkit-details-marker]:hidden">
-              <span className="flex size-7 items-center justify-center rounded-lg border border-accent-2/30 bg-accent-2/12 text-accent-2">
+              <span className="flex size-7 items-center justify-center rounded-lg border border-accent-3/30 bg-accent-3/12 text-accent-3">
                 <Bot className="size-3.5" aria-hidden />
               </span>
-              <span className="eyebrow text-accent-2">Respuesta de la IA</span>
+              <span className="eyebrow text-accent-3">Respuesta de la IA</span>
               <span className="ml-auto font-mono text-[11px] text-muted group-open:hidden">ver</span>
               <span className="ml-auto hidden font-mono text-[11px] text-muted group-open:inline">ocultar</span>
             </summary>

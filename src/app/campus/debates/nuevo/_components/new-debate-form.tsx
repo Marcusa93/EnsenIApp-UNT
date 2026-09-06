@@ -12,7 +12,7 @@ import { Markdown } from "@/components/markdown";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { STANCE_META } from "@/components/debates/stance";
-import { StanceIcon } from "@/components/debates/stance-badge";
+import { StanceIcon, STANCE_COLOR } from "@/components/debates/stance-badge";
 import { createDebate, proposeDebate, type DebateProposal } from "../actions";
 
 export interface CourseOption {
@@ -173,7 +173,7 @@ export function NewDebateForm({ courses, classes, recordings, initialClassId, in
                 <button
                   type="button"
                   onClick={() => setPreview((v) => !v)}
-                  className="font-mono text-[10px] uppercase tracking-widest text-accent-2 hover:underline"
+                  className="eyebrow text-accent-2 hover:underline"
                   aria-pressed={preview}
                 >
                   {preview ? "Editar" : "Vista previa"}
@@ -214,8 +214,8 @@ export function NewDebateForm({ courses, classes, recordings, initialClassId, in
               className="grid gap-3 sm:grid-cols-2"
             >
               {(["a_favor", "en_contra"] as const).map((s) => (
-                <div key={s} className={cn("rounded-2xl border p-4", STANCE_META[s].border, STANCE_META[s].bg)}>
-                  <div className={cn("mb-2 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest", STANCE_META[s].text)}>
+                <div key={s} className={cn("rounded-2xl border p-4", STANCE_COLOR[s].border, STANCE_COLOR[s].bg)}>
+                  <div className={cn("mb-2 inline-flex items-center gap-1.5 eyebrow", STANCE_COLOR[s].text)}>
                     <StanceIcon stance={s} className="size-3" />
                     {STANCE_META[s].label} · sugerida
                   </div>

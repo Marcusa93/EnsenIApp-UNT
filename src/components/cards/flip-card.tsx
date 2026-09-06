@@ -46,7 +46,7 @@ export function FlipCard({ question, answer, tag, flipped, onFlip, onMark }: Fli
           )}
           aria-hidden
         >
-          <span className="rounded-full border border-warning/40 bg-warning/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-warning">
+          <span className="eyebrow rounded-full border border-warning/40 bg-warning/15 px-3 py-1 text-warning">
             Repasar
           </span>
         </div>
@@ -57,7 +57,7 @@ export function FlipCard({ question, answer, tag, flipped, onFlip, onMark }: Fli
           )}
           aria-hidden
         >
-          <span className="rounded-full border border-success/40 bg-success/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-success">
+          <span className="eyebrow rounded-full border border-success/40 bg-success/15 px-3 py-1 text-success">
             La sé
           </span>
         </div>
@@ -87,9 +87,9 @@ export function FlipCard({ question, answer, tag, flipped, onFlip, onMark }: Fli
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
             className="relative size-full [transform-style:preserve-3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring rounded-3xl"
           >
-            {/* Frente */}
+            {/* Frente: ficha de papel con pleca carmesí arriba. */}
             <div
-              className={cn(face, "border-border bg-surface", reduce && flipped && "invisible")}
+              className={cn(face, "paper border-border bg-surface border-t-[3px] border-t-accent", reduce && flipped && "invisible")}
               aria-hidden={flipped}
             >
               <div className="flex items-center justify-between">
@@ -114,7 +114,7 @@ export function FlipCard({ question, answer, tag, flipped, onFlip, onMark }: Fli
             <div
               className={cn(
                 face,
-                "border-accent/40 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_14%,var(--surface)),var(--surface))]",
+                "paper border-border bg-surface-2",
                 reduce ? (flipped ? "" : "invisible") : "[transform:rotateY(180deg)]",
               )}
               aria-hidden={!flipped}
@@ -128,7 +128,7 @@ export function FlipCard({ question, answer, tag, flipped, onFlip, onMark }: Fli
                 )}
               </div>
               <div className="flex flex-1 items-center justify-center overflow-y-auto py-4 text-center">
-                <Markdown size="md" className="text-left sm:text-center">
+                <Markdown size="lg" className="text-left sm:text-center">
                   {answer}
                 </Markdown>
               </div>
